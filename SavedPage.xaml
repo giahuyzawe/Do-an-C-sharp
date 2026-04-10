@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FoodStreetGuide.SavedPage"
+             Title="Saved"
+             BackgroundColor="{StaticResource Background}">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Header -->
+        <VerticalStackLayout Grid.Row="0" Padding="16,16,16,8" Spacing="4">
+            <Label Text="Saved Places"
+                   FontSize="20"
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource TextPrimary}"/>
+            <Label Text="Your favorite restaurants"
+                   FontSize="14"
+                   TextColor="{StaticResource TextSecondary}"/>
+        </VerticalStackLayout>
+
+        <!-- Saved List -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16,8,16,16" Spacing="12">
+
+                <!-- Item 1 -->
+                <Frame BackgroundColor="{StaticResource Surface}"
+                       CornerRadius="16"
+                       HasShadow="True"
+                       Padding="12">
+                    <Grid ColumnDefinitions="72,*,Auto" ColumnSpacing="12">
+                        <Frame Grid.Column="0"
+                               CornerRadius="12"
+                               Padding="0"
+                               IsClippedToBounds="True"
+                               WidthRequest="72"
+                               HeightRequest="72"
+                               BackgroundColor="#FFE8D6"
+                               BorderColor="Transparent">
+                            <Label Text="🍜" FontSize="32"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"/>
+                        </Frame>
+                        <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
+                            <Label Text="Pho Hoa Pasteur"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource TextPrimary}"/>
+                            <HorizontalStackLayout Spacing="2">
+                                <Label Text="★★★★" FontSize="12" TextColor="{StaticResource StarFilled}"/>
+                                <Label Text="★" FontSize="12" TextColor="{StaticResource StarEmpty}"/>
+                                <Label Text="4.8" FontSize="11"
+                                       TextColor="{StaticResource TextSecondary}"
+                                       VerticalOptions="Center" Margin="2,0,0,0"/>
+                            </HorizontalStackLayout>
+                            <Label Text="500m away"
+                                   FontSize="12"
+                                   TextColor="{StaticResource TextSecondary}"/>
+                        </VerticalStackLayout>
+                        <Label Grid.Column="2"
+                               Text="❤️"
+                               FontSize="20"
+                               VerticalOptions="Center"/>
+                    </Grid>
+                </Frame>
+
+                <!-- Item 2 -->
+                <Frame BackgroundColor="{StaticResource Surface}"
+                       CornerRadius="16"
+                       HasShadow="True"
+                       Padding="12">
+                    <Grid ColumnDefinitions="72,*,Auto" ColumnSpacing="12">
+                        <Frame Grid.Column="0"
+                               CornerRadius="12"
+                               Padding="0"
+                               IsClippedToBounds="True"
+                               WidthRequest="72"
+                               HeightRequest="72"
+                               BackgroundColor="#FFF0D9"
+                               BorderColor="Transparent">
+                            <Label Text="🥖" FontSize="32"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"/>
+                        </Frame>
+                        <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
+                            <Label Text="Banh Mi Huynh Hoa"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource TextPrimary}"/>
+                            <HorizontalStackLayout Spacing="2">
+                                <Label Text="★★★★" FontSize="12" TextColor="{StaticResource StarFilled}"/>
+                                <Label Text="★" FontSize="12" TextColor="{StaticResource StarEmpty}"/>
+                                <Label Text="4.6" FontSize="11"
+                                       TextColor="{StaticResource TextSecondary}"
+                                       VerticalOptions="Center" Margin="2,0,0,0"/>
+                            </HorizontalStackLayout>
+                            <Label Text="750m away"
+                                   FontSize="12"
+                                   TextColor="{StaticResource TextSecondary}"/>
+                        </VerticalStackLayout>
+                        <Label Grid.Column="2"
+                               Text="❤️"
+                               FontSize="20"
+                               VerticalOptions="Center"/>
+                    </Grid>
+                </Frame>
+
+                <!-- Item 3 -->
+                <Frame BackgroundColor="{StaticResource Surface}"
+                       CornerRadius="16"
+                       HasShadow="True"
+                       Padding="12">
+                    <Grid ColumnDefinitions="72,*,Auto" ColumnSpacing="12">
+                        <Frame Grid.Column="0"
+                               CornerRadius="12"
+                               Padding="0"
+                               IsClippedToBounds="True"
+                               WidthRequest="72"
+                               HeightRequest="72"
+                               BackgroundColor="#E8F5FF"
+                               BorderColor="Transparent">
+                            <Label Text="🍲" FontSize="32"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"/>
+                        </Frame>
+                        <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
+                            <Label Text="Bun Bo Hue"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource TextPrimary}"/>
+                            <HorizontalStackLayout Spacing="2">
+                                <Label Text="★★★★" FontSize="12" TextColor="{StaticResource StarFilled}"/>
+                                <Label Text="★" FontSize="12" TextColor="{StaticResource StarEmpty}"/>
+                                <Label Text="4.7" FontSize="11"
+                                       TextColor="{StaticResource TextSecondary}"
+                                       VerticalOptions="Center" Margin="2,0,0,0"/>
+                            </HorizontalStackLayout>
+                            <Label Text="1.8km away"
+                                   FontSize="12"
+                                   TextColor="{StaticResource TextSecondary}"/>
+                        </VerticalStackLayout>
+                        <Label Grid.Column="2"
+                               Text="❤️"
+                               FontSize="20"
+                               VerticalOptions="Center"/>
+                    </Grid>
+                </Frame>
+
+                <!-- Empty State -->
+                <VerticalStackLayout x:Name="emptyStateLayout"
+                                     IsVisible="False"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Center"
+                                     Spacing="12"
+                                     Margin="0,80">
+                    <Label Text="🤍"
+                           FontSize="56"
+                           HorizontalOptions="Center"/>
+                    <Label Text="You have no saved restaurants yet"
+                           FontSize="16"
+                           TextColor="{StaticResource TextSecondary}"
+                           HorizontalOptions="Center"/>
+                    <Label Text="Tap the heart icon on any restaurant to save it"
+                           FontSize="13"
+                           TextColor="{StaticResource TextTertiary}"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center"/>
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

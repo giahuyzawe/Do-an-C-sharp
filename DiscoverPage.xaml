@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FoodStreetGuide.DiscoverPage"
+             Title="Discover"
+             BackgroundColor="{StaticResource Background}">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Header -->
+        <VerticalStackLayout Grid.Row="0" Padding="16,16,16,8" Spacing="4">
+            <Label Text="Discover"
+                   FontSize="20"
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource TextPrimary}"/>
+            <Label Text="Find the best restaurants near you"
+                   FontSize="14"
+                   TextColor="{StaticResource TextSecondary}"/>
+        </VerticalStackLayout>
+
+        <!-- Restaurant Cards -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16,8,16,16" Spacing="16">
+
+                <!-- Card 1: Pho Hoa -->
+                <Frame BackgroundColor="{StaticResource Surface}"
+                       CornerRadius="16"
+                       HasShadow="True"
+                       Padding="0"
+                       IsClippedToBounds="True">
+                    <!-- Top Image -->
+                    <VerticalStackLayout Spacing="0">
+                        <Frame BackgroundColor="#FFE8D6"
+                               Padding="0"
+                               CornerRadius="0"
+                               BorderColor="Transparent"
+                               HeightRequest="160">
+                            <Label Text="🍜"
+                                   FontSize="64"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"/>
+                        </Frame>
+                        <!-- Info -->
+                        <VerticalStackLayout Padding="14,12" Spacing="6">
+                            <Label Text="Pho Hoa Pasteur"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource TextPrimary}"/>
+                            <HorizontalStackLayout Spacing="4">
+                                <Label Text="★★★★" FontSize="14" TextColor="{StaticResource StarFilled}"/>
+                                <Label Text="★" FontSize="14" TextColor="{StaticResource StarEmpty}"/>
+                                <Label Text="4.8 (215)"
+                                       FontSize="12"
+                                       TextColor="{StaticResource TextSecondary}"
+                                       VerticalOptions="Center"
+                                       Margin="4,0,0,0"/>
+                            </HorizontalStackLayout>
+                            <HorizontalStackLayout Spacing="12">
+                                <Label Text="500m away"
+                                       FontSize="13"
+                                       TextColor="{StaticResource TextSecondary}"/>
+                                <Label Text="·" FontSize="13" TextColor="{StaticResource TextTertiary}"/>
+                                <Label Text="Open now"
+                                       FontSize="13"
+                                       TextColor="{StaticResource Success}"/>
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Card 2: Banh Mi -->
+                <Frame BackgroundColor="{StaticResource Surface}"
+                       CornerRadius="16"
+                       HasShadow="True"
+                       Padding="0"
+                       IsClippedToBounds="True">
+                    <VerticalStackLayout Spacing="0">
+                        <Frame BackgroundColor="#FFF0D9"
+                               Padding="0"
+                               CornerRadius="0"
+                               BorderColor="Transparent"
+                               HeightRequest="160">
+                            <Label Text="🥖"
+                                   FontSize="64"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"/>
+                        </Frame>
+                        <VerticalStackLayout Padding="14,12" Spacing="6">
+                            <Label Text="Banh Mi Huynh Hoa"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource TextPrimary}"/>
+                            <HorizontalStackLayout Spacing="4">
+                                <Label Text="★★★★" FontSize="14" TextColor="{StaticResource StarFilled}"/>
+                                <Label Text="★" FontSize="14" TextColor="{StaticResource StarEmpty}"/>
+                                <Label Text="4.6 (189)"
+                                       FontSize="12"
+                                       TextColor="{StaticResource TextSecondary}"
+                                       VerticalOptions="Center"
+                                       Margin="4,0,0,0"/>
+                            </HorizontalStackLayout>
+                            <HorizontalStackLayout Spacing="12">
+                                <Label Text="750m away"
+                                       FontSize="13"
+                                       TextColor="{StaticResource TextSecondary}"/>
+                                <Label Text="·" FontSize="13" TextColor="{StaticResource TextTertiary}"/>
+                                <Label Text="Open now"
+                                       FontSize="13"
+                                       TextColor="{StaticResource Success}"/>
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Card 3: Com Tam -->
+                <Frame BackgroundColor="{StaticResource Surface}"
+                       CornerRadius="16"
+                       HasShadow="True"
+                       Padding="0"
+                       IsClippedToBounds="True">
+                    <VerticalStackLayout Spacing="0">
+                        <Frame BackgroundColor="#FFE8E8"
+                               Padding="0"
+                               CornerRadius="0"
+                               BorderColor="Transparent"
+                               HeightRequest="160">
+                            <Label Text="🍚"
+                                   FontSize="64"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"/>
+                        </Frame>
+                        <VerticalStackLayout Padding="14,12" Spacing="6">
+                            <Label Text="Com Tam Cali"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource TextPrimary}"/>
+                            <HorizontalStackLayout Spacing="4">
+                                <Label Text="★★★★" FontSize="14" TextColor="{StaticResource StarFilled}"/>
+                                <Label Text="★" FontSize="14" TextColor="{StaticResource StarEmpty}"/>
+                                <Label Text="4.5 (156)"
+                                       FontSize="12"
+                                       TextColor="{StaticResource TextSecondary}"
+                                       VerticalOptions="Center"
+                                       Margin="4,0,0,0"/>
+                            </HorizontalStackLayout>
+                            <HorizontalStackLayout Spacing="12">
+                                <Label Text="1.2km away"
+                                       FontSize="13"
+                                       TextColor="{StaticResource TextSecondary}"/>
+                                <Label Text="·" FontSize="13" TextColor="{StaticResource TextTertiary}"/>
+                                <Label Text="Open 24h"
+                                       FontSize="13"
+                                       TextColor="{StaticResource Success}"/>
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Card 4: Bun Bo Hue -->
+                <Frame BackgroundColor="{StaticResource Surface}"
+                       CornerRadius="16"
+                       HasShadow="True"
+                       Padding="0"
+                       IsClippedToBounds="True">
+                    <VerticalStackLayout Spacing="0">
+                        <Frame BackgroundColor="#E8F5FF"
+                               Padding="0"
+                               CornerRadius="0"
+                               BorderColor="Transparent"
+                               HeightRequest="160">
+                            <Label Text="🍲"
+                                   FontSize="64"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"/>
+                        </Frame>
+                        <VerticalStackLayout Padding="14,12" Spacing="6">
+                            <Label Text="Bun Bo Hue"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource TextPrimary}"/>
+                            <HorizontalStackLayout Spacing="4">
+                                <Label Text="★★★★" FontSize="14" TextColor="{StaticResource StarFilled}"/>
+                                <Label Text="★" FontSize="14" TextColor="{StaticResource StarEmpty}"/>
+                                <Label Text="4.7 (203)"
+                                       FontSize="12"
+                                       TextColor="{StaticResource TextSecondary}"
+                                       VerticalOptions="Center"
+                                       Margin="4,0,0,0"/>
+                            </HorizontalStackLayout>
+                            <HorizontalStackLayout Spacing="12">
+                                <Label Text="1.8km away"
+                                       FontSize="13"
+                                       TextColor="{StaticResource TextSecondary}"/>
+                                <Label Text="·" FontSize="13" TextColor="{StaticResource TextTertiary}"/>
+                                <Label Text="Open now"
+                                       FontSize="13"
+                                       TextColor="{StaticResource Success}"/>
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Frame>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

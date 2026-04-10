@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:maps="clr-namespace:Microsoft.Maui.Controls.Maps;assembly=Microsoft.Maui.Controls.Maps"
+    x:Class="FoodStreetGuide.MainPage"
+    Shell.TabBarIsVisible="True"
+    BackgroundColor="{StaticResource Background}">
+
+    <Grid>
+
+        <!-- ═══ FULL SCREEN MAP (NO PADDING) ═══ -->
+        <maps:Map
+            x:Name="map"
+            MapType="Street"
+            IsShowingUser="True"
+            VerticalOptions="Fill"
+            HorizontalOptions="Fill"/>
+
+        <!-- ═══ SEARCH BAR (TOP) ═══ -->
+        <Frame
+            x:Name="searchBarFrame"
+            VerticalOptions="Start"
+            HorizontalOptions="Fill"
+            Margin="16,16,16,0"
+            Padding="0"
+            BackgroundColor="{StaticResource Surface}"
+            CornerRadius="26"
+            HasShadow="True"
+            HeightRequest="52">
+            <Grid ColumnDefinitions="Auto,*,Auto" Padding="16,0">
+                <Label Grid.Column="0"
+                       Text="🔍"
+                       FontSize="20"
+                       VerticalOptions="Center"/>
+                <Label Grid.Column="1"
+                       Text="Search restaurants or food"
+                       TextColor="{StaticResource TextTertiary}"
+                       FontSize="14"
+                       VerticalOptions="Center"
+                       Margin="12,0,0,0"/>
+                <Label Grid.Column="2"
+                       Text="⚙"
+                       FontSize="20"
+                       TextColor="{StaticResource TextSecondary}"
+                       VerticalOptions="Center"/>
+            </Grid>
+        </Frame>
+
+        <!-- ═══ TRACKING STATUS BADGE ═══ -->
+        <Frame
+            x:Name="trackingIndicator"
+            VerticalOptions="Start"
+            HorizontalOptions="Center"
+            Margin="0,76,0,0"
+            Padding="12,6"
+            BackgroundColor="{StaticResource Surface}"
+            CornerRadius="16"
+            HasShadow="True"
+            IsVisible="False">
+            <HorizontalStackLayout Spacing="6">
+                <Ellipse WidthRequest="8" HeightRequest="8" Fill="{StaticResource Success}"/>
+                <Label
+                    x:Name="trackingStatusLabel"
+                    Text="Tracking Active"
+                    TextColor="{StaticResource TextPrimary}"
+                    FontSize="12"
+                    FontAttributes="Bold"
+                    VerticalOptions="Center"/>
+            </HorizontalStackLayout>
+        </Frame>
+
+        <!-- ═══ FLOATING ACTION BUTTONS (RIGHT SIDE) ═══ -->
+        <!-- Order: My Location → Nearest POI → Narration → Tracking -->
+        <VerticalStackLayout
+            x:Name="fabStack"
+            VerticalOptions="End"
+            HorizontalOptions="End"
+            Margin="0,0,16,120"
+            Spacing="12">
+
+            <!-- 1. My Location — 56px rounded square -->
+            <Frame Padding="0"
+                   BackgroundColor="#FFFFFF"
+                   CornerRadius="16"
+                   WidthRequest="56"
+                   HeightRequest="56"
+                   HasShadow="True"
+                   BorderColor="Transparent"
+                   Shadow="{StaticResource FABShadow}">
+                <Button x:Name="locationButton"
+                        Text="📍"
+                        FontSize="24"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource TextPrimary}"
+                        Padding="0"
+                        Clicked="OnRecenterTapped"/>
+            </Frame>
+
+            <!-- 2. Nearest POI — 56px rounded square -->
+            <Frame Padding="0"
+                   BackgroundColor="#FFFFFF"
+                   CornerRadius="16"
+                   WidthRequest="56"
+                   HeightRequest="56"
+                   HasShadow="True"
+                   BorderColor="Transparent"
+                   Shadow="{StaticResource FABShadow}">
+                <Button x:Name="nearestButton"
+                        Text="🍽️"
+                        FontSize="24"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource TextPrimary}"
+                        Padding="0"
+                        Clicked="OnFindNearestClicked"/>
+            </Frame>
+
+            <!-- 3. Narration — 56px rounded square -->
+            <Frame Padding="0"
+                   BackgroundColor="#FFFFFF"
+                   CornerRadius="16"
+                   WidthRequest="56"
+                   HeightRequest="56"
+                   HasShadow="True"
+                   BorderColor="Transparent"
+                   Shadow="{StaticResource FABShadow}">
+                <Button x:Name="narrationButton"
+                        Text="🔊"
+                        FontSize="24"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource TextPrimary}"
+                        Padding="0"
+                        Clicked="OnNarrateManualClicked"/>
+            </Frame>
+
+            <!-- 4. Tracking — 64px larger rounded square -->
+            <Frame x:Name="trackButtonFrame"
+                   Padding="0"
+                   BackgroundColor="#FF6B35"
+                   CornerRadius="18"
+                   WidthRequest="64"
+                   HeightRequest="64"
+                   HasShadow="True"
+                   BorderColor="Transparent"
+                   Shadow="{StaticResource TrackingShadow}">
+                <Button x:Name="trackButton"
+                        Text="▶"
+                        FontSize="28"
+                        BackgroundColor="Transparent"
+                        TextColor="#FFFFFF"
+                        Padding="0"
+                        Clicked="OnTrackButtonClicked"/>
+            </Frame>
+
+        </VerticalStackLayout>
+
+        <!-- ═══ POI PREVIEW BOTTOM SHEET (35% HEIGHT) ═══ -->
+        <Frame
+            x:Name="poiCard"
+            VerticalOptions="End"
+            HorizontalOptions="Fill"
+            Margin="0"
+            Padding="0"
+            BackgroundColor="{StaticResource Surface}"
+            CornerRadius="20,20,0,0"
+            HasShadow="True"
+            Shadow="{StaticResource CardShadowLarge}"
+            IsVisible="False"
+            HeightRequest="280">
+
+            <VerticalStackLayout Spacing="0">
+
+                <!-- Drag Handle (#CCCCCC) -->
+                <BoxView HeightRequest="4"
+                         WidthRequest="40"
+                         BackgroundColor="#CCCCCC"
+                         CornerRadius="2"
+                         HorizontalOptions="Center"
+                         Margin="0,12,0,12"/>
+
+                <!-- Restaurant Image (120px height, 12px radius) -->
+                <Frame
+                    x:Name="poiImageFrame"
+                    Padding="0"
+                    CornerRadius="12"
+                    HeightRequest="120"
+                    Margin="16,0,16,12"
+                    IsClippedToBounds="True"
+                    BorderColor="Transparent"
+                    BackgroundColor="{StaticResource ButtonBg}">
+                    <Image x:Name="poiImage"
+                           Source="restaurant_placeholder.png"
+                           Aspect="AspectFill"
+                           HeightRequest="120"/>
+                </Frame>
+
+                <!-- Restaurant Name -->
+                <Label x:Name="poiNameLabel"
+                       Text="Restaurant Name"
+                       FontSize="18"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource TextPrimary}"
+                       LineBreakMode="TailTruncation"
+                       Margin="16,0,16,4"/>
+
+                <!-- Distance -->
+                <Label x:Name="poiDistanceLabel"
+                       Text="0m away"
+                       FontSize="14"
+                       TextColor="{StaticResource TextSecondary}"
+                       Margin="16,0,16,4"/>
+
+                <!-- Hours -->
+                <Label x:Name="poiHoursLabel"
+                       Text=""
+                       FontSize="12"
+                       TextColor="{StaticResource Success}"
+                       Margin="16,0,16,8"/>
+
+                <!-- Address -->
+                <Label x:Name="poiAddressLabel"
+                       Text="Address"
+                       FontSize="12"
+                       TextColor="{StaticResource TextSecondary}"
+                       LineBreakMode="TailTruncation"
+                       Margin="16,0,16,12"/>
+
+                <!-- 3 Action Buttons (horizontal, 40px height, 10px radius) -->
+                <Grid ColumnDefinitions="*,*,*"
+                      ColumnSpacing="12"
+                      Padding="16,0,16,16">
+
+                    <!-- Button 1: Listen (Speaker icon) -->
+                    <Frame Grid.Column="0"
+                           Padding="0"
+                           CornerRadius="10"
+                           HeightRequest="40"
+                           BackgroundColor="{StaticResource Primary}"
+                           BorderColor="Transparent">
+                        <Frame.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnNarrateClicked"/>
+                        </Frame.GestureRecognizers>
+                        <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="6">
+                            <Label Text="🔊" FontSize="16" VerticalOptions="Center" TextColor="#FFFFFF"/>
+                            <Label Text="Nghe mô tả"
+                                   FontSize="13"
+                                   TextColor="#FFFFFF"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                    </Frame>
+
+                    <!-- Button 2: Directions (Navigation icon) -->
+                    <Frame Grid.Column="1"
+                           Padding="0"
+                           CornerRadius="10"
+                           HeightRequest="40"
+                           BackgroundColor="{StaticResource ButtonBg}"
+                           BorderColor="{StaticResource Primary}">
+                        <Frame.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnDirectionsClicked"/>
+                        </Frame.GestureRecognizers>
+                        <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="6">
+                            <Label Text="🧭" FontSize="16" VerticalOptions="Center"/>
+                            <Label Text="Chỉ đường"
+                                   FontSize="13"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                    </Frame>
+
+                    <!-- Button 3: Details (Info icon) -->
+                    <Frame Grid.Column="2"
+                           Padding="0"
+                           CornerRadius="10"
+                           HeightRequest="40"
+                           BackgroundColor="{StaticResource ButtonBg}"
+                           BorderColor="Transparent">
+                        <Frame.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnDetailsClicked"/>
+                        </Frame.GestureRecognizers>
+                        <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="6">
+                            <Label Text="ℹ️" FontSize="16" VerticalOptions="Center"/>
+                            <Label Text="Chi tiết"
+                                   FontSize="13"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                    </Frame>
+                </Grid>
+            </VerticalStackLayout>
+        </Frame>
+
+    </Grid>
+
+</ContentPage>

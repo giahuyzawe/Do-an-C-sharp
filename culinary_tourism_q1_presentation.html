@@ -1,0 +1,333 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Culinary Tourism Q1 - Đồ Án Hệ Thống</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
+
+body{
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+color:white;
+overflow-x:hidden;
+}
+
+header{
+text-align:center;
+padding:80px 20px;
+}
+
+header h1{
+font-size:48px;
+margin-bottom:10px;
+}
+
+header p{
+opacity:0.8;
+font-size:18px;
+}
+
+.container{
+width:90%;
+max-width:1200px;
+margin:auto;
+padding:40px 0;
+}
+
+.section{
+margin-bottom:60px;
+}
+
+.section h2{
+font-size:32px;
+margin-bottom:20px;
+border-left:6px solid #ff8c42;
+padding-left:15px;
+}
+
+.card-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:20px;
+}
+
+.card{
+background:rgba(255,255,255,0.08);
+border-radius:15px;
+padding:20px;
+backdrop-filter:blur(10px);
+transition:0.3s;
+border:1px solid rgba(255,255,255,0.15);
+}
+
+.card:hover{
+transform:translateY(-6px);
+background:rgba(255,255,255,0.15);
+}
+
+.card h3{
+margin-bottom:10px;
+}
+
+.card p{
+opacity:0.9;
+line-height:1.6;
+font-size:14px;
+}
+
+.list{
+line-height:1.8;
+padding-left:20px;
+}
+
+footer{
+text-align:center;
+padding:40px;
+opacity:0.7;
+font-size:14px;
+border-top:1px solid rgba(255,255,255,0.2);
+}
+
+.badges{
+display:flex;
+justify-content:center;
+gap:20px;
+flex-wrap:wrap;
+margin-top:20px;
+}
+
+.badge{
+background:#ff8c42;
+padding:8px 14px;
+border-radius:8px;
+font-size:14px;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>🍜 Culinary Tourism Q1</h1>
+<p>Hệ Thống Du Lịch Ẩm Thực Quận 1 – Progressive Web App</p>
+
+<div class="badges">
+<div class="badge">FastAPI + MongoDB</div>
+<div class="badge">React + Vite PWA</div>
+<div class="badge">MapLibre</div>
+<div class="badge">Edge TTS</div>
+<div class="badge">Gemini AI</div>
+</div>
+</header>
+
+
+<div class="container">
+
+<div class="section">
+<h2>1. Tổng quan hệ thống</h2>
+<p>
+Culinary Tourism Q1 là một ứng dụng web dạng Progressive Web App (PWA) giúp du khách
+khám phá các quán ăn nổi tiếng tại Quận 1 – trung tâm TP.HCM. Ứng dụng tích hợp bản đồ,
+hệ thống định vị GPS và audio thuyết minh để mang lại trải nghiệm khám phá ẩm thực trực quan.
+</p>
+</div>
+
+
+<div class="section">
+<h2>2. Kiến trúc hệ thống</h2>
+
+<div class="card-grid">
+
+<div class="card">
+<h3>Frontend</h3>
+<p>React 18 và Vite được sử dụng để xây dựng giao diện web hiện đại,
+tối ưu tốc độ tải trang và hỗ trợ PWA.</p>
+</div>
+
+<div class="card">
+<h3>Backend</h3>
+<p>FastAPI cung cấp hệ thống REST API xử lý dữ liệu quán ăn,
+tài khoản người dùng và các chức năng của hệ thống.</p>
+</div>
+
+<div class="card">
+<h3>Database</h3>
+<p>MongoDB lưu trữ dữ liệu POI, menu món ăn,
+tài khoản và dữ liệu đa ngôn ngữ.</p>
+</div>
+
+<div class="card">
+<h3>Map System</h3>
+<p>MapLibre GL hiển thị bản đồ tương tác và các marker quán ăn.</p>
+</div>
+
+<div class="card">
+<h3>Audio System</h3>
+<p>Edge Text‑to‑Speech chuyển văn bản thành giọng nói
+để tạo audio thuyết minh.</p>
+</div>
+
+<div class="card">
+<h3>AI Service</h3>
+<p>Gemini AI hỗ trợ viết mô tả quán ăn và dịch nội dung.</p>
+</div>
+
+</div>
+</div>
+
+
+<div class="section">
+<h2>3. Luồng khởi động hệ thống</h2>
+
+<ul class="list">
+<li>Trình duyệt tải Service Worker để kích hoạt PWA</li>
+<li>Hiển thị Splash Screen</li>
+<li>Người dùng chọn ngôn ngữ</li>
+<li>Tải dữ liệu quán ăn từ server</li>
+<li>Lấy vị trí GPS của người dùng</li>
+<li>Hiển thị bản đồ và các quán ăn gần vị trí</li>
+</ul>
+
+</div>
+
+
+<div class="section">
+<h2>4. GPS và Geofence</h2>
+
+<p>
+Ứng dụng sử dụng Geolocation API để xác định vị trí người dùng.
+Khi người dùng đến gần một quán ăn (khoảng 300–500m),
+hệ thống có thể hiển thị thông tin và phát audio giới thiệu.
+</p>
+
+</div>
+
+
+<div class="section">
+<h2>5. Dữ liệu POI</h2>
+
+<div class="card-grid">
+
+<div class="card">
+<h3>Thông tin POI</h3>
+<p>Tên quán, địa chỉ, tọa độ GPS, mô tả và hình ảnh.</p>
+</div>
+
+<div class="card">
+<h3>Món ăn</h3>
+<p>Danh sách các món đặc trưng của quán.</p>
+</div>
+
+<div class="card">
+<h3>Audio Guide</h3>
+<p>File audio giới thiệu quán ăn.</p>
+</div>
+
+</div>
+
+</div>
+
+
+<div class="section">
+<h2>6. Audio Guide</h2>
+
+<p>
+Audio Guide giúp du khách nghe giới thiệu về quán ăn.
+Hệ thống sử dụng Text‑to‑Speech để tạo audio tự động
+cho các nội dung mô tả.
+</p>
+
+</div>
+
+
+<div class="section">
+<h2>7. Authentication & RBAC</h2>
+
+<ul class="list">
+<li><b>Admin</b>: quản lý toàn bộ hệ thống</li>
+<li><b>Owner</b>: chủ quán đề xuất chỉnh sửa thông tin</li>
+<li><b>User</b>: người dùng bình thường</li>
+</ul>
+
+</div>
+
+
+<div class="section">
+<h2>8. Offline / PWA</h2>
+
+<p>
+Nhờ Service Worker và IndexedDB,
+ứng dụng vẫn có thể hoạt động khi không có internet.
+Dữ liệu quán ăn, hình ảnh và audio có thể được lưu cache
+để sử dụng offline.
+</p>
+
+</div>
+
+
+<div class="section">
+<h2>9. Hệ thống bản đồ</h2>
+
+<p>
+MapLibre GL được sử dụng để hiển thị bản đồ tương tác.
+Người dùng có thể xem vị trí của mình và các quán ăn xung quanh.
+</p>
+
+</div>
+
+
+<div class="section">
+<h2>10. Admin Dashboard</h2>
+
+<ul class="list">
+<li>Thêm và chỉnh sửa quán ăn</li>
+<li>Quản lý menu</li>
+<li>Quản lý người dùng</li>
+<li>Upload hình ảnh và audio</li>
+</ul>
+
+</div>
+
+
+<div class="section">
+<h2>11. AI Advisor</h2>
+
+<p>
+AI Advisor hỗ trợ viết mô tả quán ăn hấp dẫn hơn
+và gợi ý nội dung giới thiệu cho khách du lịch.
+</p>
+
+</div>
+
+
+<div class="section">
+<h2>12. Kết luận</h2>
+
+<p>
+Hệ thống Culinary Tourism Q1 giúp du khách dễ dàng
+khám phá ẩm thực Quận 1 thông qua bản đồ tương tác,
+audio thuyết minh và dữ liệu địa điểm.
+</p>
+
+</div>
+
+
+</div>
+
+<footer>
+Culinary Tourism Q1 – Đồ án hệ thống thông tin
+</footer>
+
+</body>
+</html>

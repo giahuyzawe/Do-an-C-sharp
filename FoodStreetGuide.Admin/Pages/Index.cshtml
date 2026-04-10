@@ -1,0 +1,124 @@
+﻿@page
+@model FoodStreetGuide.Admin.Pages.IndexModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">Dashboard</h1>
+        <p class="text-muted mb-0">Tổng quan hệ thống Food Street Guide</p>
+    </div>
+    <a asp-page="/POIs/Create" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-2"></i>Thêm POI mới
+    </a>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="mb-1 opacity-75">Tổng số POI</p>
+                        <h3 class="mb-0">@Model.TotalPOIs</h3>
+                    </div>
+                    <i class="bi bi-geo-alt fs-2 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card h-100" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="mb-1 opacity-75">Điểm ưu tiên cao</p>
+                        <h3 class="mb-0">@Model.HighPriorityPOIs</h3>
+                    </div>
+                    <i class="bi bi-flag fs-2 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card h-100" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: white;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="mb-1 opacity-75">Có audio</p>
+                        <h3 class="mb-0">@Model.POIsWithAudio</h3>
+                    </div>
+                    <i class="bi bi-mic fs-2 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card h-100" style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); color: white;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="mb-1 opacity-75">Thêm gần đây</p>
+                        <h3 class="mb-0">@Model.RecentPOIs</h3>
+                    </div>
+                    <i class="bi bi-clock fs-2 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">POI gần đây</h5>
+        <a asp-page="/POIs/Index" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Tên</th>
+                        <th>Tọa độ</th>
+                        <th>Bán kính</th>
+                        <th>Ưu tiên</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var poi in Model.RecentPOIList)
+                    {
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                        <i class="bi bi-geo-alt-fill small"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-medium">@poi.NameVi</div>
+                                        <small class="text-muted">@(poi.NameEn ?? "-")</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <small class="text-muted">@poi.Latitude.ToString("F6"), @poi.Longitude.ToString("F6")</small>
+                            </td>
+                            <td>@poi.Radius m</td>
+                            <td>
+                                <span class="badge @(poi.Priority >= 3 ? "bg-danger" : poi.Priority == 2 ? "bg-warning" : "bg-success")">
+                                    @poi.Priority
+                                </span>
+                            </td>
+                            <td>
+                                <a asp-page="/POIs/Edit" asp-route-id="@poi.Id" class="btn btn-sm btn-light">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FoodStreetGuide.POIListPage"
+             Title="Restaurant List"
+             BackgroundColor="{StaticResource Background}">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Header + Buttons -->
+        <VerticalStackLayout Grid.Row="0" Padding="16,52,16,12" Spacing="12">
+            <Label Text="Manage POIs"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource TextPrimary}"/>
+            <HorizontalStackLayout Spacing="10">
+                <Button Text="+ Add New"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="White"
+                        CornerRadius="10"
+                        FontSize="14"
+                        FontAttributes="Bold"
+                        HeightRequest="42"
+                        Clicked="OnAddPOIClicked"/>
+                <Button Text="⟳ Sync"
+                        BackgroundColor="{StaticResource Success}"
+                        TextColor="White"
+                        CornerRadius="10"
+                        FontSize="14"
+                        FontAttributes="Bold"
+                        HeightRequest="42"
+                        Clicked="OnSyncClicked"/>
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+
+        <!-- POI List -->
+        <CollectionView Grid.Row="1"
+                        x:Name="poiCollectionView"
+                        Margin="16,0,16,16"
+                        SelectionMode="Single"
+                        SelectionChanged="OnPOISelected">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Frame BackgroundColor="{StaticResource Surface}"
+                           CornerRadius="14"
+                           HasShadow="True"
+                           Padding="12"
+                           Margin="0,6">
+                        <Grid ColumnDefinitions="68,*" ColumnSpacing="12">
+
+                            <!-- Image / Emoji placeholder -->
+                            <Frame Grid.Column="0"
+                                   CornerRadius="10"
+                                   Padding="0"
+                                   IsClippedToBounds="True"
+                                   WidthRequest="68"
+                                   HeightRequest="68"
+                                   BackgroundColor="{StaticResource Gray100}"
+                                   BorderColor="Transparent">
+                                <Label Text="🍽️"
+                                       FontSize="32"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"/>
+                            </Frame>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                                <Label Text="{Binding NameVi}"
+                                       FontAttributes="Bold"
+                                       FontSize="15"
+                                       TextColor="{StaticResource TextPrimary}"/>
+                                <Label Text="{Binding DescriptionVi}"
+                                       FontSize="12"
+                                       TextColor="{StaticResource TextSecondary}"
+                                       LineBreakMode="TailTruncation"
+                                       MaxLines="2"/>
+                                <HorizontalStackLayout Spacing="8">
+                                    <Frame BackgroundColor="{StaticResource Gray100}"
+                                           Padding="6,2"
+                                           CornerRadius="6"
+                                           BorderColor="Transparent">
+                                        <Label FontSize="11"
+                                               TextColor="{StaticResource Primary}"
+                                               FontAttributes="Bold">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="P: "/>
+                                                    <Span Text="{Binding Priority}"/>
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                    </Frame>
+                                    <Frame BackgroundColor="{StaticResource Gray100}"
+                                           Padding="6,2"
+                                           CornerRadius="6"
+                                           BorderColor="Transparent">
+                                        <Label FontSize="11"
+                                               TextColor="{StaticResource TextSecondary}">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="📍 "/>
+                                                    <Span Text="{Binding Radius}"/>
+                                                    <Span Text="m"/>
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                    </Frame>
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+    </Grid>
+
+</ContentPage>

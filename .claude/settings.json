@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(adb -e shell am start -n \"com.companyname.foodstreetguide/crc64f6ca91d5ad56f2d7.MainActivity\")",
+      "Bash(adb -e shell pm dump com.companyname.foodstreetguide)",
+      "Bash(adb -e shell am start -n \"com.companyname.foodstreetguide/crc6465e069b95d094e50.MainActivity\")",
+      "Bash(adb -e shell am force-stop com.companyname.foodstreetguide)",
+      "Bash(dotnet clean:*)",
+      "Bash(adb -e uninstall com.companyname.foodstreetguide)",
+      "Bash(adb -e install \"c:/Users/PC/FoodStreetGuide/bin/Debug/net9.0-android/com.companyname.foodstreetguide-Signed.apk\")",
+      "Bash(adb -e logcat -d -s \"AndroidRuntime:E\" \"mono:E\" \"MonoDroid:E\" \"DOTNET:E\")",
+      "Bash(adb -e logcat -d -t \"04-08 21:11:00.000\" -s \"AndroidRuntime:E\" \"mono:E\" \"MonoDroid:E\" \"DOTNET:E\")"
+    ]
+  }
+}

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Hệ thống du lịch ẩm thực Quận 1</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
+
+body{
+background:linear-gradient(135deg,#1f2a44,#283e51);
+color:white;
+line-height:1.6;
+}
+
+/* background layer */
+
+.bg{
+position:fixed;
+width:100%;
+height:100%;
+background:
+radial-gradient(circle at 30% 20%,rgba(255,255,255,0.08),transparent 40%),
+radial-gradient(circle at 80% 80%,rgba(255,255,255,0.08),transparent 40%);
+z-index:-1;
+}
+
+/* container */
+
+.container{
+width:85%;
+max-width:1100px;
+margin:auto;
+padding:60px 0;
+}
+
+/* title */
+
+.title{
+text-align:center;
+margin-bottom:60px;
+}
+
+.title h1{
+font-size:42px;
+margin-bottom:10px;
+}
+
+.title p{
+opacity:0.8;
+font-size:18px;
+}
+
+/* section */
+
+.section{
+margin-bottom:50px;
+}
+
+.section h2{
+font-size:28px;
+margin-bottom:15px;
+border-left:5px solid #ff7e5f;
+padding-left:10px;
+}
+
+.section p{
+opacity:0.9;
+margin-bottom:10px;
+}
+
+.section ul{
+margin-left:20px;
+margin-top:10px;
+}
+
+.section li{
+margin-bottom:8px;
+}
+
+/* card block */
+
+.card{
+background:rgba(255,255,255,0.08);
+border-radius:15px;
+padding:25px;
+margin-top:20px;
+backdrop-filter:blur(8px);
+border:1px solid rgba(255,255,255,0.15);
+}
+
+/* grid */
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:20px;
+margin-top:20px;
+}
+
+.tech{
+background:rgba(255,255,255,0.1);
+padding:20px;
+border-radius:12px;
+text-align:center;
+}
+
+footer{
+text-align:center;
+margin-top:50px;
+opacity:0.6;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="bg"></div>
+
+<div class="container">
+
+<div class="title">
+<h1>HỆ THỐNG DU LỊCH ẨM THỰC QUẬN 1</h1>
+<p>PWA khám phá ẩm thực trung tâm TP.HCM</p>
+</div>
+
+<!-- 1 -->
+
+<div class="section">
+<h2>1. Tổng quan hệ thống</h2>
+
+<div class="card">
+
+<p>
+Hệ thống Culinary Tourism Q1 là một ứng dụng web hiện đại được phát triển dưới dạng Progressive Web App (PWA). 
+Ứng dụng cho phép khách du lịch khám phá các quán ăn nổi tiếng tại Quận 1 – khu vực trung tâm của Thành phố Hồ Chí Minh.
+</p>
+
+<p><b>Mục tiêu chính của hệ thống:</b></p>
+
+<ul>
+<li>Giúp du khách dễ dàng tìm kiếm quán ăn địa phương.</li>
+<li>Cung cấp thông tin chi tiết về món ăn đặc trưng.</li>
+<li>Tích hợp audio thuyết minh giúp du khách hiểu về văn hóa ẩm thực.</li>
+<li>Hoạt động được ngay cả khi mất kết nối internet.</li>
+</ul>
+
+<p>
+Ứng dụng hướng tới việc trở thành một công cụ hỗ trợ du lịch thông minh, kết hợp giữa công nghệ bản đồ, dữ liệu địa điểm và trí tuệ nhân tạo.
+</p>
+
+</div>
+</div>
+
+<!-- 2 -->
+
+<div class="section">
+<h2>2. Kiến trúc hệ thống</h2>
+
+<div class="grid">
+
+<div class="tech">Frontend<br><b>React + Vite</b></div>
+
+<div class="tech">Backend<br><b>FastAPI</b></div>
+
+<div class="tech">Database<br><b>MongoDB</b></div>
+
+<div class="tech">Map System<br><b>MapLibre GL</b></div>
+
+<div class="tech">Audio Engine<br><b>Edge TTS</b></div>
+
+<div class="tech">AI Service<br><b>Gemini</b></div>
+
+</div>
+
+<div class="card">
+Kiến trúc này giúp hệ thống dễ mở rộng và có thể triển khai trên nhiều nền tảng khác nhau.
+</div>
+
+</div>
+
+<!-- 3 -->
+
+<div class="section">
+<h2>3. Quy trình khởi động hệ thống</h2>
+
+<div class="card">
+
+<ul>
+<li>Trình duyệt tải Service Worker để hỗ trợ PWA.</li>
+<li>Ứng dụng hiển thị Splash Screen.</li>
+<li>Người dùng chọn ngôn ngữ.</li>
+<li>Ứng dụng tải dữ liệu quán ăn.</li>
+<li>Lấy vị trí GPS của người dùng.</li>
+<li>Hiển thị bản đồ cùng các quán ăn xung quanh.</li>
+</ul>
+
+</div>
+
+</div>
+
+<!-- 4 -->
+
+<div class="section">
+<h2>4. GPS và Geofence</h2>
+
+<div class="card">
+
+<ul>
+<li>Tìm quán ăn trong bán kính 300 – 500 mét.</li>
+<li>Hiển thị marker trên bản đồ.</li>
+<li>Khi người dùng đến gần quán → phát audio giới thiệu.</li>
+</ul>
+
+<p>
+Ví dụ: Khi người dùng đi gần <b>Bánh mì Huỳnh Hoa</b>, hệ thống sẽ phát audio giới thiệu lịch sử của quán.
+</p>
+
+</div>
+
+</div>
+
+<!-- 5 -->
+
+<div class="section">
+<h2>5. Hệ thống dữ liệu POI</h2>
+
+<div class="card">
+
+<p>Mỗi POI bao gồm:</p>
+
+<ul>
+<li>Tên quán</li>
+<li>Địa chỉ</li>
+<li>Tọa độ GPS</li>
+<li>Mô tả quán</li>
+<li>Món ăn nổi bật</li>
+<li>Hình ảnh</li>
+<li>Audio thuyết minh</li>
+</ul>
+
+<p>Ví dụ các quán:</p>
+
+<ul>
+<li>Bánh mì Huỳnh Hoa</li>
+<li>Phở Phú Vương</li>
+<li>Bún thịt nướng Chị Tuyền</li>
+<li>Ốc Đào</li>
+<li>Cơm tấm Cali</li>
+</ul>
+
+</div>
+
+</div>
+
+<!-- 6 -->
+
+<div class="section">
+<h2>6. Audio Guide</h2>
+
+<div class="card">
+
+<p>Hệ thống Text-to-Speech hỗ trợ:</p>
+
+<ul>
+<li>Tiếng Việt</li>
+<li>Tiếng Anh</li>
+<li>Tiếng Trung</li>
+<li>Tiếng Nhật</li>
+<li>Tiếng Hàn</li>
+</ul>
+
+</div>
+
+</div>
+
+<!-- 7 -->
+
+<div class="section">
+<h2>7. Authentication & RBAC</h2>
+
+<div class="card">
+
+<ul>
+<li><b>Admin:</b> quản lý dữ liệu quán ăn.</li>
+<li><b>Owner:</b> chủ quán đề xuất chỉnh sửa.</li>
+</ul>
+
+</div>
+
+</div>
+
+<!-- 8 -->
+
+<div class="section">
+<h2>8. Đa ngôn ngữ</h2>
+
+<div class="card">
+Ứng dụng hỗ trợ nhiều ngôn ngữ và có thể dùng AI để dịch nội dung mô tả quán ăn.
+</div>
+
+</div>
+
+<!-- 9 -->
+
+<div class="section">
+<h2>9. Offline / PWA</h2>
+
+<div class="card">
+
+<ul>
+<li>Service Worker cache dữ liệu</li>
+<li>IndexedDB lưu quán ăn</li>
+<li>Offline map pack</li>
+</ul>
+
+</div>
+
+</div>
+
+<!-- 10 -->
+
+<div class="section">
+<h2>10. Hệ thống bản đồ</h2>
+
+<div class="card">
+
+<ul>
+<li>Hiển thị vị trí người dùng</li>
+<li>Marker quán ăn</li>
+<li>Zoom và di chuyển bản đồ</li>
+</ul>
+
+</div>
+
+</div>
+
+<!-- 11 -->
+
+<div class="section">
+<h2>11. Admin Dashboard</h2>
+
+<div class="card">
+
+<ul>
+<li>Thêm quán</li>
+<li>Chỉnh sửa mô tả</li>
+<li>Upload hình ảnh</li>
+<li>Quản lý audio</li>
+</ul>
+
+</div>
+
+</div>
+
+<!-- 12 -->
+
+<div class="section">
+<h2>12. Kết luận</h2>
+
+<div class="card">
+Hệ thống Culinary Tourism Q1 là nền tảng khám phá ẩm thực thông minh kết hợp bản đồ, dữ liệu địa điểm và AI để mang lại trải nghiệm du lịch sinh động.
+</div>
+
+</div>
+
+<footer>
+Culinary Tourism Q1 – System Presentation
+</footer>
+
+</div>
+
+</body>
+</html>

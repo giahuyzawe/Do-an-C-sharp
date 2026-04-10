@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FoodStreetGuide.AddPOIPage"
+             Title="Thêm Quán Ăn">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="10">
+            
+            <Label Text="Tên quán (Tiếng Việt)" FontAttributes="Bold"/>
+            <Entry x:Name="nameViEntry" Placeholder="Nhập tên quán..."/>
+            
+            <Label Text="Tên quán (English)" FontAttributes="Bold"/>
+            <Entry x:Name="nameEnEntry" Placeholder="Enter restaurant name..."/>
+            
+            <Label Text="Mô tả (Tiếng Việt)" FontAttributes="Bold"/>
+            <Editor x:Name="descViEditor" Placeholder="Nhập mô tả..." HeightRequest="100"/>
+            
+            <Label Text="Mô tả (English)" FontAttributes="Bold"/>
+            <Editor x:Name="descEnEditor" Placeholder="Enter description..." HeightRequest="100"/>
+            
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <VerticalStackLayout Grid.Column="0">
+                    <Label Text="Vĩ độ (Latitude)" FontAttributes="Bold"/>
+                    <Entry x:Name="latEntry" Placeholder="10.762622" Keyboard="Numeric"/>
+                </VerticalStackLayout>
+                <VerticalStackLayout Grid.Column="1">
+                    <Label Text="Kinh độ (Longitude)" FontAttributes="Bold"/>
+                    <Entry x:Name="lngEntry" Placeholder="106.660172" Keyboard="Numeric"/>
+                </VerticalStackLayout>
+            </Grid>
+            
+            <Label Text="Bán kính kích hoạt (mét)" FontAttributes="Bold"/>
+            <Entry x:Name="radiusEntry" Placeholder="50" Text="50" Keyboard="Numeric"/>
+            
+            <Label Text="Mức ưu tiên" FontAttributes="Bold"/>
+            <Entry x:Name="priorityEntry" Placeholder="1" Text="1" Keyboard="Numeric"/>
+            
+            <Label Text="Đường dẫn ảnh" FontAttributes="Bold"/>
+            <Entry x:Name="imageEntry" Placeholder="image.jpg"/>
+            
+            <Label Text="File audio Tiếng Việt" FontAttributes="Bold"/>
+            <Entry x:Name="audioViEntry" Placeholder="audio_vi.mp3"/>
+            
+            <Label Text="File audio English" FontAttributes="Bold"/>
+            <Entry x:Name="audioEnEntry" Placeholder="audio_en.mp3"/>
+            
+            <Label Text="Link Google Maps (tùy chọn)" FontAttributes="Bold"/>
+            <Entry x:Name="mapUrlEntry" Placeholder="https://maps.google.com/?q=..."/>
+            
+            <Button Text="Lưu POI" 
+                    BackgroundColor="#512BD4" 
+                    TextColor="White"
+                    Clicked="OnSaveClicked"/>
+                    
+            <Button Text="Lấy vị trí hiện tại" 
+                    BackgroundColor="#2196F3" 
+                    TextColor="White"
+                    Clicked="OnGetCurrentLocationClicked"/>
+                    
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

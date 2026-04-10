@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="FoodStreetGuide.NearbyPage"
+    Title="Gần đây"
+    BackgroundColor="#F2F2F7">
+
+    <Grid RowDefinitions="Auto,*">
+        <!-- Search Bar -->
+        <Frame 
+            Grid.Row="0"
+            Margin="16,16,16,8"
+            Padding="12,8"
+            BackgroundColor="White"
+            CornerRadius="12"
+            HasShadow="False">
+            <HorizontalStackLayout Spacing="8">
+                <Label 
+                    Text="🔍" 
+                    TextColor="#8E8E93"
+                    FontSize="16"
+                    VerticalOptions="Center"/>
+                <Entry 
+                    x:Name="searchEntry"
+                    Placeholder="Tìm quán ăn..."
+                    PlaceholderColor="#8E8E93"
+                    TextColor="#1C1C1E"
+                    FontSize="16"
+                    BackgroundColor="Transparent"
+                    HorizontalOptions="FillAndExpand"/>
+            </HorizontalStackLayout>
+        </Frame>
+
+        <!-- POI List -->
+        <CollectionView 
+            x:Name="poiCollectionView"
+            Grid.Row="1"
+            Margin="16,8,16,16"
+            SelectionMode="Single"
+            SelectionChanged="OnPOISelected">
+            
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="12"/>
+            </CollectionView.ItemsLayout>
+            
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Frame 
+                        Padding="16"
+                        BackgroundColor="White"
+                        CornerRadius="16"
+                        HasShadow="True">
+                        <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto">
+                            <!-- Icon -->
+                            <Frame 
+                                Grid.RowSpan="3"
+                                Grid.Column="0"
+                                WidthRequest="48"
+                                HeightRequest="48"
+                                BackgroundColor="#FF9500"
+                                CornerRadius="12"
+                                Padding="0"
+                                HasShadow="False">
+                                <Label 
+                                    Text="🍴"
+                                    TextColor="White"
+                                    FontSize="20"
+                                    HorizontalOptions="Center"
+                                    VerticalOptions="Center"/>
+                            </Frame>
+                            
+                            <!-- Name -->
+                            <Label 
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                Text="{Binding NameVi}"
+                                FontSize="17"
+                                FontAttributes="Bold"
+                                TextColor="#1C1C1E"
+                                Margin="12,0,0,0"/>
+                            
+                            <!-- Distance -->
+                            <Label 
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Text="{Binding DistanceText}"
+                                FontSize="14"
+                                TextColor="#8E8E93"
+                                Margin="12,4,0,0"/>
+                            
+                            <!-- Opening Hours -->
+                            <Label 
+                                Grid.Row="2"
+                                Grid.Column="1"
+                                Text="{Binding OpeningHours}"
+                                FontSize="13"
+                                TextColor="#34C759"
+                                Margin="12,4,0,0"/>
+                            
+                            <!-- Arrow -->
+                            <Label 
+                                Grid.RowSpan="3"
+                                Grid.Column="2"
+                                Text="›"
+                                TextColor="#C7C7CC"
+                                FontSize="24"
+                                VerticalOptions="Center"/>
+                        </Grid>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+
+</ContentPage>

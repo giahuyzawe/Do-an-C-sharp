@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?xaml-comp compile="true" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- FoodStreetGuide Color System -->
+
+    <!-- Primary: Warm Orange -->
+    <Color x:Key="Primary">#FF6B35</Color>
+    <Color x:Key="PrimaryDark">#E55E2E</Color>
+    <Color x:Key="PrimaryLight">#FF8F66</Color>
+
+    <!-- Secondary: Deep Blue -->
+    <Color x:Key="Secondary">#004E89</Color>
+    <Color x:Key="SecondaryDark">#003D6B</Color>
+    <Color x:Key="SecondaryLight">#1A6FAF</Color>
+
+    <!-- Background Colors -->
+    <Color x:Key="Background">#F8F9FA</Color>
+    <Color x:Key="Surface">#FFFFFF</Color>
+    <Color x:Key="CardBackground">#FFFFFF</Color>
+
+    <!-- Text Colors -->
+    <Color x:Key="TextPrimary">#333333</Color>
+    <Color x:Key="TextSecondary">#777777</Color>
+    <Color x:Key="TextTertiary">#999999</Color>
+    <Color x:Key="TextWhite">#FFFFFF</Color>
+
+    <!-- Functional Colors -->
+    <Color x:Key="Accent">#FF3B30</Color>
+    <Color x:Key="MapMarker">#FF3B30</Color>
+    <Color x:Key="Success">#2ECC71</Color>
+    <Color x:Key="Active">#2ECC71</Color>
+    <Color x:Key="Error">#FF3B30</Color>
+    <Color x:Key="Warning">#FFC107</Color>
+    <Color x:Key="StarFilled">#FFC107</Color>
+    <Color x:Key="StarEmpty">#E0E0E0</Color>
+
+    <!-- UI Element Colors -->
+    <Color x:Key="Divider">#E5E5E5</Color>
+    <Color x:Key="ButtonBg">#F1F3F4</Color>
+
+    <!-- Legacy support -->
+    <Color x:Key="White">#FFFFFF</Color>
+    <Color x:Key="Black">#000000</Color>
+    <Color x:Key="OffBlack">#1f1f1f</Color>
+
+    <!-- Gray Scale -->
+    <Color x:Key="Gray100">#F8F9FA</Color>
+    <Color x:Key="Gray200">#E8E8E8</Color>
+    <Color x:Key="Gray300">#D4D4D4</Color>
+    <Color x:Key="Gray400">#BBBBBB</Color>
+    <Color x:Key="Gray500">#999999</Color>
+    <Color x:Key="Gray600">#777777</Color>
+    <Color x:Key="Gray700">#555555</Color>
+    <Color x:Key="Gray800">#333333</Color>
+    <Color x:Key="Gray900">#212121</Color>
+    <Color x:Key="Gray950">#141414</Color>
+
+    <!-- Colors referenced by Styles.xaml for dark theme support -->
+    <Color x:Key="PrimaryDarkText">#FFFFFF</Color>
+    <Color x:Key="SecondaryDarkText">#E0E0E0</Color>
+    <Color x:Key="MidnightBlue">#1A1F36</Color>
+    <Color x:Key="Magenta">#FF6B35</Color>
+
+    <!-- Brushes -->
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
+    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource Background}"/>
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource Surface}"/>
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource CardBackground}"/>
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimary}"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondary}"/>
+    <SolidColorBrush x:Key="TextTertiaryBrush" Color="{StaticResource TextTertiary}"/>
+    <SolidColorBrush x:Key="TextWhiteBrush" Color="{StaticResource TextWhite}"/>
+    <SolidColorBrush x:Key="MapMarkerBrush" Color="{StaticResource MapMarker}"/>
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource Success}"/>
+    <SolidColorBrush x:Key="ActiveBrush" Color="{StaticResource Active}"/>
+    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource Error}"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource Warning}"/>
+    <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource White}"/>
+    <SolidColorBrush x:Key="BlackBrush" Color="{StaticResource Black}"/>
+
+    <SolidColorBrush x:Key="Gray100Brush" Color="{StaticResource Gray100}"/>
+    <SolidColorBrush x:Key="Gray200Brush" Color="{StaticResource Gray200}"/>
+    <SolidColorBrush x:Key="Gray300Brush" Color="{StaticResource Gray300}"/>
+    <SolidColorBrush x:Key="Gray400Brush" Color="{StaticResource Gray400}"/>
+    <SolidColorBrush x:Key="Gray500Brush" Color="{StaticResource Gray500}"/>
+    <SolidColorBrush x:Key="Gray600Brush" Color="{StaticResource Gray600}"/>
+    <SolidColorBrush x:Key="Gray900Brush" Color="{StaticResource Gray900}"/>
+    <SolidColorBrush x:Key="Gray950Brush" Color="{StaticResource Gray950}"/>
+
+    <!-- Shadows for UI Components -->
+    <!-- FAB Shadow: Y:4, Blur:12, Opacity:15% -->
+    <Shadow x:Key="FABShadow"
+            Brush="#40000000"
+            Offset="0,4"
+            Radius="12"
+            Opacity="0.15"/>
+
+    <!-- Tracking Button Shadow: Blur:16 -->
+    <Shadow x:Key="TrackingShadow"
+            Brush="#60000000"
+            Offset="0,4"
+            Radius="16"
+            Opacity="0.2"/>
+
+    <!-- Card Large Shadow: Blur:20 -->
+    <Shadow x:Key="CardShadowLarge"
+            Brush="#40000000"
+            Offset="0,-4"
+            Radius="20"
+            Opacity="0.15"/>
+
+    <!-- Standard Card Shadow: Blur:10, Opacity:10% -->
+    <Shadow x:Key="CardShadow"
+            Brush="#40000000"
+            Offset="0,2"
+            Radius="10"
+            Opacity="0.1"/>
+</ResourceDictionary>
