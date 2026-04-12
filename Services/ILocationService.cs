@@ -6,6 +6,7 @@ public interface ILocationService
     Task StartTrackingAsync();
     Task StopTrackingAsync();
     bool IsTracking { get; }
+    Task<LocationUpdatedEventArgs?> GetCurrentLocationAsync();
 }
 
 public class LocationUpdatedEventArgs : EventArgs

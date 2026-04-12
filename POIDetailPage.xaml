@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FoodStreetGuide.POIDetailPage"
+             Title="Chi tiết"
+             BackgroundColor="{StaticResource Background}">
+
+    <Grid RowDefinitions="Auto,*">
+        <!-- Header -->
+        <Frame Grid.Row="0"
+               BackgroundColor="{StaticResource Surface}"
+               BorderColor="Transparent"
+               Padding="16,12"
+               CornerRadius="0">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <Button Grid.Column="0"
+                        x:Name="backButton"
+                        Text="←"
+                        FontSize="20"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource TextPrimary}"
+                        Clicked="OnBackClicked"
+                        Padding="0"
+                        WidthRequest="40"/>
+                <Label Grid.Column="1"
+                       x:Name="titleLabel"
+                       Text="Chi tiết nhà hàng"
+                       FontSize="18"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource TextPrimary}"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"/>
+                <Frame Grid.Column="2"
+                       Padding="0"
+                       CornerRadius="20"
+                       HeightRequest="40"
+                       WidthRequest="40"
+                       BackgroundColor="#F7F7F7"
+                       BorderColor="Transparent">
+                    <Frame.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnSaveTapped"/>
+                    </Frame.GestureRecognizers>
+                    <Label x:Name="saveHeartLabel"
+                           Text="❤️" 
+                           FontSize="18" 
+                           HorizontalOptions="Center" 
+                           VerticalOptions="Center" 
+                           TextColor="#666666"/>
+                </Frame>
+            </Grid>
+        </Frame>
+
+        <!-- Content -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16,8,16,24" Spacing="16">
+
+                <!-- Image Carousel -->
+                <Grid HeightRequest="200">
+                    <CarouselView x:Name="poiImageCarousel"
+                                  Loop="False"
+                                  IsSwipeEnabled="True"
+                                  HeightRequest="200"
+                                  IndicatorView="poiImageIndicator">
+                        <CarouselView.ItemTemplate>
+                            <DataTemplate>
+                                <Frame Padding="0"
+                                       CornerRadius="16"
+                                       IsClippedToBounds="True"
+                                       BorderColor="Transparent"
+                                       BackgroundColor="#F0F0F0">
+                                    <Image Source="{Binding .}"
+                                           Aspect="AspectFill"
+                                           HeightRequest="200"/>
+                                </Frame>
+                            </DataTemplate>
+                        </CarouselView.ItemTemplate>
+                    </CarouselView>
+                    <IndicatorView x:Name="poiImageIndicator"
+                                   IndicatorColor="#CCCCCC"
+                                   SelectedIndicatorColor="{StaticResource Primary}"
+                                   IndicatorSize="8"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="End"
+                                   Margin="0,0,0,12"/>
+                </Grid>
+
+                <!-- Restaurant Info -->
+                <VerticalStackLayout Spacing="8">
+                    <Label x:Name="poiNameLabel"
+                           Text="Tên nhà hàng"
+                           FontSize="22"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource TextPrimary}"/>
+                    
+                    <HorizontalStackLayout Spacing="12">
+                        <Label x:Name="poiRatingLabel"
+                               Text="⭐ 4.5"
+                               FontSize="14"
+                               TextColor="{StaticResource TextSecondary}"/>
+                        <Label Text="·" FontSize="14" TextColor="{StaticResource TextTertiary}"/>
+                        <Label x:Name="poiDistanceLabel"
+                               Text="500m"
+                               FontSize="14"
+                               TextColor="{StaticResource TextSecondary}"/>
+                        <Label Text="·" FontSize="14" TextColor="{StaticResource TextTertiary}"/>
+                        <Label x:Name="poiStatusLabel"
+                               Text="Đang mở cửa"
+                               FontSize="14"
+                               TextColor="{StaticResource Success}"/>
+                    </HorizontalStackLayout>
+
+                    <Label x:Name="poiAddressLabel"
+                           Text="📍 Địa chỉ nhà hàng"
+                           FontSize="14"
+                           TextColor="{StaticResource TextSecondary}"/>
+
+                    <Label x:Name="poiHoursLabel"
+                           Text="🕐 07:00 - 22:00"
+                           FontSize="14"
+                           TextColor="{StaticResource TextSecondary}"/>
+                </VerticalStackLayout>
+
+                <!-- Description -->
+                <Frame BackgroundColor="{StaticResource Surface}"
+                       CornerRadius="12"
+                       Padding="16"
+                       BorderColor="Transparent">
+                    <VerticalStackLayout Spacing="8">
+                        <Label x:Name="descriptionTitleLabel"
+                               Text="Giới thiệu"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource TextPrimary}"/>
+                        <Label x:Name="poiDescriptionLabel"
+                               Text="Mô tả nhà hàng..."
+                               FontSize="14"
+                               TextColor="{StaticResource TextSecondary}"
+                               LineBreakMode="WordWrap"/>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Featured Dishes -->
+                <Frame BackgroundColor="{StaticResource Surface}"
+                       CornerRadius="12"
+                       Padding="16"
+                       BorderColor="Transparent">
+                    <VerticalStackLayout Spacing="12">
+                        <Label x:Name="dishesTitleLabel"
+                               Text="Món nổi bật"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource TextPrimary}"/>
+                        
+                        <VerticalStackLayout x:Name="dishesContainer" Spacing="12">
+                            <!-- Dish items will be added dynamically -->
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Action Buttons -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                    <Button Grid.Column="0"
+                            x:Name="directionsButton"
+                            Text="&#10148; Chỉ đường"
+                            BackgroundColor="{StaticResource Primary}"
+                            TextColor="White"
+                            CornerRadius="12"
+                            HeightRequest="48"
+                            Clicked="OnDirectionsClicked"/>
+                    
+                    <Button Grid.Column="1"
+                            x:Name="callButton"
+                            Text="&#128222; Gọi điện"
+                            BackgroundColor="#F7F7F7"
+                            TextColor="{StaticResource TextPrimary}"
+                            CornerRadius="12"
+                            HeightRequest="48"
+                            BorderColor="{StaticResource Border}"
+                            Clicked="OnCallClicked"/>
+                </Grid>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+
+</ContentPage>

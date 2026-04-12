@@ -8,6 +8,7 @@ public partial class SettingsPage : ContentPage
     private readonly ISettingsService? _settingsService;
     private readonly ITTSService? _ttsService;
     private readonly IGeofenceEngine? _geofenceEngine;
+    private readonly ILocalizationService? _localizationService;
 
     public SettingsPage()
     {
@@ -16,6 +17,7 @@ public partial class SettingsPage : ContentPage
         _settingsService = ServiceProviderHelper.GetService<ISettingsService>();
         _ttsService = ServiceProviderHelper.GetService<ITTSService>();
         _geofenceEngine = ServiceProviderHelper.GetService<IGeofenceEngine>();
+        _localizationService = ServiceProviderHelper.GetService<ILocalizationService>();
         
         LoadSettings();
     }
@@ -59,10 +61,67 @@ public partial class SettingsPage : ContentPage
 
     private void OnNarrationToggled(object sender, ToggledEventArgs e)
     {
+        if (_settingsService != null)
+        {
+            _settingsService.SetNarrationEnabled(e.Value);
+        }
     }
 
     private void OnVoiceChanged(object sender, EventArgs e)
     {
+        if (voicePicker == null || _settingsService == null || _localizationService == null) return;
+        
+        // 0 = Vietnamese, 1 = English
+        string language = voicePicker.SelectedIndex == 0 ? "vi" : "en";
+        _localizationService.SetLanguage(language);
+        
+        // Update UI immediately
+        LoadLocalizedUI();
+    }
+    
+    private void LoadLocalizedUI()
+    {
+        if (_localizationService == null) return;
+        var loc = _localizationService;
+        
+        // Update all UI elements with localized strings
+        Title = loc.GetString("Settings_Title");
+        
+        // Profile section
+        if (profileNameLabel != null) profileNameLabel.Text = loc.GetString("Settings_Profile");
+        if (profileSubtitleLabel != null) profileSubtitleLabel.Text = loc.GetString("Settings_ProfileSubtitle");
+        
+        // Geofence section
+        if (geofenceSectionLabel != null) geofenceSectionLabel.Text = loc.GetString("Settings_GeofenceSection");
+        if (radiusLabel != null) radiusLabel.Text = loc.GetString("Settings_Radius");
+        if (cooldownLabel != null) cooldownLabel.Text = loc.GetString("Settings_Cooldown");
+        
+        // Narration section
+        if (narrationSectionLabel != null) narrationSectionLabel.Text = loc.GetString("Settings_NarrationSection");
+        if (enableNarrationLabel != null) enableNarrationLabel.Text = loc.GetString("Settings_EnableNarration");
+        if (languageLabel != null) languageLabel.Text = loc.GetString("Settings_Language");
+        if (speedLabel != null) speedLabel.Text = loc.GetString("Settings_SpeechSpeed");
+        
+        // GPS section
+        if (gpsSectionLabel != null) gpsSectionLabel.Text = loc.GetString("Settings_GPSSection");
+        if (intervalLabel != null) intervalLabel.Text = loc.GetString("Settings_UpdateInterval");
+        
+        // About section
+        if (aboutSectionLabel != null) aboutSectionLabel.Text = loc.GetString("Settings_AboutSection");
+        if (versionLabel != null) versionLabel.Text = loc.GetString("Settings_Version");
+        if (developerLabel != null) developerLabel.Text = loc.GetString("Settings_Developer");
+        
+        // Update unit labels
+        if (cooldownValueLabel != null)
+        {
+            int cooldown = _settingsService?.GetCooldownMinutes() ?? 5;
+            cooldownValueLabel.Text = string.Format(loc.GetString("Settings_Minutes"), cooldown);
+        }
+        if (intervalValueLabel != null)
+        {
+            int interval = _settingsService?.GetGPSIntervalMs() ?? 3000;
+            intervalValueLabel.Text = string.Format(loc.GetString("Settings_Seconds"), interval / 1000);
+        }
     }
 
     private void OnSpeedChanged(object sender, ValueChangedEventArgs e)
@@ -75,8 +134,4 @@ public partial class SettingsPage : ContentPage
         intervalValueLabel.Text = $"{e.NewValue:F0} sec";
     }
 
-    private async void OnSyncButtonClicked(object? sender, EventArgs e)
-    {
-        await DisplayAlert("Sync", "Syncing data from server...", "OK");
-    }
 }

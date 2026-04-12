@@ -1,0 +1,66 @@
+﻿# .NET MAUI - FoodStreetGuide GitIgnore
+
+# Build outputs
+bin/
+obj/
+
+# Android
+*.apk
+*.aab
+*.keystore
+
+# iOS
+*.ipa
+*.app
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userprefs
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+crash_log.txt
+
+# Temporary
+*.tmp
+*.temp
+*.cache
+
+# NuGet
+*.nupkg
+
+# Test results
+TestResults/
+
+# Local tools
+*.local.json
+
+# Secrets (NEVER commit)
+*.secrets.json
+secret.*
+
+# MAUI specific
+Platforms/Android/**/bin/
+Platforms/Android/**/obj/
+Platforms/iOS/**/bin/
+Platforms/iOS/**/obj/
+Platforms/MacCatalyst/**/bin/
+Platforms/MacCatalyst/**/obj/
+Platforms/Windows/**/bin/
+Platforms/Windows/**/obj/
+Platforms/Tizen/**/bin/
+Platforms/Tizen/**/obj/
+

@@ -2,34 +2,85 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="FoodStreetGuide.DiscoverPage"
-             Title="Discover"
+             Title="Khám phá"
              BackgroundColor="{StaticResource Background}">
 
-    <Grid RowDefinitions="Auto,*">
+    <Grid RowDefinitions="Auto,Auto,*">
 
         <!-- Header -->
         <VerticalStackLayout Grid.Row="0" Padding="16,16,16,8" Spacing="4">
-            <Label Text="Discover"
+            <Label x:Name="pageTitleLabel"
+                   Text="Khám phá"
                    FontSize="20"
                    FontAttributes="Bold"
                    TextColor="{StaticResource TextPrimary}"/>
-            <Label Text="Find the best restaurants near you"
+            <Label x:Name="pageSubtitleLabel"
+                   Text="Tìm nhà hàng ngon gần bạn"
                    FontSize="14"
                    TextColor="{StaticResource TextSecondary}"/>
         </VerticalStackLayout>
 
+        <!-- Filter Buttons -->
+        <ScrollView Grid.Row="1" Orientation="Horizontal" Padding="16,0,16,12">
+            <HorizontalStackLayout Spacing="8">
+                <Frame x:Name="filterPopularFrame"
+                       Padding="12,6"
+                       CornerRadius="16"
+                       BackgroundColor="{StaticResource Primary}"
+                       BorderColor="Transparent">
+                    <Frame.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnFilterPopularTapped"/>
+                    </Frame.GestureRecognizers>
+                    <HorizontalStackLayout Spacing="4">
+                        <Label Text="&#128293;" FontSize="14"/>
+                        <Label x:Name="filterPopularLabel" Text="Phổ biến" FontSize="13" TextColor="White" FontAttributes="Bold"/>
+                    </HorizontalStackLayout>
+                </Frame>
+                <Frame x:Name="filterDistanceFrame"
+                       Padding="12,6"
+                       CornerRadius="16"
+                       BackgroundColor="{StaticResource Surface}"
+                       BorderColor="{StaticResource Border}">
+                    <Frame.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnFilterDistanceTapped"/>
+                    </Frame.GestureRecognizers>
+                    <HorizontalStackLayout Spacing="4">
+                        <Label Text="&#128205;" FontSize="14"/>
+                        <Label x:Name="filterDistanceLabel" Text="Gần nhất" FontSize="13" TextColor="{StaticResource TextPrimary}"/>
+                    </HorizontalStackLayout>
+                </Frame>
+                <Frame x:Name="filterFoodFrame"
+                       Padding="12,6"
+                       CornerRadius="16"
+                       BackgroundColor="{StaticResource Surface}"
+                       BorderColor="{StaticResource Border}">
+                    <Frame.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnFilterFoodTapped"/>
+                    </Frame.GestureRecognizers>
+                    <HorizontalStackLayout Spacing="4">
+                        <Label Text="&#127860;" FontSize="14"/>
+                        <Label x:Name="filterFoodLabel" Text="Món Việt" FontSize="13" TextColor="{StaticResource TextPrimary}"/>
+                    </HorizontalStackLayout>
+                </Frame>
+            </HorizontalStackLayout>
+        </ScrollView>
+
         <!-- Restaurant Cards -->
-        <ScrollView Grid.Row="1">
-            <VerticalStackLayout Padding="16,8,16,16" Spacing="16">
+        <ScrollView Grid.Row="2">
+            <VerticalStackLayout x:Name="cardsContainer" Padding="16,8,16,16" Spacing="16">
 
                 <!-- Card 1: Pho Hoa -->
-                <Frame BackgroundColor="{StaticResource Surface}"
+                <Frame x:Name="card1"
+                       BackgroundColor="{StaticResource Surface}"
                        CornerRadius="16"
                        HasShadow="True"
                        Padding="0"
                        IsClippedToBounds="True">
                     <!-- Top Image -->
                     <VerticalStackLayout Spacing="0">
+                        <VerticalStackLayout.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnCard1Tapped"/>
+                        </VerticalStackLayout.GestureRecognizers>
                         <Frame BackgroundColor="#FFE8D6"
                                Padding="0"
                                CornerRadius="0"
@@ -41,40 +92,66 @@
                                    VerticalOptions="Center"/>
                         </Frame>
                         <!-- Info -->
-                        <VerticalStackLayout Padding="14,12" Spacing="6">
-                            <Label Text="Pho Hoa Pasteur"
-                                   FontSize="16"
-                                   FontAttributes="Bold"
-                                   TextColor="{StaticResource TextPrimary}"/>
-                            <HorizontalStackLayout Spacing="4">
-                                <Label Text="★★★★" FontSize="14" TextColor="{StaticResource StarFilled}"/>
-                                <Label Text="★" FontSize="14" TextColor="{StaticResource StarEmpty}"/>
-                                <Label Text="4.8 (215)"
-                                       FontSize="12"
-                                       TextColor="{StaticResource TextSecondary}"
-                                       VerticalOptions="Center"
-                                       Margin="4,0,0,0"/>
-                            </HorizontalStackLayout>
-                            <HorizontalStackLayout Spacing="12">
-                                <Label Text="500m away"
-                                       FontSize="13"
-                                       TextColor="{StaticResource TextSecondary}"/>
-                                <Label Text="·" FontSize="13" TextColor="{StaticResource TextTertiary}"/>
-                                <Label Text="Open now"
-                                       FontSize="13"
-                                       TextColor="{StaticResource Success}"/>
-                            </HorizontalStackLayout>
-                        </VerticalStackLayout>
+                        <Grid ColumnDefinitions="*,Auto" Padding="14,12">
+                            <VerticalStackLayout Grid.Column="0" Spacing="6">
+                                <Label x:Name="card1NameLabel"
+                                       Text="Pho Hoa Pasteur"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource TextPrimary}"/>
+                                <HorizontalStackLayout Spacing="4">
+                                    <Label Text="★★★★" FontSize="14" TextColor="{StaticResource StarFilled}"/>
+                                    <Label Text="★" FontSize="14" TextColor="{StaticResource StarEmpty}"/>
+                                    <Label Text="4.8 (215)"
+                                           FontSize="12"
+                                           TextColor="{StaticResource TextSecondary}"
+                                           VerticalOptions="Center"
+                                           Margin="4,0,0,0"/>
+                                </HorizontalStackLayout>
+                                <HorizontalStackLayout Spacing="12">
+                                    <Label x:Name="card1DistanceLabel" Text="500m"
+                                           FontSize="13"
+                                           TextColor="{StaticResource TextSecondary}"/>
+                                    <Label Text="·" FontSize="13" TextColor="{StaticResource TextTertiary}"/>
+                                    <Label x:Name="card1StatusLabel" Text="Đang mở"
+                                           FontSize="13"
+                                           TextColor="{StaticResource Success}"/>
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+                            <!-- Save Button -->
+                            <Frame Grid.Column="1" 
+                                   x:Name="card1SaveButton"
+                                   Padding="0"
+                                   CornerRadius="20"
+                                   HeightRequest="40"
+                                   WidthRequest="40"
+                                   BackgroundColor="#F7F7F7"
+                                   BorderColor="Transparent"
+                                   VerticalOptions="Center">
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnSaveTapped"/>
+                                </Frame.GestureRecognizers>
+                                <Label Text="&#10084;" 
+                                       FontSize="18" 
+                                       HorizontalOptions="Center" 
+                                       VerticalOptions="Center" 
+                                       TextColor="#666666"/>
+                            </Frame>
+                        </Grid>
                     </VerticalStackLayout>
                 </Frame>
 
                 <!-- Card 2: Banh Mi -->
-                <Frame BackgroundColor="{StaticResource Surface}"
+                <Frame x:Name="card2"
+                       BackgroundColor="{StaticResource Surface}"
                        CornerRadius="16"
                        HasShadow="True"
                        Padding="0"
                        IsClippedToBounds="True">
                     <VerticalStackLayout Spacing="0">
+                        <VerticalStackLayout.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnCard2Tapped"/>
+                        </VerticalStackLayout.GestureRecognizers>
                         <Frame BackgroundColor="#FFF0D9"
                                Padding="0"
                                CornerRadius="0"
@@ -85,40 +162,66 @@
                                    HorizontalOptions="Center"
                                    VerticalOptions="Center"/>
                         </Frame>
-                        <VerticalStackLayout Padding="14,12" Spacing="6">
-                            <Label Text="Banh Mi Huynh Hoa"
-                                   FontSize="16"
-                                   FontAttributes="Bold"
-                                   TextColor="{StaticResource TextPrimary}"/>
-                            <HorizontalStackLayout Spacing="4">
-                                <Label Text="★★★★" FontSize="14" TextColor="{StaticResource StarFilled}"/>
-                                <Label Text="★" FontSize="14" TextColor="{StaticResource StarEmpty}"/>
-                                <Label Text="4.6 (189)"
-                                       FontSize="12"
-                                       TextColor="{StaticResource TextSecondary}"
-                                       VerticalOptions="Center"
-                                       Margin="4,0,0,0"/>
-                            </HorizontalStackLayout>
-                            <HorizontalStackLayout Spacing="12">
-                                <Label Text="750m away"
-                                       FontSize="13"
-                                       TextColor="{StaticResource TextSecondary}"/>
-                                <Label Text="·" FontSize="13" TextColor="{StaticResource TextTertiary}"/>
-                                <Label Text="Open now"
-                                       FontSize="13"
-                                       TextColor="{StaticResource Success}"/>
-                            </HorizontalStackLayout>
-                        </VerticalStackLayout>
+                        <Grid ColumnDefinitions="*,Auto" Padding="14,12">
+                            <VerticalStackLayout Grid.Column="0" Spacing="6">
+                                <Label x:Name="card2NameLabel"
+                                       Text="Banh Mi Huynh Hoa"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource TextPrimary}"/>
+                                <HorizontalStackLayout Spacing="4">
+                                    <Label Text="★★★★" FontSize="14" TextColor="{StaticResource StarFilled}"/>
+                                    <Label Text="★" FontSize="14" TextColor="{StaticResource StarEmpty}"/>
+                                    <Label Text="4.6 (189)"
+                                           FontSize="12"
+                                           TextColor="{StaticResource TextSecondary}"
+                                           VerticalOptions="Center"
+                                           Margin="4,0,0,0"/>
+                                </HorizontalStackLayout>
+                                <HorizontalStackLayout Spacing="12">
+                                    <Label x:Name="card2DistanceLabel" Text="750m"
+                                           FontSize="13"
+                                           TextColor="{StaticResource TextSecondary}"/>
+                                    <Label Text="·" FontSize="13" TextColor="{StaticResource TextTertiary}"/>
+                                    <Label x:Name="card2StatusLabel" Text="Đang mở"
+                                           FontSize="13"
+                                           TextColor="{StaticResource Success}"/>
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+                            <!-- Save Button -->
+                            <Frame Grid.Column="1" 
+                                   x:Name="card2SaveButton"
+                                   Padding="0"
+                                   CornerRadius="20"
+                                   HeightRequest="40"
+                                   WidthRequest="40"
+                                   BackgroundColor="#F7F7F7"
+                                   BorderColor="Transparent"
+                                   VerticalOptions="Center">
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnSaveTapped"/>
+                                </Frame.GestureRecognizers>
+                                <Label Text="&#10084;" 
+                                       FontSize="18" 
+                                       HorizontalOptions="Center" 
+                                       VerticalOptions="Center" 
+                                       TextColor="#666666"/>
+                            </Frame>
+                        </Grid>
                     </VerticalStackLayout>
                 </Frame>
 
                 <!-- Card 3: Com Tam -->
-                <Frame BackgroundColor="{StaticResource Surface}"
+                <Frame x:Name="card3"
+                       BackgroundColor="{StaticResource Surface}"
                        CornerRadius="16"
                        HasShadow="True"
                        Padding="0"
                        IsClippedToBounds="True">
                     <VerticalStackLayout Spacing="0">
+                        <VerticalStackLayout.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnCard3Tapped"/>
+                        </VerticalStackLayout.GestureRecognizers>
                         <Frame BackgroundColor="#FFE8E8"
                                Padding="0"
                                CornerRadius="0"
@@ -129,40 +232,66 @@
                                    HorizontalOptions="Center"
                                    VerticalOptions="Center"/>
                         </Frame>
-                        <VerticalStackLayout Padding="14,12" Spacing="6">
-                            <Label Text="Com Tam Cali"
-                                   FontSize="16"
-                                   FontAttributes="Bold"
-                                   TextColor="{StaticResource TextPrimary}"/>
-                            <HorizontalStackLayout Spacing="4">
-                                <Label Text="★★★★" FontSize="14" TextColor="{StaticResource StarFilled}"/>
-                                <Label Text="★" FontSize="14" TextColor="{StaticResource StarEmpty}"/>
-                                <Label Text="4.5 (156)"
-                                       FontSize="12"
-                                       TextColor="{StaticResource TextSecondary}"
-                                       VerticalOptions="Center"
-                                       Margin="4,0,0,0"/>
-                            </HorizontalStackLayout>
-                            <HorizontalStackLayout Spacing="12">
-                                <Label Text="1.2km away"
-                                       FontSize="13"
-                                       TextColor="{StaticResource TextSecondary}"/>
-                                <Label Text="·" FontSize="13" TextColor="{StaticResource TextTertiary}"/>
-                                <Label Text="Open 24h"
-                                       FontSize="13"
-                                       TextColor="{StaticResource Success}"/>
-                            </HorizontalStackLayout>
-                        </VerticalStackLayout>
+                        <Grid ColumnDefinitions="*,Auto" Padding="14,12">
+                            <VerticalStackLayout Grid.Column="0" Spacing="6">
+                                <Label x:Name="card3NameLabel"
+                                       Text="Com Tam Cali"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource TextPrimary}"/>
+                                <HorizontalStackLayout Spacing="4">
+                                    <Label Text="★★★★" FontSize="14" TextColor="{StaticResource StarFilled}"/>
+                                    <Label Text="★" FontSize="14" TextColor="{StaticResource StarEmpty}"/>
+                                    <Label Text="4.5 (156)"
+                                           FontSize="12"
+                                           TextColor="{StaticResource TextSecondary}"
+                                           VerticalOptions="Center"
+                                           Margin="4,0,0,0"/>
+                                </HorizontalStackLayout>
+                                <HorizontalStackLayout Spacing="12">
+                                    <Label x:Name="card3DistanceLabel" Text="1.2km"
+                                           FontSize="13"
+                                           TextColor="{StaticResource TextSecondary}"/>
+                                    <Label Text="·" FontSize="13" TextColor="{StaticResource TextTertiary}"/>
+                                    <Label x:Name="card3StatusLabel" Text="Mở 24h"
+                                           FontSize="13"
+                                           TextColor="{StaticResource Success}"/>
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+                            <!-- Save Button -->
+                            <Frame Grid.Column="1" 
+                                   x:Name="card3SaveButton"
+                                   Padding="0"
+                                   CornerRadius="20"
+                                   HeightRequest="40"
+                                   WidthRequest="40"
+                                   BackgroundColor="#F7F7F7"
+                                   BorderColor="Transparent"
+                                   VerticalOptions="Center">
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnSaveTapped"/>
+                                </Frame.GestureRecognizers>
+                                <Label Text="&#10084;" 
+                                       FontSize="18" 
+                                       HorizontalOptions="Center" 
+                                       VerticalOptions="Center" 
+                                       TextColor="#666666"/>
+                            </Frame>
+                        </Grid>
                     </VerticalStackLayout>
                 </Frame>
 
                 <!-- Card 4: Bun Bo Hue -->
-                <Frame BackgroundColor="{StaticResource Surface}"
+                <Frame x:Name="card4"
+                       BackgroundColor="{StaticResource Surface}"
                        CornerRadius="16"
                        HasShadow="True"
                        Padding="0"
                        IsClippedToBounds="True">
                     <VerticalStackLayout Spacing="0">
+                        <VerticalStackLayout.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnCard4Tapped"/>
+                        </VerticalStackLayout.GestureRecognizers>
                         <Frame BackgroundColor="#E8F5FF"
                                Padding="0"
                                CornerRadius="0"
@@ -173,30 +302,52 @@
                                    HorizontalOptions="Center"
                                    VerticalOptions="Center"/>
                         </Frame>
-                        <VerticalStackLayout Padding="14,12" Spacing="6">
-                            <Label Text="Bun Bo Hue"
-                                   FontSize="16"
-                                   FontAttributes="Bold"
-                                   TextColor="{StaticResource TextPrimary}"/>
-                            <HorizontalStackLayout Spacing="4">
-                                <Label Text="★★★★" FontSize="14" TextColor="{StaticResource StarFilled}"/>
-                                <Label Text="★" FontSize="14" TextColor="{StaticResource StarEmpty}"/>
-                                <Label Text="4.7 (203)"
-                                       FontSize="12"
-                                       TextColor="{StaticResource TextSecondary}"
-                                       VerticalOptions="Center"
-                                       Margin="4,0,0,0"/>
-                            </HorizontalStackLayout>
-                            <HorizontalStackLayout Spacing="12">
-                                <Label Text="1.8km away"
-                                       FontSize="13"
-                                       TextColor="{StaticResource TextSecondary}"/>
-                                <Label Text="·" FontSize="13" TextColor="{StaticResource TextTertiary}"/>
-                                <Label Text="Open now"
-                                       FontSize="13"
-                                       TextColor="{StaticResource Success}"/>
-                            </HorizontalStackLayout>
-                        </VerticalStackLayout>
+                        <Grid ColumnDefinitions="*,Auto" Padding="14,12">
+                            <VerticalStackLayout Grid.Column="0" Spacing="6">
+                                <Label x:Name="card4NameLabel"
+                                       Text="Bun Bo Hue"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource TextPrimary}"/>
+                                <HorizontalStackLayout Spacing="4">
+                                    <Label Text="★★★★" FontSize="14" TextColor="{StaticResource StarFilled}"/>
+                                    <Label Text="★" FontSize="14" TextColor="{StaticResource StarEmpty}"/>
+                                    <Label Text="4.7 (203)"
+                                           FontSize="12"
+                                           TextColor="{StaticResource TextSecondary}"
+                                           VerticalOptions="Center"
+                                           Margin="4,0,0,0"/>
+                                </HorizontalStackLayout>
+                                <HorizontalStackLayout Spacing="12">
+                                    <Label x:Name="card4DistanceLabel" Text="1.8km"
+                                           FontSize="13"
+                                           TextColor="{StaticResource TextSecondary}"/>
+                                    <Label Text="·" FontSize="13" TextColor="{StaticResource TextTertiary}"/>
+                                    <Label x:Name="card4StatusLabel" Text="Đang mở"
+                                           FontSize="13"
+                                           TextColor="{StaticResource Success}"/>
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+                            <!-- Save Button -->
+                            <Frame Grid.Column="1" 
+                                   x:Name="card4SaveButton"
+                                   Padding="0"
+                                   CornerRadius="20"
+                                   HeightRequest="40"
+                                   WidthRequest="40"
+                                   BackgroundColor="#F7F7F7"
+                                   BorderColor="Transparent"
+                                   VerticalOptions="Center">
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnSaveTapped"/>
+                                </Frame.GestureRecognizers>
+                                <Label Text="&#10084;" 
+                                       FontSize="18" 
+                                       HorizontalOptions="Center" 
+                                       VerticalOptions="Center" 
+                                       TextColor="#666666"/>
+                            </Frame>
+                        </Grid>
                     </VerticalStackLayout>
                 </Frame>
 

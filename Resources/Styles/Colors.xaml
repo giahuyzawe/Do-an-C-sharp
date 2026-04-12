@@ -39,6 +39,7 @@
 
     <!-- UI Element Colors -->
     <Color x:Key="Divider">#E5E5E5</Color>
+    <Color x:Key="Border">#E3E3E3</Color>
     <Color x:Key="ButtonBg">#F1F3F4</Color>
 
     <!-- Legacy support -->

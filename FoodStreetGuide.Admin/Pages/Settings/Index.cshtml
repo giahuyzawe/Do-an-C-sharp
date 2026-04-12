@@ -1,0 +1,57 @@
+@page
+@model FoodStreetGuide.Admin.Pages.Settings.IndexModel
+@{
+    ViewData["Title"] = "Settings";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">Settings</h1>
+        <p class="text-muted mb-0">Configure application settings</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><h5 class="mb-0"><i class="bi bi-gear me-2"></i>App Settings</h5></div>
+            <div class="card-body">
+                <form method="post">
+                    @foreach (var setting in Model.AppSettings.Where(s => s.Category == "app" || s.Category == "geofence" || s.Category == "tts"))
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">@setting.Key</label>
+                            <input type="text" name="settings[@setting.Key]" class="form-control" value="@setting.Value" />
+                            <small class="text-muted">@setting.Description</small>
+                        </div>
+                    }
+                    <button type="submit" class="btn btn-primary">Save App Settings</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><h5 class="mb-0"><i class="bi bi-map me-2"></i>Map Settings</h5></div>
+            <div class="card-body">
+                <form method="post">
+                    <div class="mb-3">
+                        <label class="form-label">Map Provider</label>
+                        <select name="mapProvider" class="form-select">
+                            <option value="google">Google Maps</option>
+                            <option value="mapbox">Mapbox</option>
+                            <option value="osm">OpenStreetMap</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Map Settings</button>
+                </form>
+            </div>
+        </div>
+        <div class="card mt-4">
+            <div class="card-header"><h5 class="mb-0"><i class="bi bi-shield me-2"></i>Security</h5></div>
+            <div class="card-body">
+                <a asp-page="/System/ApiKeys" class="btn btn-outline-primary"><i class="bi bi-key me-2"></i>API Keys</a>
+            </div>
+        </div>
+    </div>
+</div>

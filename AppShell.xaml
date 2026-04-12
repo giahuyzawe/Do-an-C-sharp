@@ -15,22 +15,22 @@
 
     <TabBar>
         <ShellContent
-            Title="Map"
+            Title="Bản đồ"
             ContentTemplate="{DataTemplate local:MainPage}"
             Route="MainPage" />
 
         <ShellContent
-            Title="Discover"
+            Title="Khám phá"
             ContentTemplate="{DataTemplate local:DiscoverPage}"
             Route="DiscoverPage" />
 
         <ShellContent
-            Title="Saved"
+            Title="Đã lưu"
             ContentTemplate="{DataTemplate local:SavedPage}"
             Route="SavedPage" />
 
         <ShellContent
-            Title="Settings"
+            Title="Cài đặt"
             ContentTemplate="{DataTemplate local:SettingsPage}"
             Route="SettingsPage" />
     </TabBar>

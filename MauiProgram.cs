@@ -25,11 +25,14 @@ public static class MauiProgram
 #endif
 		builder.Services.AddSingleton<IDatabaseService, DatabaseService>();
 		builder.Services.AddSingleton<DatabaseService>();
-		builder.Services.AddSingleton<IGeofenceEngine, GeofenceEngine>();
 		builder.Services.AddSingleton<IWebAdminService, WebAdminService>();
+		builder.Services.AddSingleton<ILocalizationService, LocalizationService>();
+		builder.Services.AddSingleton<ISavedPOIService, SavedPOIService>();
 
 #if ANDROID
+		// Register platform-specific services BEFORE services that depend on them
 		builder.Services.AddSingleton<ISettingsService, Platforms.Android.SettingsServiceAndroid>();
+		builder.Services.AddSingleton<IGeofenceEngine, GeofenceEngine>(); // Depends on ISettingsService
 		builder.Services.AddSingleton<ITTSService, Platforms.Android.TTSServiceAndroid>();
 		builder.Services.AddSingleton<INarrationEngine, Platforms.Android.NarrationEngineAndroid>();
 		builder.Services.AddSingleton<IAudioPlayerService, Platforms.Android.AudioPlayerServiceAndroid>();

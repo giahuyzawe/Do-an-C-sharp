@@ -21,6 +21,12 @@ public class SettingsServiceAndroid : ISettingsService
     private const string NarrationEnabledKey = "NarrationEnabled";
     private const string GPSIntervalKey = "GPSIntervalMs";
     private const string GPSAccuracyKey = "GPSAccuracy";
+    private const string LanguageKey = "AppLanguage";
+    private const string DefaultLanguage = "vi"; // Default to Vietnamese
+    private const string AutoSyncFromWebKey = "AutoSyncFromWeb";
+    private const bool DefaultAutoSyncFromWeb = true; // Auto sync enabled by default
+    private const string GeofenceModeKey = "GeofenceMode";
+    private const string DefaultGeofenceMode = "smart"; // Default: smart mode
 
     public double GetGeofenceRadius()
     {
@@ -101,5 +107,38 @@ public class SettingsServiceAndroid : ISettingsService
         SetGPSAccuracy(DefaultGPSAccuracy);
         SetTTSVoice(DefaultVoice);
         SetTTSRate(DefaultRate);
+        SetLanguage(DefaultLanguage);
+        SetAutoSyncFromWeb(DefaultAutoSyncFromWeb);
+        SetGeofenceMode(DefaultGeofenceMode);
+    }
+
+    public string GetLanguage()
+    {
+        return Preferences.Get(LanguageKey, DefaultLanguage);
+    }
+
+    public void SetLanguage(string language)
+    {
+        Preferences.Set(LanguageKey, language);
+    }
+
+    public bool GetAutoSyncFromWeb()
+    {
+        return Preferences.Get(AutoSyncFromWebKey, DefaultAutoSyncFromWeb);
+    }
+
+    public void SetAutoSyncFromWeb(bool enabled)
+    {
+        Preferences.Set(AutoSyncFromWebKey, enabled);
+    }
+
+    public string GetGeofenceMode()
+    {
+        return Preferences.Get(GeofenceModeKey, DefaultGeofenceMode);
+    }
+
+    public void SetGeofenceMode(string mode)
+    {
+        Preferences.Set(GeofenceModeKey, mode);
     }
 }

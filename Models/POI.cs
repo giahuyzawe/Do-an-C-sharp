@@ -1,4 +1,5 @@
 using SQLite;
+using System;
 
 namespace FoodStreetGuide.Models
 {
@@ -14,6 +15,15 @@ namespace FoodStreetGuide.Models
         public string DescriptionVi { get; set; }
 
         public string DescriptionEn { get; set; }
+
+        // Category and Tags (synced from Web)
+        public string Category { get; set; } = "landmark";
+
+        public string Tags { get; set; }
+
+        public string Status { get; set; } = "active";
+
+        public int VisitCount { get; set; }
 
         public double Latitude { get; set; }
 
@@ -36,6 +46,10 @@ namespace FoodStreetGuide.Models
         public string OpeningHours { get; set; }
 
         public string DistanceText { get; set; }
+
+        // Sync tracking
+        public DateTime? LastSyncFromWeb { get; set; }
+        public DateTime? LastSyncToWeb { get; set; }
 
         // Computed property to generate Google Maps URL if not provided
         public string GetGoogleMapsUrl()

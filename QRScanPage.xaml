@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FoodStreetGuide.QRScanPage"
+             Title="Quét QR"
+             BackgroundColor="Black">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        <!-- Header -->
+        <Frame Grid.Row="0" 
+               BackgroundColor="Transparent" 
+               BorderColor="Transparent"
+               Padding="16,12">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <Button Grid.Column="0"
+                        Text="&#8592;"
+                        FontSize="20"
+                        BackgroundColor="Transparent"
+                        TextColor="White"
+                        Clicked="OnBackClicked"/>
+                <Label Grid.Column="1"
+                       Text="Quét mã QR"
+                       FontSize="18"
+                       FontAttributes="Bold"
+                       TextColor="White"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"/>
+            </Grid>
+        </Frame>
+
+        <!-- Camera View / Scan Area -->
+        <Grid Grid.Row="1" BackgroundColor="#1A1A1A">
+            <!-- Camera Preview Placeholder -->
+            <Frame BackgroundColor="#2D2D2D"
+                   Margin="32"
+                   CornerRadius="16"
+                   HasShadow="False">
+                <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="16">
+                    <Label Text="&#128247;"
+                           FontSize="64"
+                           TextColor="#666666"
+                           HorizontalOptions="Center"/>
+                    <Label Text="Camera đang khởi động..."
+                           TextColor="#999999"
+                           HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Scan Frame Overlay -->
+            <Frame Margin="48"
+                   CornerRadius="16"
+                   BorderColor="#FF6B35"
+                   BackgroundColor="Transparent"
+                   HasShadow="False"
+                   Padding="0">
+                <!-- Corner markers -->
+                <Grid>
+                    <BoxView WidthRequest="30" HeightRequest="3" BackgroundColor="#FF6B35" 
+                             HorizontalOptions="Start" VerticalOptions="Start" Margin="4"/>
+                    <BoxView WidthRequest="3" HeightRequest="30" BackgroundColor="#FF6B35" 
+                             HorizontalOptions="Start" VerticalOptions="Start" Margin="4"/>
+                    <BoxView WidthRequest="30" HeightRequest="3" BackgroundColor="#FF6B35" 
+                             HorizontalOptions="End" VerticalOptions="Start" Margin="4"/>
+                    <BoxView WidthRequest="3" HeightRequest="30" BackgroundColor="#FF6B35" 
+                             HorizontalOptions="End" VerticalOptions="Start" Margin="4"/>
+                    <BoxView WidthRequest="30" HeightRequest="3" BackgroundColor="#FF6B35" 
+                             HorizontalOptions="Start" VerticalOptions="End" Margin="4"/>
+                    <BoxView WidthRequest="3" HeightRequest="30" BackgroundColor="#FF6B35" 
+                             HorizontalOptions="Start" VerticalOptions="End" Margin="4"/>
+                    <BoxView WidthRequest="30" HeightRequest="3" BackgroundColor="#FF6B35" 
+                             HorizontalOptions="End" VerticalOptions="End" Margin="4"/>
+                    <BoxView WidthRequest="3" HeightRequest="30" BackgroundColor="#FF6B35" 
+                             HorizontalOptions="End" VerticalOptions="End" Margin="4"/>
+                </Grid>
+            </Frame>
+        </Grid>
+
+        <!-- Bottom Panel -->
+        <Frame Grid.Row="2"
+               BackgroundColor="#1A1A1A"
+               BorderColor="Transparent"
+               CornerRadius="0"
+               Padding="16,24">
+            <VerticalStackLayout Spacing="12">
+                <Label Text="Đưa mã QR vào khung quét"
+                       TextColor="White"
+                       FontSize="16"
+                       HorizontalOptions="Center"/>
+                <Label Text="Mã sẽ được quét tự động"
+                       TextColor="#999999"
+                       FontSize="12"
+                       HorizontalOptions="Center"/>
+                
+                <!-- Manual Entry -->
+                <Frame BackgroundColor="#2D2D2D" 
+                       BorderColor="#3D3D3D"
+                       CornerRadius="12"
+                       Padding="12,8"
+                       Margin="0,8,0,0">
+                    <HorizontalStackLayout Spacing="8">
+                        <Entry x:Name="manualEntry"
+                               Placeholder="Hoặc nhập mã thủ công..."
+                               PlaceholderColor="#666666"
+                               TextColor="White"
+                               FontSize="14"
+                               HorizontalOptions="FillAndExpand"
+                               Completed="OnManualEntryCompleted"/>
+                        <Button Text="OK"
+                                BackgroundColor="#FF6B35"
+                                TextColor="White"
+                                CornerRadius="8"
+                                Padding="16,8"
+                                Clicked="OnManualEntryClicked"/>
+                    </HorizontalStackLayout>
+                </Frame>
+            </VerticalStackLayout>
+        </Frame>
+    </Grid>
+
+</ContentPage>

@@ -189,6 +189,22 @@ $poi_visits = array_slice(array_column($pois, 'visitCount'), 0, 5);
                 <div class="card">
                     <div class="card-header"><h5>Bản đồ POI</h5></div>
                     <div class="card-body p-0"><div id="map"></div></div>
+                    <div class="card-footer bg-white border-0">
+                        <small class="text-muted d-flex flex-wrap gap-1">
+                            <span class="badge" style="background: #4F46E5; font-size: 0.65rem;">Landmark</span>
+                            <span class="badge" style="background: #EF4444; font-size: 0.65rem;">Restaurant</span>
+                            <span class="badge" style="background: #F59E0B; font-size: 0.65rem;">Cafe</span>
+                            <span class="badge" style="background: #8B5CF6; font-size: 0.65rem;">Bar</span>
+                            <span class="badge" style="background: #14B8A6; font-size: 0.65rem;">Market</span>
+                            <span class="badge" style="background: #EC4899; font-size: 0.65rem;">Night Market</span>
+                            <span class="badge" style="background: #F97316; font-size: 0.65rem;">Street Food</span>
+                            <span class="badge" style="background: #10B981; font-size: 0.65rem;">Temple</span>
+                            <span class="badge" style="background: #22C55E; font-size: 0.65rem;">Park</span>
+                            <span class="badge" style="background: #06B6D4; font-size: 0.65rem;">Museum</span>
+                            <span class="badge" style="background: #6366F1; font-size: 0.65rem;">Shopping</span>
+                            <span class="badge" style="background: #3B82F6; font-size: 0.65rem;">Bridge</span>
+                        </small>
+                    </div>
                 </div>
             </div>
             <div class="col-lg-4">
@@ -242,12 +258,70 @@ $poi_visits = array_slice(array_column($pois, 'visitCount'), 0, 5);
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
         });
 
+        // Category colors configuration
+        const categoryColors = {
+            'landmark': '#4F46E5',      // Indigo
+            'restaurant': '#EF4444',    // Red
+            'cafe': '#F59E0B',         // Amber
+            'bar': '#8B5CF6',          // Purple
+            'market': '#14B8A6',        // Teal
+            'night_market': '#EC4899', // Pink
+            'street_food': '#F97316',  // Orange
+            'temple': '#10B981',       // Emerald
+            'park': '#22C55E',         // Green
+            'museum': '#06B6D4',       // Cyan
+            'shopping': '#6366F1',     // Indigo
+            'bridge': '#3B82F6'        // Blue
+        };
+
+        // Create custom colored marker icon
+        function createCustomIcon(color) {
+            return L.divIcon({
+                className: 'custom-marker',
+                html: `<div style="
+                    background-color: ${color};
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50% 50% 50% 0;
+                    border: 2px solid white;
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+                    transform: rotate(-45deg);
+                "></div>`,
+                iconSize: [24, 24],
+                iconAnchor: [12, 24],
+                popupAnchor: [0, -24]
+            });
+        }
+
         const map = L.map('map').setView([10.762622, 106.660172], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        const markers = [];
         <?php foreach ($pois as $poi): ?>
-        L.marker([<?php echo $poi['latitude']; ?>, <?php echo $poi['longitude']; ?>])
-            .addTo(map).bindPopup("<?php echo htmlspecialchars($poi['nameVi']); ?>");
+        (function() {
+            const color = categoryColors['<?php echo $poi['category'] ?? 'landmark'; ?>'] || '#4F46E5';
+            const marker = L.marker([<?php echo $poi['latitude']; ?>, <?php echo $poi['longitude']; ?>], {
+                icon: createCustomIcon(color)
+            }).addTo(map).bindPopup(`
+                <div style="text-align: center;">
+                    <div class="fw-semibold"><?php echo htmlspecialchars($poi['nameVi']); ?></div>
+                    <span class="badge" style="background-color: ${color}; font-size: 0.7rem;"><?php echo $poi['category'] ?? 'landmark'; ?></span>
+                    <?php if (!empty($poi['narrationTextVi'])): ?>
+                    <div class="mt-1">
+                        <span class="badge bg-info" style="font-size: 0.6rem;"><i class="bi bi-mic-fill me-1"></i>TTS</span>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            `);
+            markers.push(marker);
+        })();
         <?php endforeach; ?>
+
+        // Fit map to show all markers if there are POIs
+        if (markers.length > 0) {
+            const group = new L.featureGroup(markers);
+            map.fitBounds(group.getBounds().pad(0.1));
+        }
     </script>
 </body>
 </html>

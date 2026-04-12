@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FoodStreetGuide.Admin")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b12bea52a78e6c551edbb35c53b4ad7ed1039319")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+06eef6f0aa5ae8e6e82eb988794aebdd5770fd22")]
 [assembly: System.Reflection.AssemblyProductAttribute("FoodStreetGuide.Admin")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FoodStreetGuide.Admin")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

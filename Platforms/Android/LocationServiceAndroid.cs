@@ -1,5 +1,7 @@
 using Android.Content;
 using Android.App;
+using Android.Locations;
+using Android.OS;
 using FoodStreetGuide.Services;
 
 namespace FoodStreetGuide.Platforms.Android;
@@ -126,6 +128,84 @@ public class LocationServiceAndroid : ILocationService
             Accuracy = accuracy,
             Timestamp = DateTime.Now
         });
+    }
+
+    public async Task<LocationUpdatedEventArgs?> GetCurrentLocationAsync()
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("[GetCurrentLocationAsync] Starting...");
+            
+            var context = Platform.CurrentActivity;
+            if (context == null)
+            {
+                System.Diagnostics.Debug.WriteLine("[GetCurrentLocationAsync] Context is null");
+                return null;
+            }
+
+            // Check permission
+            var status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
+            System.Diagnostics.Debug.WriteLine($"[GetCurrentLocationAsync] Permission status: {status}");
+            
+            if (status != PermissionStatus.Granted)
+            {
+                status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+                System.Diagnostics.Debug.WriteLine($"[GetCurrentLocationAsync] Permission after request: {status}");
+                
+                if (status != PermissionStatus.Granted)
+                {
+                    System.Diagnostics.Debug.WriteLine("[GetCurrentLocationAsync] Permission denied");
+                    return null;
+                }
+            }
+
+            // Use MAUI Geolocation for better accuracy
+            var request = new GeolocationRequest(GeolocationAccuracy.Medium, TimeSpan.FromSeconds(5));
+            System.Diagnostics.Debug.WriteLine("[GetCurrentLocationAsync] Requesting location...");
+            
+            var location = await Microsoft.Maui.Devices.Sensors.Geolocation.GetLocationAsync(request);
+            
+            if (location != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GetCurrentLocationAsync] Got location: {location.Latitude}, {location.Longitude}");
+                return new LocationUpdatedEventArgs
+                {
+                    Latitude = location.Latitude,
+                    Longitude = location.Longitude,
+                    Accuracy = location.Accuracy ?? 0,
+                    Timestamp = DateTime.Now
+                };
+            }
+            
+            System.Diagnostics.Debug.WriteLine("[GetCurrentLocationAsync] Location is null");
+            
+            // Fallback to last known location
+            var locationManager = (LocationManager?)context.GetSystemService(Context.LocationService);
+            if (locationManager != null)
+            {
+                var lastKnown = locationManager.GetLastKnownLocation(LocationManager.GpsProvider)
+                    ?? locationManager.GetLastKnownLocation(LocationManager.NetworkProvider);
+                
+                if (lastKnown != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[GetCurrentLocationAsync] Using last known: {lastKnown.Latitude}, {lastKnown.Longitude}");
+                    return new LocationUpdatedEventArgs
+                    {
+                        Latitude = lastKnown.Latitude,
+                        Longitude = lastKnown.Longitude,
+                        Accuracy = lastKnown.Accuracy,
+                        Timestamp = DateTime.Now
+                    };
+                }
+            }
+            
+            return null;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[GetCurrentLocationAsync] Error: {ex.Message}");
+            return null;
+        }
     }
 }
 

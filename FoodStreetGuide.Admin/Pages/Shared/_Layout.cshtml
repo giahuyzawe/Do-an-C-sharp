@@ -119,20 +119,48 @@
         </div>
         
         <nav class="nav flex-column">
-            <a class="nav-link @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Index" ? "active" : "")" 
+            <a class="nav-link @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Index" ? "active" : "")"
                asp-page="/Index">
-                <i class="bi bi-grid"></i>
-                Dashboard
+                <i class="bi bi-grid"></i> Dashboard
             </a>
-            <a class="nav-link @(ViewContext.RouteData.Values["Page"]?.ToString()?.StartsWith("/POIs") == true ? "active" : "")" 
+            <a class="nav-link @(ViewContext.RouteData.Values["Page"]?.ToString()?.StartsWith("/POIs") == true ? "active" : "")"
                asp-page="/POIs/Index">
-                <i class="bi bi-geo"></i>
-                Quản lý POI
+                <i class="bi bi-geo"></i> POI Management
             </a>
-            <a class="nav-link" href="#">
-                <i class="bi bi-gear"></i>
-                Cài đặt
+            <a class="nav-link @(ViewContext.RouteData.Values["Page"]?.ToString()?.StartsWith("/Restaurants") == true ? "active" : "")"
+               asp-page="/Restaurants/Index">
+                <i class="bi bi-shop"></i> Restaurants
             </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["Page"]?.ToString()?.StartsWith("/Narrations") == true ? "active" : "")"
+               asp-page="/Narrations/Index">
+                <i class="bi bi-mic"></i> Content
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["Page"]?.ToString()?.StartsWith("/Users") == true ? "active" : "")"
+               asp-page="/Users/Index">
+                <i class="bi bi-people"></i> Users
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["Page"]?.ToString()?.StartsWith("/Analytics") == true ? "active" : "")"
+               asp-page="/Analytics/Index">
+                <i class="bi bi-graph-up"></i> Analytics
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["Page"]?.ToString()?.StartsWith("/Media") == true ? "active" : "")"
+               asp-page="/Media/Index">
+                <i class="bi bi-images"></i> Media Library
+            </a>
+            <hr class="my-3 opacity-25">
+            <a class="nav-link @(ViewContext.RouteData.Values["Page"]?.ToString()?.StartsWith("/Settings") == true ? "active" : "")"
+               asp-page="/Settings/Index">
+                <i class="bi bi-gear"></i> Settings
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["Page"]?.ToString()?.StartsWith("/System") == true ? "active" : "")"
+               asp-page="/System/Logs">
+                <i class="bi bi-shield"></i> System
+            </a>
+            <form asp-page="/Auth/Logout" method="post" class="mt-2">
+                <button type="submit" class="nav-link border-0 bg-transparent w-100 text-start">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </button>
+            </form>
         </nav>
     </div>
     

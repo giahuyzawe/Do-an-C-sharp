@@ -1,0 +1,18 @@
+# Enable rewrite engine
+RewriteEngine On
+
+# Handle CORS preflight
+Header always set Access-Control-Allow-Origin "*"
+Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+Header always set Access-Control-Allow-Headers "Content-Type, Authorization"
+
+# Return 200 for OPTIONS requests
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteRule ^(.*)$ $1 [R=200,L]
+
+# Protect directory listing
+Options -Indexes
+
+# PHP settings
+php_flag display_errors on
+php_value error_reporting E_ALL

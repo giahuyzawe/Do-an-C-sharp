@@ -153,22 +153,25 @@ public class NarrationEngineAndroid : INarrationEngine
         try
         {
             var poi = item.POI;
-            var voice = _settingsService.GetTTSVoice();
+            var language = _settingsService.GetLanguage(); // Use Language setting
             var rate = _settingsService.GetTTSRate();
             
             string message;
-            if (voice.StartsWith("en"))
+            string ttsVoice;
+            if (language == "en")
             {
                 message = $"You are approaching {poi.NameEn}. {poi.DescriptionEn}";
+                ttsVoice = "en-US";
             }
             else
             {
                 message = $"Bạn đang đến gần {poi.NameVi}. {poi.DescriptionVi}";
+                ttsVoice = "vi-VN";
             }
             
-            System.Diagnostics.Debug.WriteLine($"[NarrationEngine] Speaking: {poi.NameVi} (dist: {item.DistanceMeters:F0}m)");
+            System.Diagnostics.Debug.WriteLine($"[NarrationEngine] Speaking ({language}): {poi.NameVi} (dist: {item.DistanceMeters:F0}m)");
             
-            await _ttsService.SpeakAsync(message, voice);
+            await _ttsService.SpeakAsync(message, ttsVoice);
             
             // Record narration time
             _lastNarrationTimes[poi.Id] = DateTime.Now;

@@ -1,0 +1,98 @@
+[
+    {
+        "id": 1,
+        "poi_id": 1,
+        "poi_name": "Ch\u1ee3 B\u1ebfn Th\u00e0nh",
+        "user_id": "user_001",
+        "user_name": "Nguy\u1ec5n V\u0103n A",
+        "user_avatar": "",
+        "rating": 5,
+        "comment": "\u0110\u1ecba \u0111i\u1ec3m r\u1ea5t \u0111\u1eb9p, nhi\u1ec1u m\u00f3n \u0103n ngon! Ch\u1ee3 s\u1ea7m u\u1ea5t v\u00e0 \u0111a d\u1ea1ng h\u00e0ng h\u00f3a.",
+        "images": [],
+        "status": "pending",
+        "is_spam": false,
+        "spam_reports": 0,
+        "helpful_count": 12,
+        "created_at": "2024-01-15 10:30:00",
+        "reported_by": []
+    },
+    {
+        "id": 2,
+        "poi_id": 2,
+        "poi_name": "Ph\u1ed1 \u0111i b\u1ed9 Nguy\u1ec5n Hu\u1ec7",
+        "user_id": "user_002",
+        "user_name": "Tr\u1ea7n Th\u1ecb B",
+        "user_avatar": "",
+        "rating": 4,
+        "comment": "Kh\u00f4ng gian tho\u00e1ng \u0111\u00e3ng, th\u00edch h\u1ee3p \u0111i d\u1ea1o bu\u1ed5i t\u1ed1i. C\u00f3 nhi\u1ec1u qu\u00e1n c\u00e0 \u0111\u1eb9p.",
+        "images": [
+            "img1.jpg",
+            "img2.jpg"
+        ],
+        "status": "approved",
+        "is_spam": false,
+        "spam_reports": 0,
+        "helpful_count": 8,
+        "created_at": "2024-01-14 15:20:00",
+        "reported_by": []
+    },
+    {
+        "id": 3,
+        "poi_id": 3,
+        "poi_name": "B\u00fan b\u00f2 Hu\u1ebf - O Xu\u00e2n",
+        "user_id": "user_003",
+        "user_name": "Spam Bot",
+        "user_avatar": "",
+        "rating": 1,
+        "comment": "CLICK HERE!!! WIN IPHONE 15 PRO MAX FREE!!! www.scam-site.com",
+        "images": [],
+        "status": "pending",
+        "is_spam": true,
+        "spam_reports": 5,
+        "helpful_count": 0,
+        "created_at": "2024-01-16 09:00:00",
+        "reported_by": [
+            "admin",
+            "user_001",
+            "user_002"
+        ]
+    },
+    {
+        "id": 4,
+        "poi_id": 1,
+        "poi_name": "Ch\u1ee3 B\u1ebfn Th\u00e0nh",
+        "user_id": "user_004",
+        "user_name": "L\u00ea V\u0103n C",
+        "user_avatar": "",
+        "rating": 3,
+        "comment": "Gi\u00e1 h\u01a1i \u0111\u1eaft so v\u1edbi ch\u1ee3 kh\u00e1c, nh\u01b0ng \u0111\u1ed3 \u0103n ngon. N\u00ean th\u1eed b\u00e1nh m\u00ec \u1edf \u0111\u00e2y.",
+        "images": [],
+        "status": "approved",
+        "is_spam": false,
+        "spam_reports": 1,
+        "helpful_count": 5,
+        "created_at": "2024-01-13 18:45:00",
+        "reported_by": [
+            "user_005"
+        ]
+    },
+    {
+        "id": 5,
+        "poi_id": 4,
+        "poi_name": "C\u00e0 ph\u00ea cung \u0111i\u1ec7n",
+        "user_id": "user_005",
+        "user_name": "Ph\u1ea1m Th\u1ecb D",
+        "user_avatar": "",
+        "rating": 5,
+        "comment": "View \u0111\u1eb9p, c\u00e0 ph\u00ea ngon. \u0110i\u1ec3m s\u1ed1ng \u1ea3o tuy\u1ec7t v\u1eddi!",
+        "images": [
+            "img3.jpg"
+        ],
+        "status": "approved",
+        "is_spam": false,
+        "spam_reports": 0,
+        "helpful_count": 25,
+        "created_at": "2024-01-12 14:00:00",
+        "reported_by": []
+    }
+]

@@ -10,6 +10,7 @@ public interface IGeofenceEngine
     event EventHandler<NearestPOIChangedEventArgs>? NearestPOIChanged;
 
     bool IsEnabled { get; }
+    int POICount { get; }
     double DebounceMeters { get; set; }
     TimeSpan CooldownDuration { get; set; }
     

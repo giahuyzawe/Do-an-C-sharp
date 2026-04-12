@@ -6,17 +6,32 @@ namespace FoodStreetGuide.Services;
 public class GeofenceEngine : IGeofenceEngine
 {
     private List<POI> _pois = new();
-    private readonly Dictionary<int, DateTime> _lastTriggered = new(); // POI ID -> last trigger time
-    private readonly Dictionary<int, bool> _insideGeofence = new(); // POI ID -> is inside
+    private readonly ISettingsService? _settingsService;
+    
+    // Track when each POI was last triggered (for cooldown)
+    private readonly Dictionary<int, DateTime> _lastTriggered = new();
+    
+    // Track which POIs user is currently inside
+    private readonly Dictionary<int, bool> _insideGeofence = new();
+    
+    // Track which POI was last triggered to avoid same POI
+    private int _lastTriggeredPOIId = 0;
+
+    public GeofenceEngine(ISettingsService? settingsService = null)
+    {
+        _settingsService = settingsService;
+    }
     
     public event EventHandler<GeofenceEventArgs>? POIEntered;
     public event EventHandler<GeofenceEventArgs>? POIExited;
     public event EventHandler<NearestPOIChangedEventArgs>? NearestPOIChanged;
 
     public bool IsEnabled { get; private set; }
+    public int POICount => _pois.Count;
     
     // Configurable cooldown (default 5 minutes)
-    public TimeSpan CooldownDuration { get; set; } = TimeSpan.FromSeconds(10);
+    public TimeSpan CooldownDuration { get; set; } = TimeSpan.FromMinutes(5);
+    
     // Debounce threshold (prevent flickering at boundary)
     public double DebounceMeters { get; set; } = 10;
 
@@ -35,8 +50,6 @@ public class GeofenceEngine : IGeofenceEngine
 
     public void SetPOIs(List<POI> pois)
     {
-        // Preserve _insideGeofence state for existing POIs to prevent re-trigger
-        // Only clear _lastTriggered for new cooldown cycle if POI list actually changed
         var currentIds = _pois.Select(p => p.Id).ToHashSet();
         var newIds = pois.Select(p => p.Id).ToHashSet();
         
@@ -45,6 +58,7 @@ public class GeofenceEngine : IGeofenceEngine
         {
             _lastTriggered.Clear();
             _insideGeofence.Clear();
+            _lastTriggeredPOIId = 0;
         }
         
         _pois = pois;
@@ -52,134 +66,163 @@ public class GeofenceEngine : IGeofenceEngine
 
     public void UpdateLocation(double latitude, double longitude)
     {
-        if (!IsEnabled || _pois.Count == 0) return;
+        System.Diagnostics.Debug.WriteLine($"[Geofence] UpdateLocation called: {latitude:F6}, {longitude:F6}");
+        
+        if (!IsEnabled)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Geofence] ❌ SKIPPED - Geofence not enabled");
+            return;
+        }
+        
+        if (_pois.Count == 0)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Geofence] ❌ SKIPPED - No POIs loaded");
+            return;
+        }
 
         var userLocation = new Location(latitude, longitude);
         var now = DateTime.Now;
-
-        POI? nearestPOI = null;
-        double minDistance = double.MaxValue;
         
-        // Find nearest POI and all POIs currently inside
-        var insidePOIs = new List<(POI poi, double distance)>();
+        System.Diagnostics.Debug.WriteLine($"[Geofence] Processing {_pois.Count} POIs...");
 
+        // Calculate distances for ALL POIs
+        var poiDistances = new List<(POI poi, double distance)>();
+        
         foreach (var poi in _pois)
         {
             var poiLocation = new Location(poi.Latitude, poi.Longitude);
             var distance = userLocation.CalculateDistance(poiLocation, DistanceUnits.Kilometers) * 1000;
+            poiDistances.Add((poi, distance));
+            
+            // Log each POI distance and priority for debugging
+            var inside = distance <= poi.Radius ? "✓ INSIDE" : "✗ outside";
+            System.Diagnostics.Debug.WriteLine($"[Geofence]   {poi.NameVi}: {distance:F0}m / {poi.Radius}m radius [P{poi.Priority}] {inside}");
+        }
 
-            System.Diagnostics.Debug.WriteLine($"[Geofence] POI {poi.NameVi}: {distance:F1}m / {poi.Radius}m radius");
+        // Find nearest POI (regardless of radius)
+        var nearest = poiDistances.OrderBy(x => x.distance).First();
+        var nearestPOI = nearest.poi;
+        var minDistance = nearest.distance;
 
-            // Track nearest
-            if (distance < minDistance)
+        // Handle exit events for POIs that user left
+        foreach (var (poi, distance) in poiDistances)
+        {
+            var poiId = poi.Id;
+            var isInside = distance <= poi.Radius;
+            
+            if (!_insideGeofence.ContainsKey(poiId))
+                _insideGeofence[poiId] = false;
+                
+            var wasInside = _insideGeofence[poiId];
+
+            // EXIT event - user left this POI's geofence
+            if (!isInside && wasInside && distance > poi.Radius + DebounceMeters)
             {
-                minDistance = distance;
-                nearestPOI = poi;
+                _insideGeofence[poiId] = false;
+                System.Diagnostics.Debug.WriteLine($"[Geofence] *** EXITED {poi.NameVi}");
+                POIExited?.Invoke(this, new GeofenceEventArgs
+                {
+                    POI = poi,
+                    DistanceMeters = distance
+                });
+                
+                // Clear last triggered when user exits, so they can re-enter later
+                if (_lastTriggeredPOIId == poiId)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[Geofence] Cleared last triggered POI ({poi.NameVi})");
+                    _lastTriggeredPOIId = 0;
+                }
             }
-
-            // Track all POIs inside radius
-            if (distance <= poi.Radius)
+            // Mark as inside (for tracking purposes)
+            else if (isInside && !wasInside)
             {
-                insidePOIs.Add((poi, distance));
-            }
-            else
-            {
-                // Check exit for POIs outside
-                CheckGeofence(poi, distance, now, isNearest: false);
+                _insideGeofence[poiId] = true;
             }
         }
 
-        // Only trigger the nearest POI among those inside
+        // Find all POIs inside radius, sorted by priority (high to low) then by distance
+        var insidePOIs = poiDistances
+            .Where(x => x.distance <= x.poi.Radius)
+            .OrderByDescending(x => x.poi.Priority)  // Higher priority first (3 > 2 > 1)
+            .ThenBy(x => x.distance)  // Then by nearest distance
+            .ToList();
+
+        var highestPriorityPOI = insidePOIs.FirstOrDefault();
+        System.Diagnostics.Debug.WriteLine($"[Geofence] Inside {insidePOIs.Count} POIs, trigger order: Priority[3→1] + Distance");
+        if (highestPriorityPOI.poi != null)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Geofence] Next trigger candidate: {highestPriorityPOI.poi.NameVi} (P{highestPriorityPOI.poi.Priority}, {highestPriorityPOI.distance:F0}m)");
+        }
+
+        // Notify nearest POI changed (for UI highlighting)
         if (insidePOIs.Count > 0)
         {
-            // Find the closest one among all inside POIs
-            var closestInside = insidePOIs.OrderBy(x => x.distance).First();
+            var closestInside = insidePOIs.First();
             
-            // Only trigger the nearest, mark others as "not entered" to prevent multiple triggers
-            foreach (var (poi, distance) in insidePOIs)
-            {
-                bool isNearest = poi.Id == closestInside.poi.Id;
-                CheckGeofence(poi, distance, now, isNearest);
-            }
-        }
-
-        // Notify nearest POI changed - per-POI cooldown
-        if (nearestPOI != null && minDistance <= nearestPOI.Radius)
-        {
-            var lastTriggered = _lastTriggered.TryGetValue(nearestPOI.Id, out var last) ? last : DateTime.MinValue;
-            var cooldownElapsed = now - lastTriggered >= CooldownDuration;
-            
-            // Skip only if within cooldown for THIS specific POI
-            if (!cooldownElapsed && _lastTriggered.ContainsKey(nearestPOI.Id))
-            {
-                // This POI was triggered recently - skip
-                System.Diagnostics.Debug.WriteLine($"[Geofence] {nearestPOI.NameVi} in cooldown, skipped");
-            }
-            else
+            if (_currentNearestPOI?.Id != closestInside.poi.Id)
             {
                 var args = new NearestPOIChangedEventArgs
                 {
                     PreviousPOI = _currentNearestPOI,
-                    NewPOI = nearestPOI,
-                    DistanceMeters = minDistance
+                    NewPOI = closestInside.poi,
+                    DistanceMeters = closestInside.distance
                 };
-                _currentNearestPOI = nearestPOI;
-                _lastTriggered[nearestPOI.Id] = now;
+                _currentNearestPOI = closestInside.poi;
                 NearestPOIChanged?.Invoke(this, args);
-                System.Diagnostics.Debug.WriteLine($"[Geofence] Nearest POI changed to: {nearestPOI.NameVi} ({minDistance:F0}m)");
+                System.Diagnostics.Debug.WriteLine($"[Geofence] UI: Nearest POI changed to: {closestInside.poi.NameVi}");
             }
         }
-        // Clear current nearest when outside all geofences
-        else if (_currentNearestPOI != null && insidePOIs.Count == 0)
+        else if (_currentNearestPOI != null)
         {
-            System.Diagnostics.Debug.WriteLine($"[Geofence] Left all geofences, clearing nearest POI");
+            System.Diagnostics.Debug.WriteLine($"[Geofence] Left all geofences");
             _currentNearestPOI = null;
         }
+
+        // TRIGGER LOGIC: Find highest priority available POI (Priority 3 > 2 > 1, then nearest distance)
+        // Example: POI A (P3, 80m) will trigger before POI B (P1, 50m) if both in radius
+        TriggerNearestAvailablePOI(insidePOIs, now);
     }
 
-    private void CheckGeofence(POI poi, double distanceMeters, DateTime now, bool isNearest)
+    private void TriggerNearestAvailablePOI(List<(POI poi, double distance)> insidePOIs, DateTime now)
     {
-        var poiId = poi.Id;
-        var isInside = distanceMeters <= poi.Radius;
-        
-        if (!_insideGeofence.ContainsKey(poiId))
-            _insideGeofence[poiId] = false;
-            
-        var wasInside = _insideGeofence[poiId];
+        // SMART MODE: Trigger by PRIORITY first (P3 > P2 > P1), then by DISTANCE
+        // Priority 3 POI at 80m will trigger before Priority 1 POI at 50m
+        // If highest priority is in cooldown, try next POI in priority+distance order
+        System.Diagnostics.Debug.WriteLine($"[Geofence] Finding highest priority available (sorted by P[3→1] + distance)...");
 
-        var lastTriggered = _lastTriggered.TryGetValue(poiId, out var last) ? last : DateTime.MinValue;
-        var cooldownElapsed = now - lastTriggered >= CooldownDuration;
-
-        System.Diagnostics.Debug.WriteLine($"[Geofence] Check {poi.NameVi}: wasInside={wasInside}, isInside={isInside}, isNearest={isNearest}, cooldown={cooldownElapsed}");
-
-        // ENTER event - ONLY trigger if this is the nearest POI among those inside
-        if (isInside && !wasInside && cooldownElapsed && isNearest)
+        foreach (var (poi, distance) in insidePOIs)
         {
-            _insideGeofence[poiId] = true;
+            var poiId = poi.Id;
+            
+            // Check cooldown for this specific POI
+            var lastTriggered = _lastTriggered.TryGetValue(poiId, out var last) ? last : DateTime.MinValue;
+            var cooldownElapsed = now - lastTriggered >= CooldownDuration;
+            
+            // Skip if this POI is in cooldown
+            if (!cooldownElapsed)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Geofence] SKIP {poi.NameVi} [P{poi.Priority}] (cooldown: {(now - lastTriggered).TotalSeconds:F0}s ago)");
+                continue;
+            }
+            
+            // This POI is the nearest one not in cooldown - TRIGGER IT!
             _lastTriggered[poiId] = now;
-            System.Diagnostics.Debug.WriteLine($"[Geofence] *** ENTERED {poi.NameVi} (nearest)!");
+            _lastTriggeredPOIId = poiId;
+            
+            System.Diagnostics.Debug.WriteLine($"[Geofence] *** TRIGGERED: {poi.NameVi} (P{poi.Priority}, {distance:F0}m)");
             POIEntered?.Invoke(this, new GeofenceEventArgs
             {
                 POI = poi,
-                DistanceMeters = distanceMeters
+                DistanceMeters = distance
             });
+            
+            // Only trigger ONE POI at a time - the nearest available
+            return;
         }
-        // Mark as inside without triggering if not nearest
-        else if (isInside && !wasInside && !isNearest)
+        
+        if (insidePOIs.Count > 0)
         {
-            _insideGeofence[poiId] = true;
-            System.Diagnostics.Debug.WriteLine($"[Geofence] Inside {poi.NameVi} but not nearest - no trigger");
-        }
-        // EXIT event
-        else if (!isInside && wasInside && distanceMeters > poi.Radius + DebounceMeters)
-        {
-            _insideGeofence[poiId] = false;
-            System.Diagnostics.Debug.WriteLine($"[Geofence] *** EXITED {poi.NameVi}");
-            POIExited?.Invoke(this, new GeofenceEventArgs
-            {
-                POI = poi,
-                DistanceMeters = distanceMeters
-            });
+            System.Diagnostics.Debug.WriteLine($"[Geofence] No POI available to trigger (all {insidePOIs.Count} POIs in cooldown)");
         }
     }
 

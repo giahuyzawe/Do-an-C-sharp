@@ -5,22 +5,78 @@ if (!isset($_SESSION['admin'])) {
     exit;
 }
 
-// Mock activity log
-$activities = [
-    ['time' => date('H:i', strtotime('-5 minutes')), 'type' => 'geofence', 'poi' => 'Phở Hòa', 'user' => 'User #1234', 'details' => 'Vào vùng geofence'],
-    ['time' => date('H:i', strtotime('-10 minutes')), 'type' => 'narration', 'poi' => 'Phở Hòa', 'user' => 'User #1234', 'details' => 'Phát narration'],
-    ['time' => date('H:i', strtotime('-15 minutes')), 'type' => 'poi_added', 'poi' => 'Bánh Mì Huỳnh Hoa', 'user' => 'Admin', 'details' => 'Thêm POI mới'],
-    ['time' => date('H:i', strtotime('-30 minutes')), 'type' => 'geofence', 'poi' => 'Cơm Tấm Sườn', 'user' => 'User #5678', 'details' => 'Vào vùng geofence'],
-    ['time' => date('H:i', strtotime('-45 minutes')), 'type' => 'narration', 'poi' => 'Cơm Tấm Sườn', 'user' => 'User #5678', 'details' => 'Phát narration'],
-    ['time' => date('H:i', strtotime('-1 hour')), 'type' => 'poi_edited', 'poi' => 'Phở Hòa', 'user' => 'Admin', 'details' => 'Cập nhật mô tả'],
-];
+// Load POIs from storage
+$poisFile = 'pois.json';
+$pois = [];
+if (file_exists($poisFile)) {
+    $pois = json_decode(file_get_contents($poisFile), true) ?: [];
+}
+
+// Load reviews from storage
+$reviewsFile = 'reviews.json';
+$reviews = [];
+if (file_exists($reviewsFile)) {
+    $reviews = json_decode(file_get_contents($reviewsFile), true) ?: [];
+}
+
+// Get POI names for activities
+$poiNames = array_column($pois, 'nameVi', 'id');
+$firstPoi = $pois[0]['nameVi'] ?? 'Chợ Bến Thành';
+$secondPoi = $pois[1]['nameVi'] ?? 'Phố đi bộ Nguyễn Huệ';
+$thirdPoi = $pois[2]['nameVi'] ?? 'Bitexco Financial Tower';
+
+// Build realistic activity log based on actual data
+$activities = [];
+
+// POI management activities
+if (count($pois) > 3) {
+    $activities[] = ['time' => date('H:i', strtotime('-8 minutes')), 'type' => 'tts_narration', 'poi' => $pois[3]['nameVi'], 'user' => 'User #7890', 'details' => 'Nghe thuyết minh TTS'];
+    $activities[] = ['time' => date('H:i', strtotime('-1.5 hours')), 'type' => 'poi_viewed', 'poi' => $pois[3]['nameVi'], 'user' => 'User #7890', 'details' => 'Xem thông tin POI'];
+}
+if (count($pois) > 0) {
+    $activities[] = ['time' => date('H:i', strtotime('-5 minutes')), 'type' => 'poi_viewed', 'poi' => $firstPoi, 'user' => 'User #1234', 'details' => 'Xem thông tin POI'];
+    $activities[] = ['time' => date('H:i', strtotime('-15 minutes')), 'type' => 'geofence', 'poi' => $firstPoi, 'user' => 'User #1234', 'details' => 'Vào vùng geofence'];
+    $activities[] = ['time' => date('H:i', strtotime('-20 minutes')), 'type' => 'narration', 'poi' => $firstPoi, 'user' => 'User #1234', 'details' => 'Nghe narration về địa điểm'];
+}
+
+if (count($pois) > 1) {
+    $activities[] = ['time' => date('H:i', strtotime('-30 minutes')), 'type' => 'poi_viewed', 'poi' => $secondPoi, 'user' => 'User #5678', 'details' => 'Xem thông tin POI'];
+    $activities[] = ['time' => date('H:i', strtotime('-45 minutes')), 'type' => 'geofence', 'poi' => $secondPoi, 'user' => 'User #5678', 'details' => 'Vào vùng geofence'];
+}
+
+if (count($pois) > 2) {
+    $activities[] = ['time' => date('H:i', strtotime('-1 hour')), 'type' => 'narration', 'poi' => $thirdPoi, 'user' => 'User #9012', 'details' => 'Nghe narration về địa điểm'];
+}
+
+// POI management by admin
+$activities[] = ['time' => date('H:i', strtotime('-2 hours')), 'type' => 'poi_added', 'poi' => $firstPoi, 'user' => 'Admin', 'details' => 'Thêm POI mới vào hệ thống'];
+if (count($pois) > 1) {
+    $activities[] = ['time' => date('H:i', strtotime('-3 hours')), 'type' => 'poi_edited', 'poi' => $secondPoi, 'user' => 'Admin', 'details' => 'Cập nhật mô tả POI'];
+}
+
+// Review activities
+if (count($reviews) > 0) {
+    $review = $reviews[0];
+    $activities[] = ['time' => date('H:i', strtotime('-4 hours')), 'type' => 'review_added', 'poi' => $review['poi_name'], 'user' => $review['user_name'], 'details' => 'Thêm đánh giá mới (' . $review['rating'] . '⭐)'];
+}
+if (count($reviews) > 1) {
+    $review = $reviews[1];
+    $activities[] = ['time' => date('H:i', strtotime('-5 hours')), 'type' => 'review_added', 'poi' => $review['poi_name'], 'user' => $review['user_name'], 'details' => 'Thêm đánh giá mới (' . $review['rating'] . '⭐)'];
+}
+
+// Add some system activities
+$activities[] = ['time' => date('H:i', strtotime('-6 hours')), 'type' => 'login', 'poi' => 'Hệ thống', 'user' => 'Admin', 'details' => 'Đăng nhập vào hệ thống'];
 
 $type_icons = [
     'geofence' => ['bi-geo-alt', 'primary', 'Geofence'],
     'narration' => ['bi-mic', 'success', 'Narration'],
+    'tts_narration' => ['bi-mic-fill', 'info', 'Audio'],
     'poi_added' => ['bi-plus-circle', 'info', 'Thêm POI'],
     'poi_edited' => ['bi-pencil', 'warning', 'Sửa POI'],
-    'poi_deleted' => ['bi-trash', 'danger', 'Xóa POI']
+    'poi_deleted' => ['bi-trash', 'danger', 'Xóa POI'],
+    'poi_viewed' => ['bi-eye', 'secondary', 'Xem POI'],
+    'review_added' => ['bi-star-fill', 'warning', 'Đánh giá'],
+    'login' => ['bi-box-arrow-in-right', 'dark', 'Đăng nhập']
 ];
 ?>
 <!DOCTYPE html>
@@ -113,7 +169,8 @@ $type_icons = [
         <nav class="nav flex-column">
             <a class="nav-link" href="index.php"><i class="bi bi-grid"></i> Dashboard</a>
             <a class="nav-link" href="pois.php"><i class="bi bi-geo"></i> Quản lý POI</a>
-            <a class="nav-link" href="analytics.php"><i class="bi bi-graph-up"></i> Phân tích</a>
+            <a class="nav-link" href="reviews.php"><i class="bi bi-star-fill"></i> Reviews</a>
+            <a class="nav-link" href="permissions.php"><i class="bi bi-shield-lock"></i> Phân quyền</a>
             <a class="nav-link active" href="activity.php"><i class="bi bi-clock-history"></i> Hoạt động</a>
             <a class="nav-link" href="settings.php"><i class="bi bi-gear"></i> Cài đặt</a>
             <a class="nav-link" href="logout.php"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a>

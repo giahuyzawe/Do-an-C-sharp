@@ -1,5 +1,6 @@
 using Microsoft.Maui.Controls.Maps;
 using Microsoft.Maui.Maps;
+using Microsoft.Maui.Devices.Sensors;
 using FoodStreetGuide.Services;
 using FoodStreetGuide.Models;
 using FoodStreetGuide.Platforms.Android;
@@ -15,6 +16,8 @@ public partial class MainPage : ContentPage
     private readonly ITTSService? _ttsService;
     private readonly ISettingsService? _settingsService;
     private readonly INarrationEngine? _narrationEngine;
+    private readonly ILocalizationService? _localizationService;
+    private readonly ISavedPOIService? _savedPOIService;
     private Pin? _currentLocationPin;
     private readonly List<Pin> _poiPins = new();
     private readonly Dictionary<int, Pin> _poiPinDictionary = new();
@@ -30,6 +33,8 @@ public partial class MainPage : ContentPage
         _geofenceEngine = ServiceProviderHelper.GetService<IGeofenceEngine>();
         _ttsService = ServiceProviderHelper.GetService<ITTSService>();
         _settingsService = ServiceProviderHelper.GetService<ISettingsService>();
+        _localizationService = ServiceProviderHelper.GetService<ILocalizationService>();
+        _savedPOIService = ServiceProviderHelper.GetService<ISavedPOIService>();
     }
 
     protected override async void OnAppearing()
@@ -42,10 +47,11 @@ public partial class MainPage : ContentPage
             if (_geofenceEngine != null)
             {
                 _geofenceEngine.POIEntered += OnPOIEntered;
+                _geofenceEngine.POIExited += OnPOIExited;
                 _geofenceEngine.NearestPOIChanged += OnNearestPOIChanged;
                 
-                // Only enable geofence once (it runs in background)
-                if (!_geofenceEnabled)
+                // Enable geofence if not already enabled (e.g., after app resume from background)
+                if (!_geofenceEngine.IsEnabled)
                 {
                     var pois = await _databaseService.GetPOIsAsync();
                     System.Diagnostics.Debug.WriteLine($"[OnAppearing] Loaded {pois.Count} POIs from database");
@@ -77,6 +83,9 @@ public partial class MainPage : ContentPage
                     System.Diagnostics.Debug.WriteLine($"[OnAppearing] Refreshed {pois.Count} POIs from database");
                     DisplayPOIMarkers(pois, _currentNearestPOI?.Id);
                 }
+                
+                // Auto sync from web admin (non-blocking)
+                _ = AutoSyncFromWebAsync();
             }
             
             if (map != null && map.VisibleRegion == null)
@@ -90,8 +99,24 @@ public partial class MainPage : ContentPage
                 );
             }
             
-            SubscribeToLocationUpdates();
+            // Resubscribe to location updates if tracking is active
+            if (_locationService?.IsTracking == true && !_locationSubscribed)
+            {
+                SubscribeToLocationUpdates();
+                System.Diagnostics.Debug.WriteLine("[OnAppearing] Resubscribed to location updates (tracking was active)");
+            }
+            
+            // Request and display current location even if not tracking
+            _ = UpdateCurrentLocationAsync();
+            
             UpdateTrackingButtonState();
+            
+            // Update UI language
+            UpdateLanguage();
+            
+            // Subscribe to language changes
+            if (_localizationService != null)
+                _localizationService.LanguageChanged += OnLanguageChanged;
         }
         catch (Exception ex)
         {
@@ -102,15 +127,29 @@ public partial class MainPage : ContentPage
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-        UnsubscribeFromLocationUpdates();
+        
+        // NOTE: Don't unsubscribe from location updates when just switching tabs
+        // The background service continues running, and we'll resubscribe in OnAppearing
+        // UnsubscribeFromLocationUpdates(); // REMOVED - causes tracking to appear stopped when returning
         
         // Unsubscribe events but keep geofence running in background
         if (_geofenceEngine != null)
         {
             _geofenceEngine.POIEntered -= OnPOIEntered;
+            _geofenceEngine.POIExited -= OnPOIExited;
             _geofenceEngine.NearestPOIChanged -= OnNearestPOIChanged;
-            // Do NOT Disable() - let it run in background
+            // Do NOT Disable() - let it run in background for tracking
+            // Geofence engine continues running even when app is in background
         }
+        
+        // Unsubscribe from language changes
+        if (_localizationService != null)
+            _localizationService.LanguageChanged -= OnLanguageChanged;
+    }
+    
+    private void OnLanguageChanged(object? sender, EventArgs e)
+    {
+        UpdateLanguage();
     }
 
     private void UpdateTrackingButtonState()
@@ -119,15 +158,17 @@ public partial class MainPage : ContentPage
 
         try
         {
-            if (_locationService?.IsTracking == true)
+            var language = _settingsService?.GetLanguage() ?? "vi";
+            
+            if (_locationSubscribed)
             {
-                // STOP tracking state - Red color #E63946
+                // STOP tracking state - Red #E63946
                 trackingIndicator.IsVisible = true;
                 if (trackingStatusLabel != null)
-                    trackingStatusLabel.Text = "Tracking Active";
-                trackButtonFrame.BackgroundColor = Color.FromArgb("#E63946");
+                    trackingStatusLabel.Text = language == "vi" ? "Đang theo dõi" : "Tracking Active";
+                trackButtonFrame.BackgroundColor = Color.FromArgb("#E63946");  // Red color for Stop
                 trackButton.TextColor = Colors.White;
-                trackButton.Text = "⏹";
+                trackButton.Text = language == "vi" ? "Dừng" : "Stop";
             }
             else
             {
@@ -135,7 +176,7 @@ public partial class MainPage : ContentPage
                 trackingIndicator.IsVisible = false;
                 trackButtonFrame.BackgroundColor = Color.FromArgb("#FF6B35");
                 trackButton.TextColor = Colors.White;
-                trackButton.Text = "▶";
+                trackButton.Text = language == "vi" ? "Theo dõi" : "Tracking";
             }
         }
         catch (Exception ex)
@@ -165,6 +206,7 @@ public partial class MainPage : ContentPage
 
     private void OnLocationUpdated(object? sender, LocationUpdatedEventArgs e)
     {
+        System.Diagnostics.Debug.WriteLine($"[OnLocationUpdated] ====== TRACKING UPDATE ======");
         System.Diagnostics.Debug.WriteLine($"[OnLocationUpdated] Location: {e.Latitude:F6}, {e.Longitude:F6}");
         
         MainThread.BeginInvokeOnMainThread(() =>
@@ -173,12 +215,13 @@ public partial class MainPage : ContentPage
             
             if (_geofenceEngine != null)
             {
+                System.Diagnostics.Debug.WriteLine($"[OnLocationUpdated] Geofence enabled: {_geofenceEngine.IsEnabled}, POI count: {_geofenceEngine.POICount}");
                 _geofenceEngine.UpdateLocation(e.Latitude, e.Longitude);
                 System.Diagnostics.Debug.WriteLine($"[OnLocationUpdated] Geofence engine updated");
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine($"[OnLocationUpdated] Geofence engine is NULL!");
+                System.Diagnostics.Debug.WriteLine($"[OnLocationUpdated] ❌ Geofence engine is NULL!");
             }
             
             if (_currentLocationPin == null)
@@ -210,17 +253,38 @@ public partial class MainPage : ContentPage
 
         try
         {
-            if (_locationService.IsTracking)
+            if (_locationSubscribed)
             {
-                await _locationService.StopTrackingAsync();
+                // Stop tracking
+                UnsubscribeFromLocationUpdates();
+                if (_locationService.IsTracking)
+                    await _locationService.StopTrackingAsync();
             }
             else
             {
-                await _locationService.StartTrackingAsync();
+                // Start tracking
+                System.Diagnostics.Debug.WriteLine($"[Track] Starting tracking... Geofence enabled: {_geofenceEngine?.IsEnabled}, POIs: {_geofenceEngine?.POICount}");
                 
-                // Auto-find and display nearest POI when tracking starts
-                await Task.Delay(1000); // Wait for location to update
-                await FindAndShowNearestPOIAsync();
+                // Ensure geofence is enabled with POIs
+                if (_geofenceEngine != null && (!_geofenceEngine.IsEnabled || _geofenceEngine.POICount == 0))
+                {
+                    System.Diagnostics.Debug.WriteLine("[Track] Re-initializing geofence engine...");
+                    var pois = await _databaseService.GetPOIsAsync();
+                    _geofenceEngine.SetPOIs(pois);
+                    _geofenceEngine.Enable();
+                    System.Diagnostics.Debug.WriteLine($"[Track] Geofence re-initialized with {pois.Count} POIs");
+                }
+                
+                SubscribeToLocationUpdates();
+                if (!_locationService.IsTracking)
+                    await _locationService.StartTrackingAsync();
+                
+                // Wait for location updates to come in
+                // Geofence engine will automatically trigger POI if:
+                // 1. User is inside POI radius
+                // 2. POI is not in cooldown
+                // DO NOT manually show POI card here - let geofence handle it
+                System.Diagnostics.Debug.WriteLine("[Track] Waiting for geofence triggers...");
             }
             UpdateTrackingButtonState();
         }
@@ -275,13 +339,12 @@ public partial class MainPage : ContentPage
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
                     poiCard.IsVisible = true;
-                    poiNameLabel.Text = nearestPOI.NameVi;
-                    poiDistanceLabel.Text = $"{minDistance:F0}m away";
-                    poiHoursLabel.Text = string.IsNullOrEmpty(nearestPOI.OpeningHours) ? "" : $"Open: {nearestPOI.OpeningHours}";
+                    // Hide control bar when POI card is shown
+                    if (controlBarFrame != null) controlBarFrame.IsVisible = false;
+                    var lang = _settingsService?.GetLanguage() ?? "vi";
+                    poiNameLabel.Text = lang == "en" ? nearestPOI.NameEn : nearestPOI.NameVi;
+                    poiDistanceLabel.Text = $"{minDistance:F0}m";
                     poiAddressLabel.Text = nearestPOI.Address;
-                    
-                    // Move FABs above the card
-                    fabStack.Margin = new Thickness(0, 0, 16, 280);
                 });
             }
         }
@@ -351,19 +414,65 @@ public partial class MainPage : ContentPage
     {
         System.Diagnostics.Debug.WriteLine($"[OnPOIEntered] START - POI: {e.POI.NameVi}, Distance: {e.DistanceMeters:F1}m");
         
+        // Update POI card UI immediately when triggered
+        await MainThread.InvokeOnMainThreadAsync(() =>
+        {
+            System.Diagnostics.Debug.WriteLine($"[OnPOIEntered] Updating POI card for triggered POI: {e.POI.NameVi}");
+            
+            _currentNearestPOI = e.POI;
+            
+            poiCard.IsVisible = true;
+            if (controlBarFrame != null) controlBarFrame.IsVisible = false;
+            
+            var lang2 = _settingsService?.GetLanguage() ?? "vi";
+            poiNameLabel.Text = lang2 == "en" ? e.POI.NameEn : e.POI.NameVi;
+            poiDistanceLabel.Text = $"{e.DistanceMeters:F0}m";
+            poiAddressLabel.Text = e.POI.Address;
+            
+            // Update status - check if open or closed
+            UpdatePOIStatus(e.POI, lang2);
+            
+            // Load images into carousel
+            if (poiImageCarousel != null)
+            {
+                var images = GetPOIImages(e.POI);
+                poiImageCarousel.ItemsSource = images;
+            }
+            
+            // Update save button state
+            if (saveHeartLabel != null && _savedPOIService != null)
+            {
+                bool isSaved = _savedPOIService.IsSaved(e.POI);
+                saveHeartLabel.TextColor = isSaved ? Color.FromArgb("#FF6B35") : Color.FromArgb("#666666");
+            }
+        });
+        
+        // Then do TTS narration
         await MainThread.InvokeOnMainThreadAsync(async () =>
         {
-            System.Diagnostics.Debug.WriteLine($"[OnPOIEntered] OnMainThread - POI: {e.POI.NameVi}");
-            
             try
             {
-                var message = $"You are approaching {e.POI.NameVi}. {e.POI.DescriptionVi}";
-                System.Diagnostics.Debug.WriteLine($"[TTS] Preparing: '{message}' for POI {e.POI.Id}:{e.POI.NameVi}");
+                var language = _settingsService?.GetLanguage() ?? "vi";
+                string message;
+                string ttsVoice;
+                
+                if (language == "en")
+                {
+                    message = $"You are approaching {e.POI.NameEn}. {e.POI.DescriptionEn}";
+                    ttsVoice = "en-US";
+                }
+                else
+                {
+                    message = $"Bạn đang đến gần {e.POI.NameVi}. {e.POI.DescriptionVi}";
+                    ttsVoice = "vi-VN";
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"[TTS] Preparing ({language}): '{message}' for POI {e.POI.Id}:{e.POI.NameVi}");
                 
                 if (_ttsService != null && _settingsService?.GetNarrationEnabled() != false)
                 {
                     await _ttsService.StopAsync();
-                    await _ttsService.SpeakAsync(message);
+                    await _ttsService.SpeakAsync(message, ttsVoice);
                     System.Diagnostics.Debug.WriteLine($"[TTS] Completed for {e.POI.NameVi}");
                 }
                 else
@@ -378,6 +487,30 @@ public partial class MainPage : ContentPage
         });
     }
 
+    private void OnPOIExited(object? sender, GeofenceEventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine($"[OnPOIExited] EXITED POI: {e.POI.NameVi}, Distance: {e.DistanceMeters:F1}m");
+        
+        // Hide POI card when user exits the geofence
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            // Only hide if this is the currently displayed POI
+            if (_currentNearestPOI?.Id == e.POI.Id)
+            {
+                System.Diagnostics.Debug.WriteLine($"[OnPOIExited] Hiding POI card for {e.POI.NameVi}");
+                poiCard.IsVisible = false;
+                _currentNearestPOI = null;
+                
+                // Show control bar when POI card is hidden
+                if (controlBarFrame != null) controlBarFrame.IsVisible = true;
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[OnPOIExited] Not hiding - current POI is different");
+            }
+        });
+    }
+
     private void OnNearestPOIChanged(object? sender, NearestPOIChangedEventArgs e)
     {
         System.Diagnostics.Debug.WriteLine($"[OnNearestPOIChanged] START - NewPOI: {e.NewPOI?.NameVi}, Distance: {e.DistanceMeters:F0}m");
@@ -386,18 +519,12 @@ public partial class MainPage : ContentPage
         {
             if (e.NewPOI != null)
             {
+                // Only update the reference, DON'T show POI card here
+                // POI card will only show when OnPOIEntered is triggered (not on cooldown)
                 _currentNearestPOI = e.NewPOI;
-                System.Diagnostics.Debug.WriteLine($"[OnNearestPOIChanged] Updating POI card for {e.NewPOI.NameVi}");
+                System.Diagnostics.Debug.WriteLine($"[OnNearestPOIChanged] Updated reference to: {e.NewPOI.NameVi} (card NOT shown - waiting for trigger)");
 
-                poiCard.IsVisible = true;
-                poiNameLabel.Text = e.NewPOI.NameVi;
-                poiDistanceLabel.Text = $"{e.DistanceMeters:F0}m away";
-                poiHoursLabel.Text = string.IsNullOrEmpty(e.NewPOI.OpeningHours) ? "" : $"Open: {e.NewPOI.OpeningHours}";
-                poiAddressLabel.Text = e.NewPOI.Address;
-
-                // Move FABs above the card
-                fabStack.Margin = new Thickness(0, 0, 16, 280);
-
+                // Update map markers to highlight nearest POI
                 _ = _databaseService.GetPOIsAsync().ContinueWith(task =>
                 {
                     if (task.Result != null)
@@ -411,9 +538,8 @@ public partial class MainPage : ContentPage
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine($"[OnNearestPOIChanged] NewPOI is null, hiding card");
-                poiCard.IsVisible = false;
-                fabStack.Margin = new Thickness(0, 0, 16, 140);
+                System.Diagnostics.Debug.WriteLine($"[OnNearestPOIChanged] NewPOI is null, clearing reference");
+                _currentNearestPOI = null;
             }
         });
     }
@@ -440,8 +566,17 @@ public partial class MainPage : ContentPage
                 {
                     Label = isNearest ? "★ " + poi.NameVi : poi.NameVi,
                     Location = new Location(poi.Latitude, poi.Longitude),
-                    Type = isNearest ? PinType.SavedPin : PinType.Place
+                    Type = isNearest ? PinType.SavedPin : PinType.Place,
+                    Address = poi.Address
                 };
+                
+                // Add click handler to show POI card
+                poiPin.MarkerClicked += (s, e) =>
+                {
+                    e.HideInfoWindow = true;
+                    ShowPOICardForMarker(poi);
+                };
+                
                 map.Pins.Add(poiPin);
                 _poiPins.Add(poiPin);
                 _poiPinDictionary[poi.Id] = poiPin;
@@ -451,33 +586,63 @@ public partial class MainPage : ContentPage
         });
     }
 
+    private void ShowPOICardForMarker(POI poi)
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            _currentNearestPOI = poi;
+            
+            // Show POI card with details
+            poiCard.IsVisible = true;
+            poiNameLabel.Text = poi.NameVi;
+            poiDistanceLabel.Text = poi.Address ?? "Address not available";
+            poiAddressLabel.Text = poi.Address ?? "No address information";
+            
+            // Update save heart color
+            bool isSaved = _savedPOIService?.IsSaved(poi) ?? false;
+            if (saveHeartLabel != null)
+                saveHeartLabel.TextColor = isSaved ? Color.FromArgb("#FF6B35") : Color.FromArgb("#666666");
+            
+            // Hide control bar to make room for card
+            if (controlBarFrame != null)
+                controlBarFrame.IsVisible = false;
+            
+            System.Diagnostics.Debug.WriteLine($"[ShowPOICardForMarker] Showing card for: {poi.NameVi}");
+        });
+    }
+
     private async void OnDirectionsClicked(object? sender, EventArgs e)
     {
         if (_currentNearestPOI == null) return;
         
-        var location = new Location(_currentNearestPOI.Latitude, _currentNearestPOI.Longitude);
-        var options = new MapLaunchOptions 
-        { 
-            Name = _currentNearestPOI.NameVi,
-            NavigationMode = NavigationMode.Driving 
-        };
-        
         try
         {
-            await Microsoft.Maui.ApplicationModel.Map.Default.OpenAsync(location, options);
+            var lang = _settingsService?.GetLanguage() ?? "vi";
+            var name = lang == "en" ? _currentNearestPOI.NameEn : _currentNearestPOI.NameVi;
+            
+            // Use Google Maps URL for navigation
+            var googleMapsUrl = $"https://www.google.com/maps/dir/?api=1&destination={_currentNearestPOI.Latitude},{_currentNearestPOI.Longitude}&destination_place_id={Uri.EscapeDataString(name)}";
+            
+            await Launcher.OpenAsync(new Uri(googleMapsUrl));
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Error", $"Cannot open map: {ex.Message}", "OK");
+            var loc = _localizationService;
+            await DisplayAlert(loc?.GetString("Alert_Error") ?? "Lỗi", $"Không thể mở bản đồ: {ex.Message}", "OK");
         }
     }
 
     private void OnRecenterTapped(object sender, EventArgs e)
     {
-        if (_currentLocationPin?.Location != null)
+        Location? targetLocation = _currentLocationPin?.Location;
+        
+        // If no tracking yet, use default location (Ho Chi Minh City)
+        if (targetLocation == null)
         {
-            map.MoveToRegion(MapSpan.FromCenterAndRadius(_currentLocationPin.Location, Distance.FromKilometers(0.5)));
+            targetLocation = new Location(10.762622, 106.660172);
         }
+        
+        map.MoveToRegion(MapSpan.FromCenterAndRadius(targetLocation, Distance.FromKilometers(0.5)));
     }
 
     private void OnZoomInClicked(object sender, EventArgs e)
@@ -501,15 +666,37 @@ public partial class MainPage : ContentPage
     private void OnClosePOICardClicked(object? sender, EventArgs e)
     {
         poiCard.IsVisible = false;
-        fabStack.Margin = new Thickness(0, 0, 16, 140);
+        // Show control bar when POI card is closed
+        if (controlBarFrame != null) controlBarFrame.IsVisible = true;
+    }
+
+    private void OnClosePOICardSwiped(object? sender, SwipedEventArgs e)
+    {
+        poiCard.IsVisible = false;
+        // Show control bar when POI card is closed
+        if (controlBarFrame != null) controlBarFrame.IsVisible = true;
     }
 
     private async void OnNarrateClicked(object? sender, EventArgs e)
     {
         if (_currentNearestPOI == null || _ttsService == null) return;
         
-        var message = $"You are approaching {_currentNearestPOI.NameVi}. {_currentNearestPOI.DescriptionVi}";
-        await _ttsService.SpeakAsync(message);
+        var language = _settingsService?.GetLanguage() ?? "vi";
+        string message;
+        string ttsVoice;
+        
+        if (language == "en")
+        {
+            message = $"You are approaching {_currentNearestPOI.NameEn}. {_currentNearestPOI.DescriptionEn}";
+            ttsVoice = "en-US";
+        }
+        else
+        {
+            message = $"Bạn đang đến gần {_currentNearestPOI.NameVi}. {_currentNearestPOI.DescriptionVi}";
+            ttsVoice = "vi-VN";
+        }
+        
+        await _ttsService.SpeakAsync(message, ttsVoice);
     }
 
     private async void OnDetailsClicked(object? sender, EventArgs e)
@@ -653,6 +840,7 @@ public partial class MainPage : ContentPage
             poiNameLabel.Text = _currentNearestPOI.NameVi;
             poiDistanceLabel.Text = "Nearest restaurant";
             poiAddressLabel.Text = _currentNearestPOI.Address ?? "Address not available";
+            
         });
     }
 
@@ -662,5 +850,562 @@ public partial class MainPage : ContentPage
         
         var message = $"You are approaching {_currentNearestPOI.NameVi}. {_currentNearestPOI.DescriptionVi}";
         _ttsService.SpeakAsync(message);
+    }
+
+    // NEW EVENT HANDLERS
+    private void OnFilterTapped(object? sender, TappedEventArgs e)
+    {
+        // Open filter dialog
+        DisplayAlert("Filter", "Filter options will be implemented here", "OK");
+    }
+
+    private void OnSearchTapped(object? sender, TappedEventArgs e)
+    {
+        // Open search page
+        DisplayAlert("Search", "Search page will be implemented here", "OK");
+    }
+
+    private void OnVoiceToggleClicked(object? sender, EventArgs e)
+    {
+        if (_currentNearestPOI == null || _ttsService == null)
+        {
+            DisplayAlert("Info", "No nearby POI to narrate", "OK");
+            return;
+        }
+
+        var message = $"You are approaching {_currentNearestPOI.NameVi}. {_currentNearestPOI.DescriptionVi}";
+        _ttsService.SpeakAsync(message);
+    }
+
+    private void OnSaveClicked(object? sender, TappedEventArgs e)
+    {
+        if (_currentNearestPOI == null)
+        {
+            var loc = _localizationService;
+            DisplayAlert(loc?.GetString("Alert_NoPOI") ?? "Thông báo", loc?.GetString("Alert_NoPOI") ?? "Không có địa điểm để lưu", "OK");
+            return;
+        }
+        
+        if (_savedPOIService == null) return;
+        
+        // Toggle save state using service
+        bool isNowSaved = !_savedPOIService.IsSaved(_currentNearestPOI);
+        _savedPOIService.ToggleSave(_currentNearestPOI);
+        
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            if (saveHeartLabel != null)
+            {
+                saveHeartLabel.TextColor = isNowSaved ? Color.FromArgb("#FF6B35") : Color.FromArgb("#666666");
+            }
+        });
+        
+        var loc2 = _localizationService;
+        var name = _settingsService?.GetLanguage() == "en" ? _currentNearestPOI.NameEn : _currentNearestPOI.NameVi;
+        var message = isNowSaved 
+            ? string.Format(loc2?.GetString("Alert_Saved") ?? "Đã lưu {0}", name)
+            : string.Format(loc2?.GetString("Alert_Unsaved") ?? "Đã bỏ lưu {0}", name);
+        DisplayAlert(loc2?.GetString("Alert_NoPOI") ?? "Thông báo", message, "OK");
+        
+        System.Diagnostics.Debug.WriteLine($"[OnSaveClicked] POI '{name}' is now {(isNowSaved ? "saved" : "unsaved")}");
+    }
+
+    // QR Scan button - Navigate to QR Scan page
+    private async void OnQRScanClicked(object? sender, EventArgs e)
+    {
+        try
+        {
+            await Navigation.PushAsync(new QRScanPage());
+        }
+        catch (Exception ex)
+        {
+            var loc = _localizationService;
+            await DisplayAlert(loc?.GetString("Alert_Error") ?? "Lỗi", $"Không thể mở QR scanner: {ex.Message}", "OK");
+        }
+    }
+
+    // REMOVED: Audio button moved to POI card only
+    // Auto narration is controlled via Settings tab
+
+    // Language Update Method
+    private async Task UpdateCurrentLocationAsync()
+    {
+        try
+        {
+            // Try to get current location
+            var location = await Geolocation.GetLastKnownLocationAsync() 
+                ?? await Geolocation.GetLocationAsync(new GeolocationRequest(GeolocationAccuracy.Medium, TimeSpan.FromSeconds(5)));
+            
+            if (location != null && map != null)
+            {
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    // Update or create location pin
+                    if (_currentLocationPin == null)
+                    {
+                        _currentLocationPin = new Pin
+                        {
+                            Label = "📍 You",
+                            Location = location,
+                            Type = PinType.Generic
+                        };
+                        map.Pins.Add(_currentLocationPin);
+                    }
+                    else
+                    {
+                        _currentLocationPin.Location = location;
+                    }
+                    
+                    // Move map to current location
+                    map.MoveToRegion(MapSpan.FromCenterAndRadius(location, Distance.FromKilometers(0.5)));
+                    System.Diagnostics.Debug.WriteLine($"[UpdateCurrentLocationAsync] Map centered at: {location.Latitude:F6}, {location.Longitude:F6}");
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[UpdateCurrentLocationAsync] Error: {ex.Message}");
+        }
+    }
+
+    private void UpdateLanguage()
+    {
+        if (_localizationService == null) return;
+        var loc = _localizationService;
+        
+        // Control bar buttons
+        if (trackButton != null)
+            trackButton.Text = _locationSubscribed ? loc.GetString("Stop") : loc.GetString("Tracking");
+        if (nearestButton != null)
+            nearestButton.Text = loc.GetString("Nearest");
+        if (qrButton != null)
+            qrButton.Text = loc.GetString("QR");
+        
+        // POI card labels
+        if (listenLabel != null)
+            listenLabel.Text = loc.GetString("POI_Listen");
+        if (directionsLabel != null)
+            directionsLabel.Text = loc.GetString("POI_Directions");
+        if (detailsLabel != null)
+            detailsLabel.Text = loc.GetString("POI_Details");
+        
+        // Update search entry placeholder
+        if (searchEntry != null)
+            searchEntry.Placeholder = loc.GetString("SearchPlaceholder");
+    }
+
+    // SEARCH FUNCTIONALITY
+    private void OnSearchTextChanged(object? sender, TextChangedEventArgs e)
+    {
+        if (clearSearchLabel != null)
+        {
+            clearSearchLabel.IsVisible = !string.IsNullOrWhiteSpace(e.NewTextValue);
+        }
+    }
+
+    private async void OnSearchCompleted(object? sender, EventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(searchEntry?.Text))
+        {
+            await DisplayAlert("Thông báo", "Vui lòng nhập tên quán hoặc món ăn", "OK");
+            return;
+        }
+        
+        var keyword = searchEntry.Text.Trim().ToLower();
+        await SearchNearbyPOIs(keyword);
+    }
+
+    private void OnClearSearchTapped(object? sender, TappedEventArgs e)
+    {
+        if (searchEntry != null)
+        {
+            searchEntry.Text = "";
+            clearSearchLabel.IsVisible = false;
+        }
+        
+        // Hide search results list
+        if (searchResultsScroll != null)
+            searchResultsScroll.IsVisible = false;
+        if (searchResultsList != null)
+            searchResultsList.Children.Clear();
+        _currentSearchResults.Clear();
+        
+        // Show all POIs again
+        _ = LoadAllPOIsAsync();
+    }
+
+    // Store search results for chip selection
+    private List<POI> _currentSearchResults = new();
+
+    private async Task SearchNearbyPOIs(string keyword)
+    {
+        try
+        {
+            // Show loading indicator
+            var pois = await _databaseService.GetPOIsAsync();
+            if (pois == null || pois.Count == 0)
+            {
+                await DisplayAlert("Thông báo", "Không tìm thấy nhà hàng nào", "OK");
+                return;
+            }
+            
+            // Filter POIs by name or description
+            var language = _settingsService?.GetLanguage() ?? "vi";
+            var matchedPOIs = pois.Where(p => 
+                (language == "en" ? p.NameEn : p.NameVi).ToLower().Contains(keyword) ||
+                (language == "en" ? p.DescriptionEn : p.DescriptionVi).ToLower().Contains(keyword)
+            ).ToList();
+            
+            if (matchedPOIs.Count == 0)
+            {
+                await DisplayAlert("Thông báo", $"Không tìm thấy quán nào phù hợp với \"{keyword}\"", "OK");
+                return;
+            }
+            
+            // Store results
+            _currentSearchResults = matchedPOIs;
+            
+            // Clear existing pins and show matched POIs
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                map.Pins.Clear();
+                _poiPins.Clear();
+                _poiPinDictionary.Clear();
+                
+                foreach (var poi in matchedPOIs)
+                {
+                    var pin = new Pin
+                    {
+                        Location = new Location(poi.Latitude, poi.Longitude),
+                        Label = language == "en" ? poi.NameEn : poi.NameVi,
+                        Address = poi.Address,
+                        Type = PinType.Place
+                    };
+                    map.Pins.Add(pin);
+                    _poiPins.Add(pin);
+                    _poiPinDictionary[poi.Id] = pin;
+                }
+                
+                // Show search results list
+                ShowSearchResultsList(matchedPOIs);
+                
+                // Center map on first result and show POI card
+                if (matchedPOIs.Count > 0)
+                {
+                    SelectSearchResult(0);
+                }
+                
+                // Show search result count
+                clearSearchLabel.IsVisible = true;
+            });
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[SearchNearbyPOIs] Error: {ex.Message}");
+            await DisplayAlert("Lỗi", "Không thể tìm kiếm, vui lòng thử lại", "OK");
+        }
+    }
+
+    private void ShowSearchResultsList(List<POI> pois)
+    {
+        if (searchResultsList == null || searchResultsScroll == null) return;
+        
+        searchResultsList.Children.Clear();
+        
+        for (int i = 0; i < pois.Count; i++)
+        {
+            var poi = pois[i];
+            var index = i; // Capture for closure
+            
+            var chip = new Frame
+            {
+                BackgroundColor = i == 0 ? Color.FromArgb("#FF6B35") : Color.FromArgb("#F0F0F0"),
+                CornerRadius = 16,
+                Padding = new Thickness(12, 6),
+                BorderColor = Colors.Transparent,
+                HasShadow = false
+            };
+            
+            var label = new Label
+            {
+                Text = poi.NameVi,
+                FontSize = 13,
+                TextColor = i == 0 ? Colors.White : Color.FromArgb("#333333"),
+                FontAttributes = i == 0 ? FontAttributes.Bold : FontAttributes.None
+            };
+            
+            chip.Content = label;
+            
+            // Add tap gesture
+            var tapGesture = new TapGestureRecognizer();
+            tapGesture.Tapped += (s, e) => OnSearchResultChipTapped(index);
+            chip.GestureRecognizers.Add(tapGesture);
+            
+            searchResultsList.Children.Add(chip);
+        }
+        
+        searchResultsScroll.IsVisible = true;
+    }
+
+    private void OnSearchResultChipTapped(int index)
+    {
+        System.Diagnostics.Debug.WriteLine($"[SearchResultChip] Tapped index {index}");
+        SelectSearchResult(index);
+        
+        // Update chip colors
+        for (int i = 0; i < searchResultsList.Children.Count; i++)
+        {
+            if (searchResultsList.Children[i] is Frame chip && chip.Content is Label label)
+            {
+                chip.BackgroundColor = i == index ? Color.FromArgb("#FF6B35") : Color.FromArgb("#F0F0F0");
+                label.TextColor = i == index ? Colors.White : Color.FromArgb("#333333");
+                label.FontAttributes = i == index ? FontAttributes.Bold : FontAttributes.None;
+            }
+        }
+    }
+
+    private void SelectSearchResult(int index)
+    {
+        if (index < 0 || index >= _currentSearchResults.Count) return;
+        
+        var poi = _currentSearchResults[index];
+        _currentNearestPOI = poi;
+        
+        var language = _settingsService?.GetLanguage() ?? "vi";
+        
+        // Center map
+        map.MoveToRegion(MapSpan.FromCenterAndRadius(
+            new Location(poi.Latitude, poi.Longitude),
+            Distance.FromKilometers(0.5)
+        ));
+        
+        // Update POI card
+        if (poiCard != null)
+        {
+            poiCard.IsVisible = true;
+            if (controlBarFrame != null) controlBarFrame.IsVisible = false;
+            
+            if (poiNameLabel != null)
+                poiNameLabel.Text = language == "en" ? poi.NameEn : poi.NameVi;
+            if (poiAddressLabel != null)
+                poiAddressLabel.Text = poi.Address;
+            if (poiDistanceLabel != null)
+                poiDistanceLabel.Text = $"{index + 1}/{_currentSearchResults.Count}";
+            if (poiRatingLabel != null)
+                poiRatingLabel.Text = "⭐ 4.5";
+            
+            // Load images
+            if (poiImageCarousel != null)
+            {
+                var images = GetPOIImages(poi);
+                poiImageCarousel.ItemsSource = images;
+            }
+            
+            // Update save button
+            if (saveHeartLabel != null && _savedPOIService != null)
+            {
+                bool isSaved = _savedPOIService.IsSaved(poi);
+                saveHeartLabel.TextColor = isSaved ? Color.FromArgb("#FF6B35") : Color.FromArgb("#666666");
+            }
+        }
+        
+        System.Diagnostics.Debug.WriteLine($"[SelectSearchResult] Selected: {poi.NameVi} ({index + 1}/{_currentSearchResults.Count})");
+    }
+
+    private async Task LoadAllPOIsAsync()
+    {
+        try
+        {
+            var pois = await _databaseService.GetPOIsAsync();
+            if (pois != null)
+            {
+                var language = _settingsService?.GetLanguage() ?? "vi";
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    map.Pins.Clear();
+                    _poiPins.Clear();
+                    _poiPinDictionary.Clear();
+                    
+                    foreach (var poi in pois)
+                    {
+                        var pin = new Pin
+                        {
+                            Location = new Location(poi.Latitude, poi.Longitude),
+                            Label = language == "en" ? poi.NameEn : poi.NameVi,
+                            Address = poi.Address,
+                            Type = PinType.Place
+                        };
+                        map.Pins.Add(pin);
+                        _poiPins.Add(pin);
+                        _poiPinDictionary[poi.Id] = pin;
+                    }
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[LoadAllPOIsAsync] Error: {ex.Message}");
+        }
+    }
+
+    // Auto sync POIs from Web Admin when app opens
+    private async Task AutoSyncFromWebAsync()
+    {
+        try
+        {
+            var webAdminService = ServiceProviderHelper.GetService<IWebAdminService>();
+            if (webAdminService == null)
+            {
+                System.Diagnostics.Debug.WriteLine("[AutoSync] WebAdminService not available");
+                return;
+            }
+
+            // Check if auto-sync is enabled (default: true)
+            var settingsService = ServiceProviderHelper.GetService<ISettingsService>();
+            bool autoSyncEnabled = settingsService?.GetAutoSyncFromWeb() ?? true;
+            
+            if (!autoSyncEnabled)
+            {
+                System.Diagnostics.Debug.WriteLine("[AutoSync] Disabled by settings");
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine("[AutoSync] Starting automatic sync from web...");
+            
+            // First test connection
+            bool isConnected = await webAdminService.TestConnectionAsync();
+            if (!isConnected)
+            {
+                System.Diagnostics.Debug.WriteLine("[AutoSync] Web Admin not reachable, skipping sync");
+                return;
+            }
+
+            // Get remote POIs count before sync
+            var remotePOIs = await webAdminService.GetAllPOIsAsync();
+            if (remotePOIs.Count == 0)
+            {
+                System.Diagnostics.Debug.WriteLine("[AutoSync] No POIs on web, skipping sync");
+                return;
+            }
+
+            // Get local count before sync
+            var localPOIs = await _databaseService.GetPOIsAsync();
+            int beforeCount = localPOIs.Count;
+
+            // Perform sync (pull from web)
+            await webAdminService.SyncFromWebAdminAsync();
+
+            // Get new local count after sync
+            localPOIs = await _databaseService.GetPOIsAsync();
+            int afterCount = localPOIs.Count;
+            int newPOIs = afterCount - beforeCount;
+
+            System.Diagnostics.Debug.WriteLine($"[AutoSync] Completed: {remotePOIs.Count} remote POIs, {newPOIs} new local POIs");
+
+            // Refresh UI if new POIs were added
+            if (newPOIs > 0)
+            {
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    DisplayPOIMarkers(localPOIs, _currentNearestPOI?.Id);
+                    System.Diagnostics.Debug.WriteLine($"[AutoSync] UI refreshed with {afterCount} POIs");
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AutoSync] Error: {ex.Message}");
+        }
+    }
+
+    // Helper method to get list of images for a POI
+    private List<string> GetPOIImages(POI poi)
+    {
+        var images = new List<string>();
+        
+        // If POI has an Image property, add it as first image
+        if (!string.IsNullOrEmpty(poi.Image))
+        {
+            images.Add(poi.Image);
+        }
+        else
+        {
+            images.Add("restaurant_placeholder.png");
+        }
+        
+        // Add placeholder images for demo (in real app, these would come from POI.ImageList)
+        // For now, add some variation based on POI ID
+        var random = new Random(poi.Id);
+        int additionalImages = random.Next(0, 4); // 0 to 3 additional images
+        
+        for (int i = 0; i < additionalImages; i++)
+        {
+            // Add different food images
+            string[] foodImages = { "pho.png", "banhmi.png", "bunbo.png", "comtam.png", "banhxeo.png" };
+            images.Add(foodImages[(poi.Id + i) % foodImages.Length]);
+        }
+        
+        return images;
+    }
+
+    // Check POI opening hours and update status
+    private void UpdatePOIStatus(POI poi, string language)
+    {
+        if (poiStatusLabel == null) return;
+        
+        bool isOpen = IsCurrentlyOpen(poi.OpeningHours);
+        
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            if (isOpen)
+            {
+                poiStatusLabel.Text = language == "en" ? "Open" : "Đang mở cửa";
+                poiStatusLabel.TextColor = Color.FromArgb("#4CAF50"); // Green
+            }
+            else
+            {
+                poiStatusLabel.Text = language == "en" ? "Closed" : "Đã đóng cửa";
+                poiStatusLabel.TextColor = Color.FromArgb("#F44336"); // Red
+            }
+        });
+    }
+
+    // Parse opening hours and check if currently open
+    private bool IsCurrentlyOpen(string? openingHours)
+    {
+        if (string.IsNullOrEmpty(openingHours)) return true; // Default to open if no data
+        
+        try
+        {
+            var now = DateTime.Now;
+            var currentTime = now.TimeOfDay;
+            var currentDay = now.DayOfWeek;
+            
+            // Parse format: "Mon-Fri: 07:00-22:00, Sat-Sun: 08:00-23:00"
+            // or "07:00-22:00" for daily
+            
+            // Simple parsing for common format "HH:mm-HH:mm"
+            if (openingHours.Contains("-"))
+            {
+                var parts = openingHours.Split('-');
+                if (parts.Length == 2 && 
+                    TimeSpan.TryParse(parts[0].Trim(), out var openTime) &&
+                    TimeSpan.TryParse(parts[1].Trim(), out var closeTime))
+                {
+                    // Handle overnight hours (e.g., 18:00-02:00)
+                    if (closeTime < openTime)
+                    {
+                        return currentTime >= openTime || currentTime <= closeTime;
+                    }
+                    return currentTime >= openTime && currentTime <= closeTime;
+                }
+            }
+            
+            return true; // Default to open if can't parse
+        }
+        catch
+        {
+            return true; // Default to open on error
+        }
     }
 }

@@ -24,36 +24,108 @@ if ($id) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $new_poi = [
-        'id' => $id ?: time(),
-        'nameVi' => $_POST['nameVi'] ?? '',
-        'nameEn' => $_POST['nameEn'] ?? '',
-        'descriptionVi' => $_POST['descriptionVi'] ?? '',
-        'descriptionEn' => $_POST['descriptionEn'] ?? '',
-        'latitude' => floatval($_POST['latitude'] ?? 0),
-        'longitude' => floatval($_POST['longitude'] ?? 0),
-        'radius' => intval($_POST['radius'] ?? 100),
-        'priority' => intval($_POST['priority'] ?? 1),
-        'visitCount' => $poi['visitCount'] ?? 0,
-        'createdAt' => $poi['createdAt'] ?? date('Y-m-d H:i:s')
-    ];
+    $latitude = floatval($_POST['latitude'] ?? 0);
+    $longitude = floatval($_POST['longitude'] ?? 0);
+    $address = trim($_POST['address'] ?? '');
+    $nameVi = trim($_POST['nameVi'] ?? '');
     
-    if ($id) {
-        // Update existing
-        foreach ($pois as &$p) {
-            if ($p['id'] == $id) {
-                $p = $new_poi;
-                break;
-            }
+    // Check for duplicate address (within 10 meters radius)
+    $duplicate_found = false;
+    $duplicate_name = '';
+    foreach ($pois as $p) {
+        // Skip current POI when editing
+        if ($id && $p['id'] == $id) continue;
+        
+        // Check if same address or very close coordinates (within 10m)
+        $existing_addr = trim($p['address'] ?? '');
+        $lat_diff = abs($p['latitude'] - $latitude);
+        $lng_diff = abs($p['longitude'] - $longitude);
+        
+        // Approximate 10m in degrees (rough estimate)
+        if (($existing_addr && strcasecmp($existing_addr, $address) === 0) || 
+            ($lat_diff < 0.0001 && $lng_diff < 0.0001)) {
+            $duplicate_found = true;
+            $duplicate_name = $p['nameVi'];
+            break;
         }
-    } else {
-        // Add new
-        $pois[] = $new_poi;
     }
     
-    file_put_contents($storage_file, json_encode($pois, JSON_PRETTY_PRINT));
-    header('Location: pois.php');
-    exit;
+    if ($duplicate_found) {
+        $error_message = "Không thể lưu! Địa điểm này trùng với quán: '$duplicate_name'. Vui lòng chọn địa chỉ hoặc tọa độ khác.";
+    } else {
+        // Handle image uploads
+        $images = [];
+        $upload_dir = 'uploads/';
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0755, true);
+        }
+        
+        // Process uploaded files
+        if (!empty($_FILES['images']['name'][0])) {
+            foreach ($_FILES['images']['name'] as $key => $name) {
+                if ($_FILES['images']['error'][$key] === UPLOAD_ERR_OK) {
+                    $tmp_name = $_FILES['images']['tmp_name'][$key];
+                    $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+                    $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                    
+                    if (in_array($ext, $allowed)) {
+                        $new_filename = uniqid() . '.' . $ext;
+                        $destination = $upload_dir . $new_filename;
+                        
+                        if (move_uploaded_file($tmp_name, $destination)) {
+                            $images[] = $destination;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Keep existing images if editing
+        if ($id && $poi && !empty($poi['images'])) {
+            $existing_images = $poi['images'];
+            // Merge new images with existing
+            $images = array_merge($existing_images, $images);
+        }
+        
+        $new_poi = [
+            'id' => $id ?: time(),
+            'nameVi' => $nameVi,
+            'nameEn' => $_POST['nameEn'] ?? '',
+            'descriptionVi' => $_POST['descriptionVi'] ?? '',
+            'descriptionEn' => $_POST['descriptionEn'] ?? '',
+            'latitude' => $latitude,
+            'longitude' => $longitude,
+            'address' => $address,
+            'radius' => intval($_POST['radius'] ?? 100),
+            'priority' => intval($_POST['priority'] ?? 1),
+            'narrationTextVi' => $_POST['narrationTextVi'] ?? '',
+            'autoPlayNarration' => isset($_POST['autoPlayNarration']),
+            'createdAt' => $poi['createdAt'] ?? date('Y-m-d H:i:s'),
+            'openingHours' => $_POST['openingHours'] ?? ($poi['openingHours'] ?? ''),
+            'category' => $_POST['category'] ?? ($poi['category'] ?? 'landmark'),
+            'tags' => $_POST['tags'] ?? ($poi['tags'] ?? ''),
+            'status' => $poi['status'] ?? 'active',
+            'visitCount' => $poi['visitCount'] ?? 0,
+            'images' => $images
+        ];
+        
+        if ($id) {
+            // Update existing
+            foreach ($pois as &$p) {
+                if ($p['id'] == $id) {
+                    $p = $new_poi;
+                    break;
+                }
+            }
+        } else {
+            // Add new
+            $pois[] = $new_poi;
+        }
+        
+        file_put_contents($storage_file, json_encode($pois, JSON_PRETTY_PRINT));
+        header('Location: pois.php');
+        exit;
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -139,7 +211,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <nav class="nav flex-column">
             <a class="nav-link" href="index.php"><i class="bi bi-grid"></i> Dashboard</a>
             <a class="nav-link active" href="pois.php"><i class="bi bi-geo"></i> Quản lý POI</a>
-            <a class="nav-link" href="analytics.php"><i class="bi bi-graph-up"></i> Phân tích</a>
+            <a class="nav-link" href="reviews.php"><i class="bi bi-star-fill"></i> Reviews</a>
+            <a class="nav-link" href="permissions.php"><i class="bi bi-shield-lock"></i> Phân quyền</a>
+            <a class="nav-link" href="activity.php"><i class="bi bi-clock-history"></i> Hoạt động</a>
             <a class="nav-link" href="settings.php"><i class="bi bi-gear"></i> Cài đặt</a>
             <a class="nav-link" href="logout.php"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a>
         </nav>
@@ -153,7 +227,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </a>
         </div>
 
-        <form method="POST">
+        <?php if (isset($error_message)): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i><?php echo $error_message; ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <?php endif; ?>
+
+        <form method="POST" enctype="multipart/form-data">
             <div class="row g-4">
                 <!-- Left Column - Form -->
                 <div class="col-lg-6">
@@ -173,12 +254,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                        value="<?php echo htmlspecialchars($poi['nameEn'] ?? ''); ?>">
                             </div>
                             <div class="mb-3">
+                                <label class="form-label">Địa chỉ *</label>
+                                <input type="text" class="form-control" name="address" required
+                                       value="<?php echo htmlspecialchars($poi['address'] ?? ''); ?>">
+                                <small class="text-muted">Địa chỉ dùng để kiểm tra trùng lặp với các quán khác</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Giờ mở cửa</label>
+                                <input type="text" class="form-control" name="openingHours" 
+                                       value="<?php echo htmlspecialchars($poi['openingHours'] ?? ''); ?>"
+                                       placeholder="Ví dụ: 07:00 - 22:00">
+                                <small class="text-muted">Định dạng: HH:MM - HH:MM hoặc mô tả tự do</small>
+                            </div>
+                            <div class="mb-3">
                                 <label class="form-label">Mô tả (Tiếng Việt)</label>
                                 <textarea class="form-control" name="descriptionVi" rows="3"><?php echo htmlspecialchars($poi['descriptionVi'] ?? ''); ?></textarea>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Mô tả (Tiếng Anh)</label>
                                 <textarea class="form-control" name="descriptionEn" rows="3"><?php echo htmlspecialchars($poi['descriptionEn'] ?? ''); ?></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Category</label>
+                                <select class="form-select" name="category">
+                                    <option value="landmark" <?php echo ($poi['category'] ?? 'landmark') == 'landmark' ? 'selected' : ''; ?>>Landmark</option>
+                                    <option value="restaurant" <?php echo ($poi['category'] ?? '') == 'restaurant' ? 'selected' : ''; ?>>Restaurant</option>
+                                    <option value="cafe" <?php echo ($poi['category'] ?? '') == 'cafe' ? 'selected' : ''; ?>>Cafe</option>
+                                    <option value="bar" <?php echo ($poi['category'] ?? '') == 'bar' ? 'selected' : ''; ?>>Bar</option>
+                                    <option value="market" <?php echo ($poi['category'] ?? '') == 'market' ? 'selected' : ''; ?>>Market</option>
+                                    <option value="night_market" <?php echo ($poi['category'] ?? '') == 'night_market' ? 'selected' : ''; ?>>Night Market</option>
+                                    <option value="street_food" <?php echo ($poi['category'] ?? '') == 'street_food' ? 'selected' : ''; ?>>Street Food</option>
+                                    <option value="temple" <?php echo ($poi['category'] ?? '') == 'temple' ? 'selected' : ''; ?>>Temple</option>
+                                    <option value="park" <?php echo ($poi['category'] ?? '') == 'park' ? 'selected' : ''; ?>>Park</option>
+                                    <option value="museum" <?php echo ($poi['category'] ?? '') == 'museum' ? 'selected' : ''; ?>>Museum</option>
+                                    <option value="shopping" <?php echo ($poi['category'] ?? '') == 'shopping' ? 'selected' : ''; ?>>Shopping</option>
+                                    <option value="bridge" <?php echo ($poi['category'] ?? '') == 'bridge' ? 'selected' : ''; ?>>Bridge</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Tags</label>
+                                <input type="text" class="form-control" name="tags" 
+                                       value="<?php echo htmlspecialchars($poi['tags'] ?? ''); ?>"
+                                       placeholder="Ví dụ: bánh mì, đường phố, ăn vặt">
+                                <small class="text-muted">Các tag phân cách bằng dấu phẩy</small>
                             </div>
                         </div>
                     </div>
@@ -202,6 +320,68 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <option value="3" <?php echo ($poi['priority'] ?? 1) == 3 ? 'selected' : ''; ?>>3 - Cao</option>
                                     </select>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="bi bi-mic-fill me-2 text-info"></i>Audio</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Nội dung thuyết minh (Tiếng Anh)</label>
+                                <textarea class="form-control" name="narrationTextVi" id="narrationTextVi" rows="4"
+                                          placeholder="Enter narration content for this POI..."><?php echo htmlspecialchars($poi['narrationTextVi'] ?? ''); ?></textarea>
+                                <small class="text-muted">Nội dung này sẽ được chuyển thành giọng nói tiếng Anh</small>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="autoPlayNarration" id="autoPlayNarration"
+                                           <?php echo ($poi['autoPlayNarration'] ?? false) ? 'checked' : ''; ?>>
+                                    <label class="form-check-label" for="autoPlayNarration">
+                                        Tự động đọc khi vào geofence
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-info" id="btnTTSPreview">
+                                    <i class="bi bi-play-fill me-1"></i>Nghe thử
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" id="btnTTSStop">
+                                    <i class="bi bi-stop-fill me-1"></i>Dừng
+                                </button>
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Sử dụng tính năng Text-to-Speech của trình duyệt.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="bi bi-images me-2 text-success"></i>Hình ảnh</h5>
+                        </div>
+                        <div class="card-body">
+                            <?php if ($id && !empty($poi['images'])): ?>
+                            <div class="mb-3">
+                                <label class="form-label">Hình ảnh hiện tại</label>
+                                <div class="row g-2">
+                                    <?php foreach ($poi['images'] as $img): ?>
+                                    <div class="col-4">
+                                        <img src="<?php echo htmlspecialchars($img); ?>" class="img-thumbnail" style="height: 100px; object-fit: cover; width: 100%;">
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+                            <div class="mb-3">
+                                <label class="form-label">Thêm hình ảnh mới</label>
+                                <input type="file" class="form-control" name="images[]" accept="image/*" multiple>
+                                <small class="text-muted">Có thể chọn nhiều ảnh (JPG, PNG, GIF, WebP). Ảnh sẽ được lưu tự động khi bấm Lưu.</small>
                             </div>
                         </div>
                     </div>
@@ -245,25 +425,186 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+        // Category colors configuration
+        const categoryColors = {
+            'landmark': '#4F46E5',      // Indigo
+            'restaurant': '#EF4444',    // Red
+            'cafe': '#F59E0B',         // Amber
+            'bar': '#8B5CF6',          // Purple
+            'market': '#14B8A6',        // Teal
+            'night_market': '#EC4899', // Pink
+            'street_food': '#F97316',  // Orange
+            'temple': '#10B981',       // Emerald
+            'park': '#22C55E',         // Green
+            'museum': '#06B6D4',       // Cyan
+            'shopping': '#6366F1',     // Indigo
+            'bridge': '#3B82F6'        // Blue
+        };
+
+        const categoryNames = {
+            'landmark': 'Landmark',
+            'restaurant': 'Restaurant',
+            'cafe': 'Cafe',
+            'bar': 'Bar',
+            'market': 'Market',
+            'night_market': 'Night Market',
+            'street_food': 'Street Food',
+            'temple': 'Temple',
+            'park': 'Park',
+            'museum': 'Museum',
+            'shopping': 'Shopping',
+            'bridge': 'Bridge'
+        };
+
+        // Create custom colored marker icon
+        function createCustomIcon(color) {
+            return L.divIcon({
+                className: 'custom-marker',
+                html: `<div style="
+                    background-color: ${color};
+                    width: 30px;
+                    height: 30px;
+                    border-radius: 50% 50% 50% 0;
+                    border: 3px solid white;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+                    transform: rotate(-45deg);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                "></div>`,
+                iconSize: [30, 30],
+                iconAnchor: [15, 30],
+                popupAnchor: [0, -30]
+            });
+        }
+
         const lat = parseFloat(document.getElementById('latitude').value) || 10.762622;
         const lng = parseFloat(document.getElementById('longitude').value) || 106.660172;
         
         const map = L.map('map').setView([lat, lng], 15);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        // Get current category
+        const categorySelect = document.querySelector('select[name="category"]');
+        const currentCategory = categorySelect ? categorySelect.value : 'landmark';
+        const markerColor = categoryColors[currentCategory] || '#4F46E5';
         
-        let marker = L.marker([lat, lng], {draggable: true}).addTo(map);
+        // Create marker with custom icon
+        let marker = L.marker([lat, lng], {
+            draggable: true,
+            icon: createCustomIcon(markerColor)
+        }).addTo(map);
+
+        // Add popup showing category
+        function updatePopup() {
+            const cat = categorySelect ? categorySelect.value : 'landmark';
+            const catName = categoryNames[cat] || 'POI';
+            const catColor = categoryColors[cat] || '#4F46E5';
+            marker.bindPopup(`
+                <div style="text-align: center;">
+                    <span style="
+                        background-color: ${catColor};
+                        color: white;
+                        padding: 4px 12px;
+                        border-radius: 12px;
+                        font-size: 12px;
+                        font-weight: 600;
+                    ">${catName}</span>
+                    <div style="margin-top: 8px; font-size: 11px; color: #666;">
+                        ${lat.toFixed(6)}, ${lng.toFixed(6)}
+                    </div>
+                </div>
+            `).openPopup();
+        }
+        updatePopup();
+        
+        // Update marker color when category changes
+        if (categorySelect) {
+            categorySelect.addEventListener('change', function() {
+                const newCategory = this.value;
+                const newColor = categoryColors[newCategory] || '#4F46E5';
+                marker.setIcon(createCustomIcon(newColor));
+                updatePopup();
+            });
+        }
         
         marker.on('dragend', function(e) {
             const pos = e.target.getLatLng();
             document.getElementById('latitude').value = pos.lat.toFixed(6);
             document.getElementById('longitude').value = pos.lng.toFixed(6);
+            updatePopup();
         });
         
         map.on('click', function(e) {
             marker.setLatLng(e.latlng);
             document.getElementById('latitude').value = e.latlng.lat.toFixed(6);
             document.getElementById('longitude').value = e.latlng.lng.toFixed(6);
+            updatePopup();
         });
+
+        // Show popup on marker click
+        marker.on('click', function() {
+            updatePopup();
+            marker.openPopup();
+        });
+
+        // Text-to-Speech functionality
+        const btnTTSPreview = document.getElementById('btnTTSPreview');
+        const btnTTSStop = document.getElementById('btnTTSStop');
+        const narrationTextVi = document.getElementById('narrationTextVi');
+
+        if (btnTTSPreview && narrationTextVi) {
+            btnTTSPreview.addEventListener('click', function() {
+                const text = narrationTextVi.value.trim();
+                if (!text) {
+                    alert('Vui lòng nhập nội dung thuyết minh trước khi nghe thử!');
+                    return;
+                }
+
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'vi-VN';
+                    utterance.rate = 0.9;
+                    utterance.pitch = 1;
+
+                    const voices = window.speechSynthesis.getVoices();
+                    const vietnameseVoice = voices.find(voice => voice.lang.includes('vi'));
+                    if (vietnameseVoice) {
+                        utterance.voice = vietnameseVoice;
+                    }
+
+                    window.speechSynthesis.speak(utterance);
+
+                    btnTTSPreview.innerHTML = '<i class="bi bi-volume-up-fill me-1"></i>Đang phát...';
+                    btnTTSPreview.disabled = true;
+
+                    utterance.onend = function() {
+                        btnTTSPreview.innerHTML = '<i class="bi bi-play-fill me-1"></i>Nghe thử';
+                        btnTTSPreview.disabled = false;
+                    };
+
+                    utterance.onerror = function() {
+                        btnTTSPreview.innerHTML = '<i class="bi bi-play-fill me-1"></i>Nghe thử';
+                        btnTTSPreview.disabled = false;
+                        alert('Có lỗi xảy ra khi phát audio!');
+                    };
+                } else {
+                    alert('Trình duyệt không hỗ trợ Text-to-Speech!');
+                }
+            });
+        }
+
+        if (btnTTSStop && narrationTextVi) {
+            btnTTSStop.addEventListener('click', function() {
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                    btnTTSPreview.innerHTML = '<i class="bi bi-play-fill me-1"></i>Nghe thử';
+                    btnTTSPreview.disabled = false;
+                }
+            });
+        }
     </script>
 </body>
 </html>
