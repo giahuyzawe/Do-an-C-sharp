@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sequence Diagrams - FoodStreetGuide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .document {
+            max-width: 210mm;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            padding: 20mm;
+        }
+
+        /* Cover */
+        .cover-page {
+            text-align: center;
+            padding: 60px 40px;
+            background: linear-gradient(135deg, #FF6B35 0%, #2EC4B6 100%);
+            color: white;
+            margin: -20mm -20mm 30px -20mm;
+            page-break-after: always;
+        }
+
+        .cover-title {
+            font-size: 28pt;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .cover-subtitle {
+            font-size: 16pt;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .cover-info {
+            background: rgba(255,255,255,0.2);
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .cover-info p {
+            font-size: 12pt;
+            margin: 10px 0;
+        }
+
+        /* Headers */
+        h1 {
+            font-size: 20pt;
+            color: #FF6B35;
+            border-bottom: 3px solid #FF6B35;
+            padding-bottom: 10px;
+            margin: 30px 0 20px 0;
+            page-break-after: avoid;
+        }
+
+        h2 {
+            font-size: 14pt;
+            color: #2EC4B6;
+            margin: 25px 0 15px 0;
+            page-break-after: avoid;
+        }
+
+        h3 {
+            font-size: 12pt;
+            color: #333;
+            margin: 15px 0 10px 0;
+            font-weight: bold;
+        }
+
+        /* Diagram Card */
+        .diagram-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            page-break-inside: avoid;
+            background: #fafafa;
+        }
+
+        .diagram-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #FF6B35;
+        }
+
+        .diagram-number {
+            background: #FF6B35;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16pt;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .diagram-title {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+        }
+
+        .diagram-desc {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #2EC4B6;
+        }
+
+        .diagram-desc p {
+            margin: 0;
+            font-size: 11pt;
+            color: #555;
+        }
+
+        /* Image Placeholder */
+        .image-placeholder {
+            background: #f0f0f0;
+            border: 3px dashed #ccc;
+            border-radius: 10px;
+            padding: 60px 40px;
+            text-align: center;
+            margin: 20px 0;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-placeholder-icon {
+            font-size: 48pt;
+            margin-bottom: 15px;
+            color: #999;
+        }
+
+        .image-placeholder-text {
+            font-size: 12pt;
+            color: #777;
+            font-weight: 500;
+        }
+
+        .image-placeholder-hint {
+            font-size: 10pt;
+            color: #999;
+            margin-top: 10px;
+        }
+
+        /* Mermaid Code Box */
+        .mermaid-code {
+            background: #263238;
+            color: #eeffff;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 9pt;
+            overflow-x: auto;
+            margin: 15px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .mermaid-code pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+
+        /* Participants table */
+        .participants-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 10pt;
+        }
+
+        .participants-table th {
+            background: #FF6B35;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .participants-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #e0e0e0;
+            background: white;
+        }
+
+        .participants-table tr:nth-child(even) td {
+            background: #fafafa;
+        }
+
+        /* Flow steps */
+        .flow-steps {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .flow-steps ol {
+            margin-left: 20px;
+        }
+
+        .flow-steps li {
+            margin: 8px 0;
+            font-size: 11pt;
+        }
+
+        /* Legend */
+        .legend-box {
+            background: #fff9e6;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .legend-box h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 11pt;
+        }
+
+        /* Page break */
+        .page-break {
+            page-break-before: always;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .document {
+                box-shadow: none;
+                max-width: none;
+                padding: 15mm;
+            }
+
+            .cover-page {
+                margin: -15mm -15mm 30px -15mm;
+            }
+
+            .diagram-card {
+                break-inside: avoid;
+            }
+
+            .mermaid-code {
+                max-height: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="document">
+        <!-- COVER PAGE -->
+        <div class="cover-page">
+            <h1 class="cover-title">📊 Sequence Diagrams</h1>
+            <p class="cover-subtitle">FoodStreetGuide - Hệ thống Du lịch Ẩm thực</p>
+
+            <div class="cover-info">
+                <p><strong>Đề tài:</strong> Khám Phá Ẩm Thực Đường Phố</p>
+                <p><strong>Số lượng:</strong> 10 Sequence Diagrams</p>
+                <p><strong>Mục đích:</strong> Mô tả luồng hoạt động hệ thống</p>
+            </div>
+
+            <p style="margin-top: 40px; font-size: 11pt; opacity: 0.9;">
+                Nguyễn Gia Huy (3123411119) | Vũ Gia Huy (3123411125)
+            </p>
+        </div>
+
+        <!-- DIAGRAM 1 -->
+        <div class="diagram-card">
+            <div class="diagram-header">
+                <div class="diagram-number">1</div>
+                <h2 class="diagram-title">App Launch & Initialization</h2>
+            </div>
+
+            <div class="diagram-desc">
+                <p><strong>Mô tả:</strong> Khởi động app, init services, database. Mô tả quá trình khởi tạo ứng dụng từ khi user mở app cho đến khi hiển thị bản đồ với các điểm POI.</p>
+            </div>
+
+            <h3>🎭 Thành phần tham gia:</h3>
+            <table class="participants-table">
+                <tr>
+                    <th>Thành phần</th>
+                    <th>Vai trò</th>
+                </tr>
+                <tr>
+                    <td><strong>User</strong></td>
+                    <td>Người dùng mở ứng dụng</td>
+                </tr>
+                <tr>
+                    <td><strong>App</strong></td>
+                    <td>FoodStreetGuide App - điều phối chính</td>
+                </tr>
+                <tr>
+                    <td><strong>DatabaseService</strong></td>
+                    <td>Khởi tạo SQLite, tạo bảng, seed data</td>
+                </tr>
+                <tr>
+                    <td><strong>GeofenceEngine</strong></td>
+                    <td>Khởi tạo engine theo dõi vị trí</td>
+                </tr>
+                <tr>
+                    <td><strong>LocationService</strong></td>
+                    <td>Kiểm tra quyền GPS</td>
+                </tr>
+                <tr>
+                    <td><strong>TTSService</strong></td>
+                    <td>Khởi tạo Text-to-Speech</td>
+                </tr>
+                <tr>
+                    <td><strong>WebAdminService</strong></td>
+                    <td>Test kết nối API</td>
+                </tr>
+            </table>
+
+            <h3>📝 Các bước chính:</h3>
+            <div class="flow-steps">
+                <ol>
+                    <li>User mở App</li>
+                    <li>Init SQLite Database (Create tables: POI, Review)</li>
+                    <li>Seed test data nếu database trống</li>
+                    <li>Khởi tạo GeofenceEngine</li>
+                    <li>Kiểm tra GPS permission</li>
+                    <li>Initialize TTS engine</li>
+                    <li>Test connection đến Web Admin API</li>
+                    <li>Load POIs từ database local</li>
+                    <li>Hiển thị bản đồ với markers</li>
+                    <li>App ready cho user</li>
+                </ol>
+            </div>
+
+            <div style="margin: 20px 0; text-align: center; border: 1px solid #ddd; border-radius: 8px; padding: 10px;">
+                <img src="Sequence1" alt="App Launch & Initialization Sequence Diagram" style="max-width: 100%; height: auto; border-radius: 4px;">
+                <p style="font-size: 10pt; color: #666; margin-top: 8px;">Hình 1: App Launch & Initialization Sequence Diagram</p>
+            </div>
+
+            <div class="mermaid-code">
+                <pre>sequenceDiagram
+    actor User
+    participant App as FoodStreetGuide App
+    participant DB as DatabaseService
+    participant Geo as GeofenceEngine
+    participant Web as WebAdminService
+    participant Loc as LocationService
+    participant TTS as TTSService
+
+    User->>App: Open App
+    App->>DB: Init() - Create SQLite tables
+    DB->>DB: CreateTable&lt;POI&gt;()
+    DB->>DB: CreateTable&lt;Review&gt;()
+    DB->>DB: Seed test data if empty
+    DB-->>App: Database ready
+
+    App->>Geo: new GeofenceEngine()
+    Geo-->>App: Geofence enabled
+    
+    App->>Loc: Check GPS permission
+    Loc-->>App: Permission granted
+    
+    App->>TTS: Initialize TTS engine
+    TTS-->>App: TTS ready
+    
+    App->>Web: TestConnectionAsync()
+    Web->>Web: HTTP GET /api/pois.php
+    Web-->>App: Connection status
+    
+    App->>App: Load POIs from database
+    App->>App: Display map with markers
+    App-->>User: App ready</pre>
+            </div>
+        </div>
+
+        <!-- DIAGRAM 2 -->
+        <div class="diagram-card page-break">
+            <div class="diagram-header">
+                <div class="diagram-number">2</div>
+                <h2 class="diagram-title">Geofence Trigger - Auto Narration</h2>
+            </div>
+
+            <div class="diagram-desc">
+                <p><strong>Mô tả:</strong> Auto narration khi vào vùng POI. Mô tả quá trình theo dõi vị trí người dùng, phát hiện khi vào vùng geofence của một POI và tự động phát thông tin audio.</p>
+            </div>
+
+            <h3>🎭 Thành phần tham gia:</h3>
+            <table class="participants-table">
+                <tr>
+                    <th>Thành phần</th>
+                    <th>Vai trò</th>
+                </tr>
+                <tr>
+                    <td><strong>User</strong></td>
+                    <td>Di chuyển gần POI</td>
+                </tr>
+                <tr>
+                    <td><strong>LocationService</strong></td>
+                    <td>Cập nhật vị trí GPS</td>
+                </tr>
+                <tr>
+                    <td><strong>GeofenceEngine</strong></td>
+                    <td>Tính khoảng cách, kiểm tra geofence</td>
+                </tr>
+                <tr>
+                    <td><strong>MainPage</strong></td>
+                    <td>Hiển thị UI, điều phối audio</td>
+                </tr>
+                <tr>
+                    <td><strong>AudioPlayerService</strong></td>
+                    <td>Phát thông báo âm thanh</td>
+                </tr>
+                <tr>
+                    <td><strong>TTSService</strong></td>
+                    <td>Text-to-Speech narration</td>
+                </tr>
+            </table>
+
+            <h3>📝 Các bước chính:</h3>
+            <div class="flow-steps">
+                <ol>
+                    <li>User di chuyển gần POI</li>
+                    <li>GPS Update (5-30s interval)</li>
+                    <li>Tính khoảng cách đến tất cả POIs</li>
+                    <li>Kiểm tra POI nào trong bán kính</li>
+                    <li>Sort theo Priority (3→1) rồi Distance</li>
+                    <li>Kiểm tra cooldown (5 phút)</li>
+                    <li>Nếu pass cooldown → POIEntered event</li>
+                    <li>Show POI Card</li>
+                    <li>Play audio notification</li>
+                    <li>Auto-narration (TTS) nếu enabled</li>
+                </ol>
+            </div>
+
+            <div style="margin: 20px 0; text-align: center; border: 1px solid #ddd; border-radius: 8px; padding: 10px;">
+                <img src="Sequence2" alt="App Launch & Initialization Sequence Diagram" style="max-width: 100%; height: auto; border-radius: 4px;">
+                <p style="font-size: 10pt; color: #666; margin-top: 8px;">Hình 2: Geofence Trigger</p>
+            </div>
+
+            <div class="mermaid-code">
+                <pre>sequenceDiagram
+    actor User
+    participant Loc as LocationService
+    participant Geo as GeofenceEngine
+    participant Main as MainPage
+    participant Audio as AudioPlayerService
+    participant TTS as TTSService
+
+    User->>User: Walking near POI
+    
+    loop GPS Update (5-30s interval)
+        Loc->>Loc: Get current location
+        Loc->>Main: OnLocationUpdated(lat, lng)
+        Main->>Geo: UpdateLocation(lat, lng)
+        
+        Geo->>Geo: Calculate distance to all POIs
+        Geo->>Geo: Check which POIs are inside radius
+        
+        alt Inside geofence & Priority check
+            Geo->>Geo: Sort by Priority (3→1) then Distance
+            Geo->>Geo: Check cooldown (5 min)
+            
+            alt Not in cooldown
+                Geo->>Main: POIEntered event
+                Main->>Main: Show POI Card
+                Main->>Audio: PlayAudioNotification()
+                
+                alt Auto-narration enabled
+                    Main->>TTS: SpeakAsync(description)
+                    TTS-->>Main: Speaking...
+                end
+                
+                Main-->>User: Display POI info + audio playing
+            else In cooldown
+                Geo->>Geo: Log "SKIP - cooldown active"
+            end
+        end
+    end</pre>
+            </div>
+        </div>
+
+        <!-- DIAGRAM 3 -->
+        <div class="diagram-card page-break">
+            <div class="diagram-header">
+                <div class="diagram-number">3</div>
+                <h2 class="diagram-title">Data Synchronization (Web → Mobile)</h2>
+            </div>
+
+            <div class="diagram-desc">
+                <p><strong>Mô tả:</strong> Đồng bộ dữ liệu POI từ Web Admin xuống Mobile App. Mô tả quá trình lấy dữ liệu mới nhất từ server và cập nhật vào database local.</p>
+            </div>
+
+            <h3>🎭 Thành phần tham gia:</h3>
+            <table class="participants-table">
+                <tr>
+                    <th>Thành phần</th>
+                    <th>Vai trò</th>
+                </tr>
+                <tr>
+                    <td><strong>User</strong></td>
+                    <td>Yêu cầu đồng bộ dữ liệu</td>
+                </tr>
+                <tr>
+                    <td><strong>App</strong></td>
+                    <td>FoodStreetGuide App</td>
+                </tr>
+                <tr>
+                    <td><strong>DatabaseService</strong></td>
+                    <td>SQLite local CRUD</td>
+                </tr>
+                <tr>
+                    <td><strong>WebAdminService</strong></td>
+                    <td>Gọi API và xử lý dữ liệu</td>
+                </tr>
+                <tr>
+                    <td><strong>Web Admin API</strong></td>
+                    <td>REST API (PHP)</td>
+                </tr>
+                <tr>
+                    <td><strong>MySQL Database</strong></td>
+                    <td>Database server</td>
+                </tr>
+            </table>
+
+            <h3>📝 Các bước chính:</h3>
+            <div class="flow-steps">
+                <ol>
+                    <li>User tap "Sync from Web"</li>
+                    <li>App gọi SyncFromWebAdminAsync()</li>
+                    <li>HTTP GET /api/pois.php</li>
+                    <li>MySQL SELECT * FROM pois</li>
+                    <li>Trả về List of POIs (JSON)</li>
+                    <li>Loop qua từng POI:</li>
+                    <li>→ Kiểm tra POI đã tồn tại local?</li>
+                    <li>→ Nếu chưa có: INSERT mới</li>
+                    <li>→ Nếu có: Compare LastSyncFromWeb</li>
+                    <li>→ Nếu remote mới hơn: UPDATE</li>
+                    <li>Tương tự cho Reviews</li>
+                    <li>Sync completed → Refresh map</li>
+                </ol>
+            </div>
+
+          <div style="margin: 20px 0; text-align: center; border: 1px solid #ddd; border-radius: 8px; padding: 10px;">
+                <img src="Sequence3" alt="App Launch & Initialization Sequence Diagram" style="max-width: 100%; height: auto; border-radius: 4px;">
+                <p style="font-size: 10pt; color: #666; margin-top: 8px;">Hình 3: Data Synchronization</p>
+            </div>
+
+            <div class="mermaid-code">
+                <pre>sequenceDiagram
+    participant User
+    participant App as FoodStreetGuide App
+    participant DB as DatabaseService
+    participant WebSvc as WebAdminService
+    participant API as Web Admin API
+    participant MySQL as MySQL Database
+
+    User->>App: Tap "Sync from Web"
+    
+    App->>WebSvc: SyncFromWebAdminAsync()
+    WebSvc->>API: GET /api/pois.php
+    API->>MySQL: SELECT * FROM pois
+    MySQL-->>API: List of POIs
+    API-->>WebSvc: JSON response
+    
+    loop Each POI from Web
+        WebSvc->>DB: GetPOIsAsync() - check existing
+        DB-->>WebSvc: Local POI or null
+        
+        alt POI not exists locally
+            WebSvc->>DB: AddPOIAsync(newPOI)
+            DB->>DB: INSERT INTO POI
+            DB-->>WebSvc: Success
+        else POI exists - check update time
+            WebSvc->>WebSvc: Compare LastSyncFromWeb
+            alt Remote is newer
+                WebSvc->>DB: UpdatePOIAsync(poi)
+                DB->>DB: UPDATE POI
+            end
+        end
+    end
+    
+    WebSvc->>DB: Same for Reviews
+    
+    WebSvc-->>App: Sync completed
+    App->>App: Refresh map markers
+    App-->>User: Show sync success message</pre>
+            </div>
+        </div>
+
+        <!-- DIAGRAM 4 -->
+        <div class="diagram-card page-break">
+            <div class="diagram-header">
+                <div class="diagram-number">4</div>
+                <h2 class="diagram-title">User Reviews Flow</h2>
+            </div>
+
+            <div class="diagram-desc">
+                <p><strong>Mô tả:</strong> Tạo và đồng bộ đánh giá. Mô tả quá trình user viết review, lưu local, và đồng bộ lên server khi có network.</p>
+            </div>
+
+            <h3>🎭 Thành phần tham gia:</h3>
+            <table class="participants-table">
+                <tr>
+                    <th>Thành phần</th>
+                    <th>Vai trò</th>
+                </tr>
+                <tr>
+                    <td><strong>User</strong></td>
+                    <td>Viết và submit review</td>
+                </tr>
+                <tr>
+                    <td><strong>POIDetailPage</strong></td>
+                    <td>Form review, xử lý submit</td>
+                </tr>
+                <tr>
+                    <td><strong>DatabaseService</strong></td>
+                    <td>Lưu review local</td>
+                </tr>
+                <tr>
+                    <td><strong>WebAdminService</strong></td>
+                    <td>Đồng bộ review lên server</td>
+                </tr>
+                <tr>
+                    <td><strong>Web Admin API</strong></td>
+                    <td>Nhận và lưu review</td>
+                </tr>
+            </table>
+
+            <h3>📝 Các bước chính:</h3>
+            <div class="flow-steps">
+                <ol>
+                    <li>User xem POI details</li>
+                    <li>Load danh sách reviews (approved)</li>
+                    <li>User tap "Write Review"</li>
+                    <li>Hiển thị review form</li>
+                    <li>User nhập rating + comment + images</li>
+                    <li>Submit review</li>
+                    <li>Lưu vào SQLite local</li>
+                    <li>Nếu có network: POST /api/reviews.php</li>
+                    <li>Nếu offline: Queue for later sync</li>
+                    <li>Thông báo "Review submitted"</li>
+                </ol>
+            </div>
+
+            <div style="margin: 20px 0; text-align: center; border: 1px solid #ddd; border-radius: 8px; padding: 10px;">
+                <img src="Sequence4" alt="App Launch & Initialization Sequence Diagram" style="max-width: 100%; height: auto; border-radius: 4px;">
+                <p style="font-size: 10pt; color: #666; margin-top: 8px;">Hình 4: User Reviews Flow</p>
+            </div>
+            <div class="mermaid-code">
+                <pre>sequenceDiagram
+    actor User
+    participant Detail as POIDetailPage
+    participant DB as DatabaseService
+    participant Web as WebAdminService
+    participant API as Web Admin API
+
+    User->>Detail: View POI details
+    Detail->>DB: GetReviewsAsync(poiId)
+    DB-->>Detail: List of approved reviews
+    Detail-->>User: Display reviews
+
+    User->>Detail: Tap "Write Review"
+    Detail->>Detail: Show review form
+    User->>Detail: Enter rating + comment + images
+    User->>Detail: Submit review
+    
+    Detail->>DB: AddReviewAsync(review)
+    DB->>DB: INSERT INTO Review
+    DB-->>Detail: Review saved locally
+    
+    alt Network available
+        Detail->>Web: POST /api/reviews.php
+        Web->>API: Forward review data
+        API->>MySQL: INSERT INTO reviews
+        MySQL-->>API: Success
+        API-->>Web: Review created
+        Web-->>Detail: Sync success
+        Detail->>DB: UpdateReviewAsync(webId)
+    else Offline
+        Detail->>Detail: Queue for later sync
+    end
+    
+    Detail-->>User: Show "Review submitted"</pre>
+            </div>
+        </div>
+
+        <!-- DIAGRAM 5 -->
+        <div class="diagram-card page-break">
+            <div class="diagram-header">
+                <div class="diagram-number">5</div>
+                <h2 class="diagram-title">Background Tracking with Notification</h2>
+            </div>
+
+            <div class="diagram-desc">
+                <p><strong>Mô tả:</strong> GPS background với notification. Mô tả quá trình theo dõi vị trí liên tục kể cả khi app ở background, với persistent notification.</p>
+            </div>
+
+            <h3>🎭 Thành phần tham gia:</h3>
+            <table class="participants-table">
+                <tr>
+                    <th>Thành phần</th>
+                    <th>Vai trò</th>
+                </tr>
+                <tr>
+                    <td><strong>User</strong></td>
+                    <td>Bật tracking, dùng app khác</td>
+                </tr>
+                <tr>
+                    <td><strong>MainPage</strong></td>
+                    <td>UI chính, điều phối</td>
+                </tr>
+                <tr>
+                    <td><strong>LocationService</strong></td>
+                    <td>Theo dõi GPS background</td>
+                </tr>
+                <tr>
+                    <td><strong>GeofenceEngine</strong></td>
+                    <td>Kiểm tra geofence</td>
+                </tr>
+                <tr>
+                    <td><strong>NotificationService</strong></td>
+                    <td>Hiển thị thông báo</td>
+                </tr>
+                <tr>
+                    <td><strong>AudioService</strong></td>
+                    <td>Phát audio khi vào geofence</td>
+                </tr>
+            </table>
+
+            <h3>📝 Các bước chính:</h3>
+            <div class="flow-steps">
+                <ol>
+                    <li>User tap "Start Tracking"</li>
+                    <li>Yêu cầu background location permission</li>
+                    <li>Hiển thị persistent notification</li>
+                    <li>User press Home (app background)</li>
+                    <li>Continuous tracking mỗi 5-30s</li>
+                    <li>Kiểm tra geofence liên tục</li>
+                    <li>Khi vào geofence: Update notification</li>
+                    <li>Hiển thị "Near: [POI Name]"</li>
+                    <li>Nếu app background: Play audio cue</li>
+                    <li>Khi user kill app: Stop tracking</li>
+                </ol>
+            </div>
+<div style="margin: 20px 0; text-align: center; border: 1px solid #ddd; border-radius: 8px; padding: 10px;">
+                <img src="Sequence5" alt="App Launch & Initialization Sequence Diagram" style="max-width: 100%; height: auto; border-radius: 4px;">
+                <p style="font-size: 10pt; color: #666; margin-top: 8px;">Hình 5: Background Tracking</p>
+            </div>
+
+            <div class="mermaid-code">
+                <pre>sequenceDiagram
+    actor User
+    participant Main as MainPage
+    participant Loc as LocationService
+    participant Geo as GeofenceEngine
+    participant Notif as NotificationService
+    participant Audio as AudioService
+
+    User->>Main: Tap "Start Tracking"
+    Main->>Loc: StartTrackingAsync()
+    Loc->>Loc: Request background location
+    Loc->>Notif: Show persistent notification
+    Notif-->>Loc: Notification displayed
+    Loc-->>Main: Tracking started
+    
+    User->>User: Press Home (app background)
+    
+    loop Continuous tracking
+        Loc->>Loc: GPS update every 5-30s
+        Loc->>Geo: UpdateLocation(lat, lng)
+        
+        Geo->>Geo: Check geofences
+        alt Enter geofence
+            Geo->>Notif: Update notification
+            Notif-->>User: "Near: [POI Name]"
+            
+            alt App in background
+                Geo->>Audio: Play audio cue
+                Audio-->>User: Audio notification
+            end
+        end
+    end
+    
+    User->>User: Swipe away app (kill)
+    Main->>Loc: StopTracking()
+    Loc->>Notif: Remove notification
+    Notif-->>User: Tracking stopped</pre>
+            </div>
+        </div>
+
+        <!-- DIAGRAM 6 -->
+        <div class="diagram-card page-break">
+            <div class="diagram-header">
+                <div class="diagram-number">6</div>
+                <h2 class="diagram-title">POI Discovery & Search</h2>
+            </div>
+
+            <div class="diagram-desc">
+                <p><strong>Mô tả:</strong> Tìm kiếm và lọc POI. Mô tả quá trình khám phá các điểm POI, tìm kiếm theo tên, và lọc theo danh mục.</p>
+            </div>
+
+            <h3>🎭 Thành phần tham gia:</h3>
+            <table class="participants-table">
+                <tr>
+                    <th>Thành phần</th>
+                    <th>Vai trò</th>
+                </tr>
+                <tr>
+                    <td><strong>User</strong></td>
+                    <td>Tìm kiếm và lọc POI</td>
+                </tr>
+                <tr>
+                    <td><strong>DiscoverPage</strong></td>
+                    <td>Hiển thị danh sách POI</td>
+                </tr>
+                <tr>
+                    <td><strong>DatabaseService</strong></td>
+                    <td>Truy vấn POIs</td>
+                </tr>
+                <tr>
+                    <td><strong>FilterService</strong></td>
+                    <td>Lọc và tìm kiếm</td>
+                </tr>
+                <tr>
+                    <td><strong>MainPage</strong></td>
+                    <td>Chuyển hướng đến bản đồ</td>
+                </tr>
+            </table>
+
+            <h3>📝 Các bước chính:</h3>
+            <div class="flow-steps">
+                <ol>
+                    <li>User mở Discover tab</li>
+                    <li>Get all POIs từ database</li>
+                    <li>Sort theo khoảng cách mặc định</li>
+                    <li>Hiển thị POI grid/list</li>
+                    <li>User nhập search text</li>
+                    <li>Filter theo NameVi, NameEn, Tags</li>
+                    <li>Update UI với kết quả</li>
+                    <li>User áp dụng category filter</li>
+                    <li>User tap vào POI → Navigate to Map</li>
+                    <li>Center map, show POI card</li>
+                </ol>
+            </div>
+
+            <div style="margin: 20px 0; text-align: center; border: 1px solid #ddd; border-radius: 8px; padding: 10px;">
+                <img src="Sequence6" alt="App Launch & Initialization Sequence Diagram" style="max-width: 100%; height: auto; border-radius: 4px;">
+                <p style="font-size: 10pt; color: #666; margin-top: 8px;">Hình 6: POI Discovery & Search</p>
+            </div>
+
+            <div class="mermaid-code">
+                <pre>sequenceDiagram
+    actor User
+    participant Discover as DiscoverPage
+    participant DB as DatabaseService
+    participant Filter as FilterService
+    participant Main as MainPage
+
+    User->>Discover: Open Discover tab
+    Discover->>DB: GetPOIsAsync()
+    DB-->>Discover: All POIs
+    Discover->>Discover: Apply default sort (distance)
+    Discover-->>User: Show POI grid/list
+
+    User->>Discover: Enter search text
+    Discover->>Filter: FilterPOIs(searchText)
+    Filter->>Filter: Match NameVi, NameEn, Tags
+    Filter-->>Discover: Filtered list
+    Discover->>Discover: Update UI
+    Discover-->>User: Show search results
+
+    User->>Discover: Apply category filter
+    Discover->>Filter: FilterPOIs(category)
+    Filter-->>Discover: Filtered by category
+    Discover-->>User: Show filtered results
+
+    User->>Discover: Tap on POI
+    Discover->>Main: Navigate with poiId
+    Main->>DB: GetPOIById(id)
+    DB-->>Main: POI details
+    Main->>Main: Center map on POI
+    Main->>Main: Show POI card
+    Main-->>User: Map centered, POI highlighted</pre>
+            </div>
+        </div>
+
+        <!-- DIAGRAM 7 -->
+        <div class="diagram-card page-break">
+            <div class="diagram-header">
+                <div class="diagram-number">7</div>
+                <h2 class="diagram-title">QR Code Scan & Check-in</h2>
+            </div>
+
+            <div class="diagram-desc">
+                <p><strong>Mô tả:</strong> Quét QR để check-in. Mô tả quá trình quét mã QR tại quán để nhanh chóng xem thông tin và check-in.</p>
+            </div>
+
+            <h3>🎭 Thành phần tham gia:</h3>
+            <table class="participants-table">
+                <tr>
+                    <th>Thành phần</th>
+                    <th>Vai trò</th>
+                </tr>
+                <tr>
+                    <td><strong>User</strong></td>
+                    <td>Quét QR code</td>
+                </tr>
+                <tr>
+                    <td><strong>QRScanPage</strong></td>
+                    <td>UI quét QR</td>
+                </tr>
+                <tr>
+                    <td><strong>CameraService</strong></td>
+                    <td>Điều khiển camera</td>
+                </tr>
+                <tr>
+                    <td><strong>QRDecoder</strong></td>
+                    <td>Giải mã QR</td>
+                </tr>
+                <tr>
+                    <td><strong>DatabaseService</strong></td>
+                    <td>Lấy thông tin POI</td>
+                </tr>
+                <tr>
+                    <td><strong>GeofenceEngine</strong></td>
+                    <td>Kiểm tra khoảng cách (optional)</td>
+                </tr>
+            </table>
+
+            <h3>📝 Các bước chính:</h3>
+            <div class="flow-steps">
+                <ol>
+                    <li>User tap QR Scan button</li>
+                    <li>Kiểm tra camera permission</li>
+                    <li>Start camera preview</li>
+                    <li>User chĩa camera vào QR code</li>
+                    <li>Capture frame → Decode QR</li>
+                    <li>Extract POI ID</li>
+                    <li>Lấy POI details từ database</li>
+                    <li>Validate proximity (optional)</li>
+                    <li>Nếu hợp lệ: Increment visit count</li>
+                    <li>Show "Check-in successful!"</li>
+                </ol>
+            </div>
+
+          <div style="margin: 20px 0; text-align: center; border: 1px solid #ddd; border-radius: 8px; padding: 10px;">
+                <img src="Sequence7" alt="App Launch & Initialization Sequence Diagram" style="max-width: 100%; height: auto; border-radius: 4px;">
+                <p style="font-size: 10pt; color: #666; margin-top: 8px;">Hình 7: QR Code Scan</p>
+            </div>
+
+            <div class="mermaid-code">
+                <pre>sequenceDiagram
+    actor User
+    participant QR as QRScanPage
+    participant Camera as CameraService
+    participant Decoder as QRDecoder
+    participant DB as DatabaseService
+    participant Geo as GeofenceEngine
+
+    User->>QR: Tap QR Scan button
+    QR->>QR: Check camera permission
+    QR->>Camera: Start camera preview
+    Camera-->>QR: Camera active
+    QR-->>User: Show camera view
+
+    User->>User: Point camera at QR code
+    Camera->>Decoder: Capture frame
+    Decoder->>Decoder: Decode QR content
+    Decoder-->>Camera: POI ID extracted
+
+    Camera->>QR: OnQRCodeDetected(poiId)
+    QR->>DB: GetPOIAsync(poiId)
+    DB-->>QR: POI details
+
+    alt Valid POI
+        QR->>Geo: Validate proximity (optional)
+        Geo->>QR: Distance check result
+        
+        alt Within range or no check
+            QR->>DB: IncrementVisitCount(poiId)
+            QR->>QR: Show POI details
+            QR-->>User: "Check-in successful!"
+        else Too far
+            QR-->>User: "Please move closer"
+        end
+    else Invalid POI
+        QR-->>User: "Invalid QR code"
+    end
+
+    User->>QR: Tap close/done
+    QR->>Camera: Stop camera
+    QR->>QR: Navigate back</pre>
+            </div>
+        </div>
+
+        <!-- DIAGRAM 8 -->
+        <div class="diagram-card page-break">
+            <div class="diagram-header">
+                <div class="diagram-number">8</div>
+                <h2 class="diagram-title">Settings & Localization</h2>
+            </div>
+
+            <div class="diagram-desc">
+                <p><strong>Mô tả:</strong> Thay đổi ngôn ngữ real-time. Mô tả quá trình chuyển đổi ngôn ngữ (VI ↔ EN) và cập nhật toàn bộ UI.</p>
+            </div>
+
+            <h3>🎭 Thành phần tham gia:</h3>
+            <table class="participants-table">
+                <tr>
+                    <th>Thành phần</th>
+                    <th>Vai trò</th>
+                </tr>
+                <tr>
+                    <td><strong>User</strong></td>
+                    <td>Thay đổi settings</td>
+                </tr>
+                <tr>
+                    <td><strong>SettingsPage</strong></td>
+                    <td>UI cài đặt</td>
+                </tr>
+                <tr>
+                    <td><strong>LocalizationService</strong></td>
+                    <td>Quản lý ngôn ngữ</td>
+                </tr>
+                <tr>
+                    <td><strong>ISettingsService</strong></td>
+                    <td>Lưu settings</td>
+                </tr>
+                <tr>
+                    <td><strong>AppShell</strong></td>
+                    <td>Tab navigation</td>
+                </tr>
+                <tr>
+                    <td><strong>MainPage, SavedPage</strong></td>
+                    <td>Các page cần update</td>
+                </tr>
+            </table>
+
+            <h3>📝 Các bước chính:</h3>
+            <div class="flow-steps">
+                <ol>
+                    <li>User mở Settings</li>
+                    <li>Load current settings</li>
+                    <li>Display settings UI</li>
+                    <li>User change language (VI → EN)</li>
+                    <li>Call SetLanguage("en")</li>
+                    <li>Load localized strings</li>
+                    <li>Fire Language changed event</li>
+                    <li>Update Tab titles (Map, Discover, Saved...)</li>
+                    <li>Update MainPage language</li>
+                    <li>Update SavedPage language</li>
+                    <li>Thông báo "Settings saved"</li>
+                </ol>
+            </div>
+
+            <div style="margin: 20px 0; text-align: center; border: 1px solid #ddd; border-radius: 8px; padding: 10px;">
+                <img src="Sequence8" alt="App Launch & Initialization Sequence Diagram" style="max-width: 100%; height: auto; border-radius: 4px;">
+                <p style="font-size: 10pt; color: #666; margin-top: 8px;">Hình 8: Settings & Localization</p>
+            </div>
+
+            <div class="mermaid-code">
+                <pre>sequenceDiagram
+    actor User
+    participant Settings as SettingsPage
+    participant LocSvc as LocalizationService
+    participant SettingsSvc as ISettingsService
+    participant App as AppShell
+    participant Main as MainPage
+    participant Saved as SavedPage
+
+    User->>Settings: Open Settings
+    Settings->>SettingsSvc: LoadSettings()
+    SettingsSvc-->>Settings: Current settings
+    Settings-->>User: Display settings UI
+
+    User->>Settings: Change language (VI → EN)
+    Settings->>LocSvc: SetLanguage("en")
+    LocSvc->>LocSvc: Load localized strings
+    LocSvc-->>Settings: Language changed event
+
+    Settings->>App: UpdateTabTitles()
+    App->>LocSvc: GetString("Tab_Map")
+    App->>LocSvc: GetString("Tab_Discover")
+    App->>LocSvc: GetString("Tab_Saved")
+    App->>LocSvc: GetString("Tab_Settings")
+    App-->>Settings: Tab titles updated
+
+    Settings->>Main: UpdateLanguage()
+    Main->>LocSvc: GetString("Tracking")
+    Main->>LocSvc: GetString("Nearest")
+    Main-->>Settings: MainPage updated
+
+    Settings->>Saved: UpdateLanguage()
+    Saved->>LocSvc: GetString("Saved_Title")
+    Saved-->>Settings: SavedPage updated
+
+    Settings-->>User: "Settings saved"</pre>
+            </div>
+        </div>
+
+        <!-- DIAGRAM 9 -->
+        <div class="diagram-card page-break">
+            <div class="diagram-header">
+                <div class="diagram-number">9</div>
+                <h2 class="diagram-title">Audio Narration Pipeline</h2>
+            </div>
+
+            <div class="diagram-desc">
+                <p><strong>Mô tả:</strong> TTS và audio playback. Mô tả quá trình phát audio thuyết minh, bao gồm cả pre-recorded và TTS real-time.</p>
+            </div>
+
+            <h3>🎭 Thành phần tham gia:</h3>
+            <table class="participants-table">
+                <tr>
+                    <th>Thành phần</th>
+                    <th>Vai trò</th>
+                </tr>
+                <tr>
+                    <td><strong>User</strong></td>
+                    <td>Nhấn Listen/Stop</td>
+                </tr>
+                <tr>
+                    <td><strong>MainPage</strong></td>
+                    <td>Điều phối audio</td>
+                </tr>
+                <tr>
+                    <td><strong>TTSService</strong></td>
+                    <td>Text-to-Speech</td>
+                </tr>
+                <tr>
+                    <td><strong>AudioPlayerService</strong></td>
+                    <td>Phát audio</td>
+                </tr>
+                <tr>
+                    <td><strong>Platform Audio</strong></td>
+                    <td>Native audio API</td>
+                </tr>
+            </table>
+
+            <h3>📝 Các bước chính:</h3>
+            <div class="flow-steps">
+                <ol>
+                    <li>User tap "Listen" button</li>
+                    <li>Get POI description</li>
+                    <li>Nếu có pre-recorded audio:</li>
+                    <li>→ PlayFromUrl(audioUrl)</li>
+                    <li>→ Stream audio</li>
+                    <li>Nếu không có: Use TTS</li>
+                    <li>→ Split text into sentences</li>
+                    <li>→ Loop: TTS each sentence</li>
+                    <li>→ Synthesize speech</li>
+                    <li>→ Play audio chunk</li>
+                    <li>User tap "Stop" → Cancel TTS + Stop playback</li>
+                </ol>
+            </div>
+
+            <div style="margin: 20px 0; text-align: center; border: 1px solid #ddd; border-radius: 8px; padding: 10px;">
+                <img src="Sequence9" alt="App Launch & Initialization Sequence Diagram" style="max-width: 100%; height: auto; border-radius: 4px;">
+                <p style="font-size: 10pt; color: #666; margin-top: 8px;">Hình 9: Audio Narration Pipeline</p>
+            </div>
+
+            <div class="mermaid-code">
+                <pre>sequenceDiagram
+    actor User
+    participant Main as MainPage
+    participant TTS as TTSService
+    participant Audio as AudioPlayerService
+    participant Platform as Platform Audio
+
+    User->>Main: Tap "Listen" button
+    Main->>Main: Get POI description
+    
+    alt Pre-recorded audio exists
+        Main->>Audio: PlayFromUrl(audioUrl)
+        Audio->>Platform: Initialize MediaPlayer
+        Platform->>Platform: Stream audio
+        Platform-->>Audio: Playing...
+        Audio-->>Main: Playback started
+    else Use TTS
+        Main->>TTS: SpeakAsync(description, lang)
+        TTS->>TTS: Split text into sentences
+        
+        loop Each sentence
+            TTS->>Platform: TextToSpeech(sentence)
+            Platform->>Platform: Synthesize speech
+            Platform-->>TTS: Audio data
+            TTS->>Audio: Play audio chunk
+            Audio->>Platform: Output to speaker
+        end
+        
+        TTS-->>Main: TTS completed
+    end
+
+    User->>Main: Tap "Stop"
+    Main->>Audio: Stop()
+    Audio->>Platform: Stop playback
+    Audio->>TTS: Cancel()
+    Platform-->>Audio: Stopped
+    Audio-->>Main: Audio stopped</pre>
+            </div>
+        </div>
+
+        <!-- DIAGRAM 10 -->
+        <div class="diagram-card page-break">
+            <div class="diagram-header">
+                <div class="diagram-number">10</div>
+                <h2 class="diagram-title">Error Handling & Recovery</h2>
+            </div>
+
+            <div class="diagram-desc">
+                <p><strong>Mô tả:</strong> Xử lý lỗi network, database. Mô tả cách app xử lý các lỗi network, API error, database corrupt và recovery.</p>
+            </div>
+
+            <h3>🎭 Thành phần tham gia:</h3>
+            <table class="participants-table">
+                <tr>
+                    <th>Thành phần</th>
+                    <th>Vai trò</th>
+                </tr>
+                <tr>
+                    <td><strong>App</strong></td>
+                    <td>FoodStreetGuide App</td>
+                </tr>
+                <tr>
+                    <td><strong>WebAdminService</strong></td>
+                    <td>Gọi API</td>
+                </tr>
+                <tr>
+                    <td><strong>DatabaseService</strong></td>
+                    <td>SQLite operations</td>
+                </tr>
+                <tr>
+                    <td><strong>Debug Logger</strong></td>
+                    <td>Ghi log lỗi</td>
+                </tr>
+            </table>
+
+            <h3>📝 Các bước chính:</h3>
+            <div class="flow-steps">
+                <ol>
+                    <li>App gọi SyncFromWebAdminAsync()</li>
+                    <li>HTTP GET request</li>
+                    <li><strong>Network error:</strong></li>
+                    <li>→ Log error details</li>
+                    <li>→ Return cached data</li>
+                    <li>→ Get local POIs</li>
+                    <li>→ Show offline indicator</li>
+                    <li>→ Queue sync for retry</li>
+                    <li><strong>API error (500):</strong></li>
+                    <li>→ Log API error</li>
+                    <li>→ Show error message + Retry button</li>
+                    <li><strong>Database corrupt:</strong></li>
+                    <li>→ Log crash info</li>
+                    <li>→ Reset database</li>
+                    <li>→ Re-initialize + Force full sync</li>
+                </ol>
+            </div>
+
+            <div style="margin: 20px 0; text-align: center; border: 1px solid #ddd; border-radius: 8px; padding: 10px;">
+                <img src="Sequence10" alt="App Launch & Initialization Sequence Diagram" style="max-width: 100%; height: auto; border-radius: 4px;">
+                <p style="font-size: 10pt; color: #666; margin-top: 8px;">Hình 10 :Error Handling</p>
+            </div>
+
+            <div class="mermaid-code">
+                <pre>sequenceDiagram
+    participant App as FoodStreetGuide App
+    participant Web as WebAdminService
+    participant DB as DatabaseService
+    participant Logger as Debug Logger
+
+    App->>Web: SyncFromWebAdminAsync()
+    Web->>Web: HTTP GET request
+    
+    alt Network error
+        Web->>Logger: Log error details
+        Web-->>App: Return cached data
+        App->>DB: GetLocalPOIsAsync()
+        DB-->>App: Local POIs
+        App->>App: Show offline indicator
+        App->>App: Queue sync for retry
+    else API error (500)
+        Web->>Logger: Log API error
+        Web-->>App: Error response
+        App->>App: Show error message
+        App->>App: Offer retry button
+    else Success
+        Web-->>App: Fresh data
+        App->>DB: Update local database
+    end
+
+    alt Database locked/corrupt
+        App->>DB: Query POIs
+        DB->>DB: SQLite exception
+        DB-->>App: Throw exception
+        App->>Logger: Log crash info
+        App->>App: Reset database
+        App->>DB: Re-initialize
+        DB-->>App: Fresh database
+        App->>Web: Force full sync
+    end</pre>
+            </div>
+        </div>
+
+        <!-- LEGEND -->
+        <div class="legend-box page-break">
+            <h4>📚 Chú thích ký hiệu Sequence Diagram</h4>
+            <table class="participants-table">
+                <tr>
+                    <th>Ký hiệu</th>
+                    <th>Ý nghĩa</th>
+                </tr>
+                <tr>
+                    <td><code>->></code></td>
+                    <td>Synchronous call (gọi đồng bộ)</td>
+                </tr>
+                <tr>
+                    <td><code>--></></code></td>
+                    <td>Return response (trả về kết quả)</td>
+                </tr>
+                <tr>
+                    <td><code>-></code></td>
+                    <td>Asynchronous event (sự kiện bất đồng bộ)</td>
+                </tr>
+                <tr>
+                    <td><code>alt</code></td>
+                    <td>Alternative flow (rẽ nhánh if/else)</td>
+                </tr>
+                <tr>
+                    <td><code>loop</code></td>
+                    <td>Repeated operation (vòng lặp)</td>
+                </tr>
+                <tr>
+                    <td><code>par</code></td>
+                    <td>Parallel processing (xử lý song song)</td>
+                </tr>
+                <tr>
+                    <td><code>activate</code></td>
+                    <td>Object active (đối tượng đang hoạt động)</td>
+                </tr>
+                <tr>
+                    <td><code>deactivate</code></td>
+                    <td>Object inactive (đối tượng ngừng hoạt động)</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- END -->
+        <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 2px solid #e0e0e0; color: #666; font-size: 10pt;">
+            <p><strong>FoodStreetGuide - Sequence Diagrams</strong></p>
+            <p>Nguyễn Gia Huy (3123411119) | Vũ Gia Huy (3123411125)</p>
+            <p>April 2025</p>
+        </div>
+
+    </div>
+</body>
+</html>
