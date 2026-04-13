@@ -288,11 +288,6 @@ foreach ($pois as $i => $p1) {
                                         <div>
                                             <div class="fw-semibold">
                                                 <?php echo htmlspecialchars($poi['nameVi']); ?>
-                                                <?php if (!empty($poi['narrationTextVi'])): ?>
-                                                <span class="badge bg-info bg-opacity-10 text-info ms-1" style="font-size: 0.65rem;">
-                                                    <i class="bi bi-mic-fill me-1"></i>TTS
-                                                </span>
-                                                <?php endif; ?>
                                             </div>
                                             <small class="text-muted"><?php echo htmlspecialchars($poi['nameEn'] ?? '-'); ?></small>
                                         </div>

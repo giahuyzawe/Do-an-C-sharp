@@ -98,8 +98,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'address' => $address,
             'radius' => intval($_POST['radius'] ?? 100),
             'priority' => intval($_POST['priority'] ?? 1),
-            'narrationTextVi' => $_POST['narrationTextVi'] ?? '',
-            'autoPlayNarration' => isset($_POST['autoPlayNarration']),
             'createdAt' => $poi['createdAt'] ?? date('Y-m-d H:i:s'),
             'openingHours' => $_POST['openingHours'] ?? ($poi['openingHours'] ?? ''),
             'category' => $_POST['category'] ?? ($poi['category'] ?? 'landmark'),
@@ -326,43 +324,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     <div class="card mt-4">
                         <div class="card-header">
-                            <h5 class="mb-0"><i class="bi bi-mic-fill me-2 text-info"></i>Audio</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label class="form-label">Nội dung thuyết minh (Tiếng Anh)</label>
-                                <textarea class="form-control" name="narrationTextVi" id="narrationTextVi" rows="4"
-                                          placeholder="Enter narration content for this POI..."><?php echo htmlspecialchars($poi['narrationTextVi'] ?? ''); ?></textarea>
-                                <small class="text-muted">Nội dung này sẽ được chuyển thành giọng nói tiếng Anh</small>
-                            </div>
-                            <div class="mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="autoPlayNarration" id="autoPlayNarration"
-                                           <?php echo ($poi['autoPlayNarration'] ?? false) ? 'checked' : ''; ?>>
-                                    <label class="form-check-label" for="autoPlayNarration">
-                                        Tự động đọc khi vào geofence
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-info" id="btnTTSPreview">
-                                    <i class="bi bi-play-fill me-1"></i>Nghe thử
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary" id="btnTTSStop">
-                                    <i class="bi bi-stop-fill me-1"></i>Dừng
-                                </button>
-                            </div>
-                            <div class="mt-2">
-                                <small class="text-muted">
-                                    <i class="bi bi-info-circle me-1"></i>
-                                    Sử dụng tính năng Text-to-Speech của trình duyệt.
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card mt-4">
-                        <div class="card-header">
                             <h5 class="mb-0"><i class="bi bi-images me-2 text-success"></i>Hình ảnh</h5>
                         </div>
                         <div class="card-body">
@@ -548,63 +509,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             marker.openPopup();
         });
 
-        // Text-to-Speech functionality
-        const btnTTSPreview = document.getElementById('btnTTSPreview');
-        const btnTTSStop = document.getElementById('btnTTSStop');
-        const narrationTextVi = document.getElementById('narrationTextVi');
-
-        if (btnTTSPreview && narrationTextVi) {
-            btnTTSPreview.addEventListener('click', function() {
-                const text = narrationTextVi.value.trim();
-                if (!text) {
-                    alert('Vui lòng nhập nội dung thuyết minh trước khi nghe thử!');
-                    return;
-                }
-
-                if ('speechSynthesis' in window) {
-                    window.speechSynthesis.cancel();
-
-                    const utterance = new SpeechSynthesisUtterance(text);
-                    utterance.lang = 'vi-VN';
-                    utterance.rate = 0.9;
-                    utterance.pitch = 1;
-
-                    const voices = window.speechSynthesis.getVoices();
-                    const vietnameseVoice = voices.find(voice => voice.lang.includes('vi'));
-                    if (vietnameseVoice) {
-                        utterance.voice = vietnameseVoice;
-                    }
-
-                    window.speechSynthesis.speak(utterance);
-
-                    btnTTSPreview.innerHTML = '<i class="bi bi-volume-up-fill me-1"></i>Đang phát...';
-                    btnTTSPreview.disabled = true;
-
-                    utterance.onend = function() {
-                        btnTTSPreview.innerHTML = '<i class="bi bi-play-fill me-1"></i>Nghe thử';
-                        btnTTSPreview.disabled = false;
-                    };
-
-                    utterance.onerror = function() {
-                        btnTTSPreview.innerHTML = '<i class="bi bi-play-fill me-1"></i>Nghe thử';
-                        btnTTSPreview.disabled = false;
-                        alert('Có lỗi xảy ra khi phát audio!');
-                    };
-                } else {
-                    alert('Trình duyệt không hỗ trợ Text-to-Speech!');
-                }
-            });
-        }
-
-        if (btnTTSStop && narrationTextVi) {
-            btnTTSStop.addEventListener('click', function() {
-                if ('speechSynthesis' in window) {
-                    window.speechSynthesis.cancel();
-                    btnTTSPreview.innerHTML = '<i class="bi bi-play-fill me-1"></i>Nghe thử';
-                    btnTTSPreview.disabled = false;
-                }
-            });
-        }
     </script>
 </body>
 </html>
