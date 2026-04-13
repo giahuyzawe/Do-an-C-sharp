@@ -114,6 +114,7 @@ $monthly_visits = [320, 450, 380, 520, 480, 600, 550, 620, 580, 700, 650, 750];
             <a class="nav-link" href="index.php"><i class="bi bi-grid"></i> Dashboard</a>
             <a class="nav-link" href="pois.php"><i class="bi bi-geo"></i> Quản lý POI</a>
             <a class="nav-link active" href="analytics.php"><i class="bi bi-graph-up"></i> Phân tích</a>
+            <a class="nav-link" href="qr-generator.php"><i class="bi bi-qr-code"></i> Tạo QR Code</a>
             <a class="nav-link" href="activity.php"><i class="bi bi-clock-history"></i> Hoạt động</a>
             <a class="nav-link" href="settings.php"><i class="bi bi-gear"></i> Cài đặt</a>
             <a class="nav-link" href="logout.php"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a>
