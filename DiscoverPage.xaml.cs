@@ -57,12 +57,13 @@ public partial class DiscoverPage : ContentPage
         try
         {
             UpdateLanguage();
-            UpdateFilterUI(); // Set initial filter state
+            UpdateFilterUI();
             
-            // Delay status update to ensure UI is ready
+            // 🔥 LUÔN tính khoảng cách thực từ GPS khi load trang
             MainThread.BeginInvokeOnMainThread(async () =>
             {
                 await Task.Delay(100);
+                await UpdateDistancesFromCurrentLocation();
                 UpdateCardStatuses();
             });
         }
@@ -152,10 +153,14 @@ public partial class DiscoverPage : ContentPage
     }
 
     // Filter Handlers
-    private void OnFilterPopularTapped(object? sender, TappedEventArgs e)
+    private async void OnFilterPopularTapped(object? sender, TappedEventArgs e)
     {
         _currentFilter = "popular";
         UpdateFilterUI();
+        
+        // 🔥 Đảm bảo khoảng cách đã được tính từ GPS trước khi sort
+        await UpdateDistancesFromCurrentLocation();
+        
         // Sort by rating
         _restaurants.Sort((a, b) => b.Rating.CompareTo(a.Rating));
         UpdateCardOrder();
@@ -287,10 +292,14 @@ public partial class DiscoverPage : ContentPage
         });
     }
 
-    private void OnFilterFoodTapped(object? sender, TappedEventArgs e)
+    private async void OnFilterFoodTapped(object? sender, TappedEventArgs e)
     {
         _currentFilter = "food";
         UpdateFilterUI();
+        
+        // 🔥 Đảm bảo khoảng cách đã được tính từ GPS
+        await UpdateDistancesFromCurrentLocation();
+        
         // Show only Vietnamese food (all in this case)
         UpdateCardOrder();
     }
