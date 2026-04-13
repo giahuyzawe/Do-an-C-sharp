@@ -394,6 +394,7 @@ $stats = [
             <a class="nav-link" href="index.php"><i class="bi bi-grid"></i> Dashboard</a>
             <a class="nav-link" href="pois.php"><i class="bi bi-geo"></i> Quản lý POI</a>
             <a class="nav-link active" href="reviews.php"><i class="bi bi-star-fill"></i> Reviews</a>
+            <a class="nav-link" href="analytics.php"><i class="bi bi-graph-up"></i> Phân tích</a>
             <a class="nav-link" href="permissions.php"><i class="bi bi-shield-lock"></i> Phân quyền</a>
             <a class="nav-link" href="activity.php"><i class="bi bi-clock-history"></i> Hoạt động</a>
             <a class="nav-link" href="settings.php"><i class="bi bi-gear"></i> Cài đặt</a>
