@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Use Case & Activity Diagrams - FoodStreetGuide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .document {
+            max-width: 210mm;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            padding: 20mm;
+        }
+
+        /* Cover */
+        .cover-page {
+            text-align: center;
+            padding: 60px 40px;
+            background: linear-gradient(135deg, #FF6B35 0%, #2EC4B6 100%);
+            color: white;
+            margin: -20mm -20mm 30px -20mm;
+            page-break-after: always;
+        }
+
+        .cover-title {
+            font-size: 28pt;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .cover-subtitle {
+            font-size: 16pt;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .cover-info {
+            background: rgba(255,255,255,0.2);
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .cover-info p {
+            font-size: 12pt;
+            margin: 10px 0;
+        }
+
+        /* Headers */
+        h1 {
+            font-size: 20pt;
+            color: #FF6B35;
+            border-bottom: 3px solid #FF6B35;
+            padding-bottom: 10px;
+            margin: 30px 0 20px 0;
+            page-break-after: avoid;
+        }
+
+        h2 {
+            font-size: 14pt;
+            color: #2EC4B6;
+            margin: 25px 0 15px 0;
+            page-break-after: avoid;
+        }
+
+        h3 {
+            font-size: 12pt;
+            color: #333;
+            margin: 15px 0 10px 0;
+            font-weight: bold;
+        }
+
+        /* Diagram Card */
+        .diagram-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            page-break-inside: avoid;
+            background: #fafafa;
+        }
+
+        .diagram-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #FF6B35;
+        }
+
+        .diagram-number {
+            background: #FF6B35;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16pt;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .diagram-title {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+        }
+
+        .diagram-desc {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #2EC4B6;
+        }
+
+        .diagram-desc p {
+            margin: 0;
+            font-size: 11pt;
+            color: #555;
+        }
+
+        /* Image Placeholder */
+        .image-placeholder {
+            background: #f0f0f0;
+            border: 3px dashed #ccc;
+            border-radius: 10px;
+            padding: 60px 40px;
+            text-align: center;
+            margin: 20px 0;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-placeholder-icon {
+            font-size: 48pt;
+            margin-bottom: 15px;
+            color: #999;
+        }
+
+        .image-placeholder-text {
+            font-size: 12pt;
+            color: #777;
+            font-weight: 500;
+        }
+
+        .image-placeholder-hint {
+            font-size: 10pt;
+            color: #999;
+            margin-top: 10px;
+        }
+
+        /* Mermaid Code Box */
+        .mermaid-code {
+            background: #263238;
+            color: #eeffff;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 9pt;
+            overflow-x: auto;
+            margin: 15px 0;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .mermaid-code pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+
+        /* Tables */
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 10pt;
+        }
+
+        .info-table th {
+            background: #FF6B35;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .info-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #e0e0e0;
+            background: white;
+        }
+
+        .info-table tr:nth-child(even) td {
+            background: #fafafa;
+        }
+
+        /* Legend */
+        .legend-box {
+            background: #fff9e6;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .legend-box h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 11pt;
+        }
+
+        /* Page break */
+        .page-break {
+            page-break-before: always;
+        }
+
+        /* Section header */
+        .section-header {
+            background: linear-gradient(135deg, #FF6B35 0%, #2EC4B6 100%);
+            color: white;
+            padding: 15px 20px;
+            margin: 30px -20mm;
+            text-align: center;
+            font-size: 16pt;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        /* Print */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .document {
+                box-shadow: none;
+                max-width: none;
+                padding: 15mm;
+            }
+            
+            .cover-page {
+                margin: -15mm -15mm 30px -15mm;
+            }
+            
+            .section-header {
+                margin: 30px -15mm;
+            }
+            
+            .diagram-card {
+                break-inside: avoid;
+            }
+            
+            .mermaid-code {
+                max-height: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="document">
+        <!-- COVER PAGE -->
+        <div class="cover-page">
+            <h1 class="cover-title">📊 Use Case & Activity Diagrams</h1>
+            <p class="cover-subtitle">FoodStreetGuide - Khám Phá Ẩm Thực Đường Phố</p>
+
+            <div class="cover-info">
+                <p><strong>Đề tài:</strong> Khám Phá Ẩm Thực Đường Phố</p>
+                <p><strong>Số diagram:</strong> 7 (1 Use Case + 6 Activity)</p>
+                <p><strong>Mục đích:</strong> Mô tả chức năng và luồng hoạt động</p>
+            </div>
+
+            <p style="margin-top: 40px; font-size: 11pt; opacity: 0.9;">
+                Nguyễn Gia Huy (3123411119) | Vũ Gia Huy (3123411125)
+            </p>
+        </div>
+
+        <!-- SECTION: USE CASE -->
+        <div class="section-header">👤 Use Case Diagram</div>
+
+        <!-- DIAGRAM 1: Use Case -->
+        <div class="diagram-card">
+            <div class="diagram-header">
+                <div class="diagram-number">1</div>
+                <h2 class="diagram-title">Use Case Diagram - Tổng quan hệ thống</h2>
+            </div>
+
+            <div class="diagram-desc">
+                <p><strong>Mô tả:</strong> Mô tả tất cả các chức năng của hệ thống FoodStreetGuide từ góc nhìn Actor (User và Admin). Bao gồm 12 use cases cho Mobile App, 7 use cases cho Web Admin, và 5 use cases cho System.</p>
+            </div>
+
+            <h3>🎭 Các Actor tham gia:</h3>
+            <table class="info-table">
+                <tr>
+                    <th>Actor</th>
+                    <th>Vai trò</th>
+                    <th>Số use case</th>
+                </tr>
+                <tr>
+                    <td><strong>👤 User</strong></td>
+                    <td>Người dùng sử dụng app mobile</td>
+                    <td>12</td>
+                </tr>
+                <tr>
+                    <td><strong>👨‍💼 Admin</strong></td>
+                    <td>Quản trị viên quản lý hệ thống</td>
+                    <td>7</td>
+                </tr>
+                <tr>
+                    <td><strong>⚙️ System</strong></td>
+                    <td>Hệ thống tự động xử lý</td>
+                    <td>5</td>
+                </tr>
+            </table>
+
+            <h3>📱 Các Use Case chính của User:</h3>
+            <table class="info-table">
+                <tr>
+                    <th>Use Case</th>
+                    <th>Mô tả</th>
+                    <th>Liên quan</th>
+                </tr>
+                <tr>
+                    <td>UC1: Xem bản đồ POI</td>
+                    <td>Hiển thị map với các điểm quán ăn</td>
+                    <td>include Geofence</td>
+                </tr>
+                <tr>
+                    <td>UC5: Nghe thuyết minh</td>
+                    <td>Auto narration khi vào vùng POI</td>
+                    <td>include TTS</td>
+                </tr>
+                <tr>
+                    <td>UC7: Viết đánh giá</td>
+                    <td>Review và rating quán ăn</td>
+                    <td>include Sync</td>
+                </tr>
+                <tr>
+                    <td>UC9: Quét QR check-in</td>
+                    <td>Scan QR để nhanh vào chi tiết POI</td>
+                    <td>extend POI Detail</td>
+                </tr>
+            </table>
+
+            <div class="image-placeholder">
+                <div class="image-placeholder-icon">📊</div>
+                <div class="image-placeholder-text">[Chèn Use Case Diagram tại đây]</div>
+                <div class="image-placeholder-hint">Format: PNG/JPG/SVG, kích thước tối thiểu 1000x800px<br>Sử dụng draw.io, StarUML, hoặc mermaid.live để tạo</div>
+            </div>
+
+            <div class="mermaid-code">
+                <pre>flowchart TB
+    subgraph Actor["👤 Actor"]
+        User["Người dùng (User)"]
+        Admin["Quản trị viên (Admin)"]
+    end
+
+    subgraph App["📱 FoodStreetGuide App"]
+        UC1["Xem bản đồ POI"]
+        UC2["Tìm kiếm quán ăn"]
+        UC3["Lọc theo danh mục"]
+        UC4["Xem chi tiết POI"]
+        UC5["Nghe thuyết minh tự động"]
+        UC6["Lưu POI yêu thích"]
+        UC7["Viết đánh giá"]
+        UC8["Chia sẻ quán ăn"]
+        UC9["Quét QR check-in"]
+        UC10["Thay đổi ngôn ngữ"]
+        UC11["Bật/Tắt thông báo"]
+        UC12["Xem lịch sử đã lưu"]
+    end
+
+    subgraph AdminWeb["🌐 Web Admin"]
+        UC13["Quản lý POI (CRUD)"]
+        UC14["Quản lý đánh giá"]
+        UC15["Quản lý người dùng"]
+        UC16["Xem thống kê/Phân tích"]
+        UC17["Phân quyền"]
+        UC18["Xem hoạt động"]
+        UC19["Cài đặt hệ thống"]
+    end
+
+    subgraph System["⚙️ Hệ thống"]
+        UC20["Theo dõi vị trí GPS"]
+        UC21["Tính khoảng cách"]
+        UC22["Kiểm tra Geofence"]
+        UC23["Phát audio TTS"]
+        UC24["Đồng bộ dữ liệu"]
+    end
+
+    User --> UC1
+    User --> UC2
+    User --> UC3
+    User --> UC4
+    User --> UC5
+    User --> UC6
+    User --> UC7
+    User --> UC8
+    User --> UC9
+    User --> UC10
+    User --> UC11
+    User --> UC12
+
+    Admin --> UC13
+    Admin --> UC14
+    Admin --> UC15
+    Admin --> UC16
+    Admin --> UC17
+    Admin --> UC18
+    Admin --> UC19
+
+    UC5 -.->|include| UC23
+    UC22 -.->|include| UC20
+    UC22 -.->|include| UC21
+    UC1 -.->|include| UC22
+    UC4 -.->|extend| UC5
+    UC6 -.->|include| UC24
+    UC7 -.->|include| UC24</pre>
+            </div>
+        </div>
+
+        <!-- SECTION: ACTIVITY -->
+        <div class="section-header page-break">🔄 Activity Diagrams</div>
+
+        <!-- ACTIVITY 1 -->
+        <div class="diagram-card">
+            <div class="diagram-header">
+                <div class="diagram-number">2</div>
+                <h2 class="diagram-title">Activity Diagram - App Launch & Khởi động</h2>
+            </div>
+
+            <div class="diagram-desc">
+                <p><strong>Mô tả:</strong> Luồng hoạt động khi người dùng mở app từ lúc bấm icon cho đến khi hiển thị bản đồ sẵn sàng sử dụng. Bao gồm kiểm tra permission, khởi tạo services, và load dữ liệu.</p>
+            </div>
+
+            <h3>📝 Các bước chính:</h3>
+            <table class="info-table">
+                <tr>
+                    <th>Bước</th>
+                    <th>Hành động</th>
+                    <th>Kết quả</th>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>User mở app</td>
+                    <td>Trigger OnStart</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>Init SQLite Database</td>
+                    <td>Tables ready</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>Check GPS Permission</td>
+                    <td>Granted / Denied</td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td>Init GeofenceEngine</td>
+                    <td>Engine enabled</td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td>Test API Connection</td>
+                    <td>Online / Offline</td>
+                </tr>
+                <tr>
+                    <td>6</td>
+                    <td>Load & Display Map</td>
+                    <td>App ready</td>
+                </tr>
+            </table>
+
+            <div class="image-placeholder">
+                <div class="image-placeholder-icon">🔄</div>
+                <div class="image-placeholder-text">[Chèn Activity Diagram - App Launch tại đây]</div>
+                <div class="image-placeholder-hint">Format: PNG/JPG, min 800x600px<br>Có thể dùng PlantUML hoặc draw.io</div>
+            </div>
+
+            <div class="mermaid-code">
+                <pre>flowchart TD
+    A([Bắt đầu]) --> B{User mở app}
+    B --> C[Khởi tạo Database SQLite]
+    C --> D[Kiểm tra GPS Permission]
+    D -->|Chưa cấp| E[Yêu cầu quyền GPS]
+    E --> F{User đồng ý?}
+    F -->|Không| G[Hiển thị lỗi]
+    G --> H([Kết thúc])
+    F -->|Có| I[Tiếp tục]
+    D -->|Đã cấp| I
+    I --> J[Khởi tạo GeofenceEngine]
+    J --> K[Khởi tạo TTS Service]
+    K --> L[Test kết nối API]
+    L --> M{Kết nối thành công?}
+    M -->|Có| N[Đồng bộ dữ liệu từ Web]
+    M -->|Không| O[Sử dụng dữ liệu local]
+    N --> P[Hiển thị bản đồ với POI markers]
+    O --> P
+    P --> Q[Bắt đầu theo dõi GPS]
+    Q --> R([App sẵn sàng])</pre>
+            </div>
+        </div>
+
+        <!-- ACTIVITY 2 -->
+        <div class="diagram-card page-break">
+            <div class="diagram-header">
+                <div class="diagram-number">3</div>
+                <h2 class="diagram-title">Activity Diagram - Geofence Trigger & Auto Narration</h2>
+            </div>
+
+            <div class="diagram-desc">
+                <p><strong>Mô tả:</strong> Luồng xử lý khi user di chuyển vào vùng geofence của một POI. Hệ thống tính toán khoảng cách, kiểm tra priority, cooldown, và quyết định có phát audio hay không.</p>
+            </div>
+
+            <h3>🎯 Quy tắc ưu tiên:</h3>
+            <table class="info-table">
+                <tr>
+                    <th>Ưu tiên</th>
+                    <th>Tiêu chí</th>
+                    <th>Ví dụ</th>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>Priority cao hơn</td>
+                    <td>P3 > P2 > P1</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>Khoảng cách gần hơn</td>
+                    <td>50m > 80m</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>Cooldown đã hết</td>
+                    <td>5 phút</td>
+                </tr>
+            </table>
+
+            <div class="image-placeholder">
+                <div class="image-placeholder-icon">📍</div>
+                <div class="image-placeholder-text">[Chèn Activity Diagram - Geofence Trigger tại đây]</div>
+                <div class="image-placeholder-hint">Format: PNG/JPG, min 800x600px<br>Nhấn mạnh quyết định: Priority, Cooldown, Distance</div>
+            </div>
+
+            <div class="mermaid-code">
+                <pre>flowchart TD
+    A([GPS Update]) --> B[Lấy vị trí hiện tại]
+    B --> C[Tính khoảng cách đến tất cả POI]
+    C --> D{POI nào trong bán kính?}
+    D -->|Không có| E[Không làm gì]
+    D -->|Có| F[Sắp xếp theo Priority]
+    F --> G{Cooldown đã hết?}
+    G -->|Chưa| H[Bỏ qua - đang cooldown]
+    G -->|Rồi| I[Hiển thị POI Card]
+    I --> J{Auto-narration bật?}
+    J -->|Có| K[Phát TTS audio]
+    J -->|Không| L[Chỉ hiển thị thông tin]
+    K --> M[Cập nhật cooldown]
+    L --> M
+    M --> N([Kết thúc])
+    E --> N
+    H --> N</pre>
+            </div>
+        </div>
+
+        <!-- ACTIVITY 3 -->
+        <div class="diagram-card page-break">
+            <div class="diagram-header">
+                <div class="diagram-number">4</div>
+                <h2 class="diagram-title">Activity Diagram - User Review Flow</h2>
+            </div>
+
+            <div class="diagram-desc">
+                <p><strong>Mô tả:</strong> Luồng người dùng viết và gửi đánh giá cho một POI. Bao gồm các bước: mở form, nhập rating/comment, kiểm tra spam, lưu local, đồng bộ lên server, và chờ admin duyệt.</p>
+            </div>
+
+            <h3>📝 Các trạng thái review:</h3>
+            <table class="info-table">
+                <tr>
+                    <th>Trạng thái</th>
+                    <th>Mô tả</th>
+                    <th>Màu</th>
+                </tr>
+                <tr>
+                    <td>pending</td>
+                    <td>Chờ admin duyệt</td>
+                    <td>🟡 Vàng</td>
+                </tr>
+                <tr>
+                    <td>approved</td>
+                    <td>Đã duyệt, hiển thị public</td>
+                    <td>🟢 Xanh</td>
+                </tr>
+                <tr>
+                    <td>rejected</td>
+                    <td>Bị từ chối (spam/inappropriate)</td>
+                    <td>🔴 Đỏ</td>
+                </tr>
+            </table>
+
+            <div class="image-placeholder">
+                <div class="image-placeholder-icon">⭐</div>
+                <div class="image-placeholder-text">[Chèn Activity Diagram - Review Flow tại đây]</div>
+                <div class="image-placeholder-hint">Format: PNG/JPG, min 800x600px<br>Include: Form, Validation, Sync, Admin Approval</div>
+            </div>
+
+            <div class="mermaid-code">
+                <pre>flowchart TD
+    A([User vào chi tiết POI]) --> B[Xem danh sách reviews]
+    B --> C{User muốn viết review?}
+    C -->|Không| D([Xem tiếp])
+    C -->|Có| E[Hiển thị form review]
+    E --> F[Nhập rating 1-5 sao]
+    F --> G[Nhập comment]
+    G --> H[Chụp/Upload ảnh]
+    H --> I{Kiểm tra nội dung}
+    I -->|Hợp lệ| J[Lưu vào SQLite local]
+    I -->|Spam/Invalid| K[Hiển thị lỗi]
+    K --> E
+    J --> L{Mạng có sẵn?}
+    L -->|Có| M[Gửi lên Web Admin]
+    M --> N{Admin duyệt}
+    N -->|Được duyệt| O[Hiển thị public]
+    N -->|Từ chối| P[Xóa/Ẩn review]
+    L -->|Không| Q[Lưu queue đồng bộ sau]
+    O --> R([Hoàn thành])
+    P --> R
+    Q --> R</pre>
+            </div>
+        </div>
+
+        <!-- ACTIVITY 4 -->
+        <div class="diagram-card page-break">
+            <div class="diagram-header">
+                <div class="diagram-number">5</div>
+                <h2 class="diagram-title">Activity Diagram - Web Admin Quản lý POI</h2>
+            </div>
+
+            <div class="diagram-desc">
+                <p><strong>Mô tả:</strong> Luồng Admin thực hiện CRUD (Create, Read, Update, Delete) POI trong Web Admin. Bao gồm kiểm tra trùng lặp địa chỉ/tọa độ, upload ảnh, và đồng bộ xuống mobile app.</p>
+            </div>
+
+            <h3>⚠️ Kiểm tra trùng lặp:</h3>
+            <table class="info-table">
+                <tr>
+                    <th>Loại trùng</th>
+                    <th>Điều kiện</th>
+                    <th>Xử lý</th>
+                </tr>
+                <tr>
+                    <td>Địa chỉ</td>
+                    <td>Cùng địa chỉ text</td>
+                    <td>Báo lỗi, yêu cầu đổi</td>
+                </tr>
+                <tr>
+                    <td>Tọa độ</td>
+                    <td>Cách nhau < 10m</td>
+                    <td>Báo lỗi, yêu cầu đổi</td>
+                </tr>
+            </table>
+
+            <div class="image-placeholder">
+                <div class="image-placeholder-icon">🌐</div>
+                <div class="image-placeholder-text">[Chèn Activity Diagram - Admin CRUD tại đây]</div>
+                <div class="image-placeholder-hint">Format: PNG/JPG, min 800x600px<br>Include: Duplicate Check, Image Upload, Sync</div>
+            </div>
+
+            <div class="mermaid-code">
+                <pre>flowchart TD
+    A([Admin đăng nhập]) --> B[Vào trang Quản lý POI]
+    B --> C{Chọn thao tác}
+    C -->|Thêm| D[Form tạo POI mới]
+    C -->|Sửa| E[Load dữ liệu POI cũ]
+    C -->|Xóa| F{Xác nhận xóa}
+    F -->|Hủy| B
+    F -->|Đồng ý| G[Xóa POI + Cascade]
+    D --> H[Nhập thông tin POI]
+    E --> I[Chỉnh sửa thông tin]
+    H --> J{Kiểm tra trùng lặp}
+    I --> J
+    J -->|Trùng| K[Hiển thị lỗi]
+    K --> H
+    J -->|OK| L[Lưu vào pois.json]
+    L --> M[Cập nhật SQLite]
+    G --> N[Sync đến Mobile App]
+    M --> N
+    N --> O([Hoàn thành])</pre>
+            </div>
+        </div>
+
+        <!-- ACTIVITY 5 -->
+        <div class="diagram-card page-break">
+            <div class="diagram-header">
+                <div class="diagram-number">6</div>
+                <h2 class="diagram-title">Activity Diagram - Data Synchronization</h2>
+            </div>
+
+            <div class="diagram-desc">
+                <p><strong>Mô tả:</strong> Luồng đồng bộ dữ liệu giữa Mobile App (SQLite) và Web Admin (MySQL/JSON). Xử lý các trường hợp: có mạng, không mạng, lỗi server, conflict resolution.</p>
+            </div>
+
+            <h3>🔄 Chiến lược đồng bộ:</h3>
+            <table class="info-table">
+                <tr>
+                    <th>Tình huống</th>
+                    <th>Hành động</th>
+                </tr>
+                <tr>
+                    <td>Online + Remote mới hơn</td>
+                    <td>Update local database</td>
+                </tr>
+                <tr>
+                    <td>Online + Local mới hơn</td>
+                    <td>Push lên server</td>
+                </tr>
+                <tr>
+                    <td>Offline</td>
+                    <td>Queue để sync sau</td>
+                </tr>
+                <tr>
+                    <td>Lỗi 500</td>
+                    <td>Retry 3 lần</td>
+                </tr>
+            </table>
+
+            <div class="image-placeholder">
+                <div class="image-placeholder-icon">🔄</div>
+                <div class="image-placeholder-text">[Chèn Activity Diagram - Data Sync tại đây]</div>
+                <div class="image-placeholder-hint">Format: PNG/JPG, min 800x600px<br>Include: Network check, Retry logic, Queue</div>
+            </div>
+
+            <div class="mermaid-code">
+                <pre>flowchart TD
+    A([Bắt đầu đồng bộ]) --> B[Kiểm tra kết nối mạng]
+    B -->|Không có mạng| C[Lưu vào sync queue]
+    C --> D([Thử lại sau])
+    B -->|Có mạng| E[Gửi request đến API]
+    E --> F{Response thành công?}
+    F -->|Lỗi 500| G[Thử lại 3 lần]
+    G -->|Vẫn lỗi| H[Log lỗi + Báo user]
+    F -->|401/403| I[Token hết hạn]
+    I --> J[Yêu cầu đăng nhập lại]
+    F -->|200 OK| K[Parse JSON data]
+    K --> L[So sánh timestamp]
+    L --> M{Remote mới hơn?}
+    M -->|Có| N[Update local database]
+    M -->|Không| O[Bỏ qua]
+    N --> P[Hiển thị thông báo thành công]
+    O --> P
+    P --> Q([Hoàn thành])
+    H --> Q
+    J --> Q</pre>
+            </div>
+        </div>
+
+        <!-- ACTIVITY 6 -->
+        <div class="diagram-card page-break">
+            <div class="diagram-header">
+                <div class="diagram-number">7</div>
+                <h2 class="diagram-title">Activity Diagram - QR Code Scan & Check-in</h2>
+            </div>
+
+            <div class="diagram-desc">
+                <p><strong>Mô tả:</strong> Luồng user quét QR code tại quán để nhanh chóng vào trang chi tiết POI và check-in. Bao gồm xử lý camera permission, parse QR content, validate POI ID.</p>
+            </div>
+
+            <h3>📱 QR Content Format:</h3>
+            <table class="info-table">
+                <tr>
+                    <th>Loại QR</th>
+                    <th>Nội dung</th>
+                    <th>Kết quả</th>
+                </tr>
+                <tr>
+                    <td>Deep Link</td>
+                    <td>`foodstreetguide://poi/123`</td>
+                    <td>Mở app → POI #123</td>
+                </tr>
+                <tr>
+                    <td>Web URL</td>
+                    <td>`https://.../poi/123`</td>
+                    <td>Mở app → POI #123</td>
+                </tr>
+                <tr>
+                    <td>Direct ID</td>
+                    <td>`123`</td>
+                    <td>Mở app → POI #123</td>
+                </tr>
+                <tr>
+                    <td>Invalid</td>
+                    <td>Không đúng format</td>
+                    <td>Báo lỗi</td>
+                </tr>
+            </table>
+
+            <div class="image-placeholder">
+                <div class="image-placeholder-icon">📱</div>
+                <div class="image-placeholder-text">[Chèn Activity Diagram - QR Scan tại đây]</div>
+                <div class="image-placeholder-hint">Format: PNG/JPG, min 800x600px<br>Include: Camera, Parse, Validate, Check-in</div>
+            </div>
+
+            <div class="mermaid-code">
+                <pre>flowchart TD
+    A([User bấm Quét QR]) --> B[Kiểm tra Camera Permission]
+    B -->|Chưa cấp| C[Yêu cầu quyền camera]
+    C --> D{User đồng ý?}
+    D -->|Không| E[Không thể quét]
+    D -->|Có| F[Mở Camera Preview]
+    B -->|Đã cấp| F
+    F --> G[Quét QR Code]
+    G --> H{QR hợp lệ?}
+    H -->|Không| I[Hiển thị lỗi]
+    H -->|Có| J[Trích xuất POI ID]
+    J --> K[Lấy thông tin POI]
+    L --> M[Tăng visit count]
+    M --> N[Hiển thị "Check-in thành công"]
+    N --> O[Chuyển đến POI Detail]
+    I --> P([Thử lại])
+    E --> P
+    O --> Q([Hoàn thành])</pre>
+            </div>
+        </div>
+
+        <!-- LEGEND -->
+        <div class="legend-box page-break">
+            <h4>📚 Chú thích ký hiệu (Legend)</h4>
+            <table class="info-table">
+                <tr>
+                    <th>Ký hiệu</th>
+                    <th>Ý nghĩa</th>
+                    <th>Ví dụ</th>
+                </tr>
+                <tr>
+                    <td>⭕ Circle</td>
+                    <td>Start / End point</td>
+                    <td>[Bắt đầu], [Kết thúc]</td>
+                </tr>
+                <tr>
+                    <td>🔷 Diamond</td>
+                    <td>Decision (Quyết định)</td>
+                    <td>{Có/Không}, {Hợp lệ?}</td>
+                </tr>
+                <tr>
+                    <td>⬜ Rectangle</td>
+                    <td>Activity / Process</td>
+                    <td>[Xử lý dữ liệu]</td>
+                </tr>
+                <tr>
+                    <td>➡️ Arrow</td>
+                    <td>Luồng chuyển tiếp</td>
+                    <td>A --> B</td>
+                </tr>
+                <tr>
+                    <td>- - -> Dotted</td>
+                    <td>Include / Extend</td>
+                    <td>UC1 -.-> UC2</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- GUIDE -->
+        <div class="diagram-card">
+            <div class="diagram-header">
+                <div class="diagram-number">💡</div>
+                <h2 class="diagram-title">Hướng dẫn tạo hình ảnh từ Mermaid</h2>
+            </div>
+
+            <h3>Cách 1: Mermaid Live Editor (Online)</h3>
+            <div class="diagram-desc">
+                <p>1. Truy cập: <strong>https://mermaid.live/</strong><br>
+                2. Copy code từ box màu đen bên trên<br>
+                3. Paste vào editor<br>
+                4. Click <strong>"PNG"</strong> hoặc <strong>"SVG"</strong> để tải về<br>
+                5. Chèn vào placeholder trong file này</p>
+            </div>
+
+            <h3>Cách 2: PlantUML (Local)</h3>
+            <div class="diagram-desc">
+                <p>1. Cài đặt PlantUML extension cho VS Code<br>
+                2. Tạo file .puml với cú pháp PlantUML<br>
+                3. Alt + D để preview<br>
+                4. Export PNG/SVG</p>
+            </div>
+
+            <h3>Cách 3: draw.io / diagrams.net</h3>
+            <div class="diagram-desc">
+                <p>1. Truy cập: <strong>https://app.diagrams.net/</strong><br>
+                2. Chọn template Use Case / Activity<br>
+                3. Vẽ bằng kéo thả<br>
+                4. File → Export as → PNG/SVG/PDF</p>
+            </div>
+        </div>
+
+        <!-- END -->
+        <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 2px solid #e0e0e0; color: #666; font-size: 10pt;">
+            <p><strong>FoodStreetGuide - Use Case & Activity Diagrams</strong></p>
+            <p>Nguyễn Gia Huy (3123411119) | Vũ Gia Huy (3123411125)</p>
+            <p>April 2025</p>
+        </div>
+
+    </div>
+</body>
+</html>
