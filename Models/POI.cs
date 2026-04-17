@@ -47,6 +47,15 @@ namespace FoodStreetGuide.Models
 
         public string DistanceText { get; set; }
 
+        // Approval status (pending, approved, rejected)
+        public string ApprovalStatus { get; set; } = "pending";
+
+        // Audio configuration
+        public string? AudioType { get; set; } // 'tts' or 'file'
+        public string? AudioText { get; set; }
+        public string? AudioUrl { get; set; }
+        public bool AutoPlayAudio { get; set; }
+
         // Sync tracking
         public DateTime? LastSyncFromWeb { get; set; }
         public DateTime? LastSyncToWeb { get; set; }

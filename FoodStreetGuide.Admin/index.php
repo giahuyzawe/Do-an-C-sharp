@@ -119,6 +119,8 @@ $poi_visits = array_slice(array_column($pois, 'visitCount'), 0, 5);
         <nav class="nav flex-column">
             <a class="nav-link active" href="index.php"><i class="bi bi-grid"></i> Dashboard</a>
             <a class="nav-link" href="pois.php"><i class="bi bi-geo"></i> Quản lý POI</a>
+            <a class="nav-link" href="restaurant-approval.php"><i class="bi bi-check-circle"></i> Duyệt Nhà Hàng</a>
+            <a class="nav-link" href="audio-management.php"><i class="bi bi-mic"></i> Quản lý Audio</a>
             <a class="nav-link" href="analytics.php"><i class="bi bi-graph-up"></i> Phân tích</a>
             <a class="nav-link" href="activity.php"><i class="bi bi-clock-history"></i> Hoạt động</a>
             <a class="nav-link" href="settings.php"><i class="bi bi-gear"></i> Cài đặt</a>

@@ -1,0 +1,663 @@
+using Microsoft.Maui.Controls.Maps;
+using Microsoft.Maui.Maps;
+using FoodStreetGuide.Services;
+using FoodStreetGuide.Models;
+using FoodStreetGuide.Platforms.Android;
+using FoodStreetGuide.Database;
+
+namespace FoodStreetGuide;
+
+public partial class MainPage : ContentPage
+{
+    private readonly ILocationService? _locationService;
+    private readonly IGeofenceEngine? _geofenceEngine;
+    private readonly DatabaseService _databaseService;
+    private readonly ITTSService? _ttsService;
+    private readonly ISettingsService? _settingsService;
+    private readonly INarrationEngine? _narrationEngine;
+    private Pin? _currentLocationPin;
+    private readonly List<Pin> _poiPins = new();
+    private readonly Dictionary<int, Pin> _poiPinDictionary = new();
+    private bool _geofenceEnabled;
+    private bool _locationSubscribed;
+    private POI? _currentNearestPOI;
+
+    public MainPage()
+    {
+        InitializeComponent();
+        _databaseService = new DatabaseService();
+        _locationService = ServiceProviderHelper.GetService<ILocationService>();
+        _geofenceEngine = ServiceProviderHelper.GetService<IGeofenceEngine>();
+        _ttsService = ServiceProviderHelper.GetService<ITTSService>();
+        _settingsService = ServiceProviderHelper.GetService<ISettingsService>();
+    }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+        
+        try
+        {
+            // Always subscribe to events when page appears
+            if (_geofenceEngine != null)
+            {
+                _geofenceEngine.POIEntered += OnPOIEntered;
+                _geofenceEngine.NearestPOIChanged += OnNearestPOIChanged;
+                
+                // Only enable geofence once (it runs in background)
+                if (!_geofenceEnabled)
+                {
+                    var pois = await _databaseService.GetPOIsAsync();
+                    System.Diagnostics.Debug.WriteLine($"[OnAppearing] Loaded {pois.Count} POIs from database");
+                    
+                    // Seed data if empty
+                    if (pois.Count == 0)
+                    {
+                        System.Diagnostics.Debug.WriteLine("[OnAppearing] Database empty, seeding test POIs");
+                        var testPOIs = SeedData.GetTestPOIs();
+                        foreach (var poi in testPOIs)
+                        {
+                            await _databaseService.AddPOIAsync(poi);
+                        }
+                        pois = await _databaseService.GetPOIsAsync();
+                        System.Diagnostics.Debug.WriteLine($"[OnAppearing] Seeded {pois.Count} POIs");
+                    }
+                    
+                    _geofenceEngine.SetPOIs(pois);
+                    _geofenceEngine.Enable();
+                    _geofenceEnabled = true;
+                    
+                    await Task.Delay(500);
+                    DisplayPOIMarkers(pois);
+                }
+                else
+                {
+                    // Just refresh markers
+                    var pois = await _databaseService.GetPOIsAsync();
+                    System.Diagnostics.Debug.WriteLine($"[OnAppearing] Refreshed {pois.Count} POIs from database");
+                    DisplayPOIMarkers(pois, _currentNearestPOI?.Id);
+                }
+            }
+            
+            if (map != null && map.VisibleRegion == null)
+            {
+                var position = new Location(10.762622, 106.660172);
+                map.MoveToRegion(
+                    MapSpan.FromCenterAndRadius(
+                        position,
+                        Distance.FromKilometers(1)
+                    )
+                );
+            }
+            
+            SubscribeToLocationUpdates();
+            UpdateTrackingButtonState();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[OnAppearing] Error: {ex.Message}\n{ex.StackTrace}");
+        }
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        UnsubscribeFromLocationUpdates();
+        
+        // Unsubscribe events but keep geofence running in background
+        if (_geofenceEngine != null)
+        {
+            _geofenceEngine.POIEntered -= OnPOIEntered;
+            _geofenceEngine.NearestPOIChanged -= OnNearestPOIChanged;
+            // Do NOT Disable() - let it run in background
+        }
+    }
+
+    private void UpdateTrackingButtonState()
+    {
+        if (trackingIndicator == null || trackButton == null || trackButtonFrame == null) return;
+
+        try
+        {
+            if (_locationService?.IsTracking == true)
+            {
+                // STOP tracking state - Red color #E63946
+                trackingIndicator.IsVisible = true;
+                if (trackingStatusLabel != null)
+                    trackingStatusLabel.Text = "Tracking Active";
+                trackButtonFrame.BackgroundColor = Color.FromArgb("#E63946");
+                trackButton.TextColor = Colors.White;
+                trackButton.Text = "⏹";
+            }
+            else
+            {
+                // START tracking state - Orange color #FF6B35
+                trackingIndicator.IsVisible = false;
+                trackButtonFrame.BackgroundColor = Color.FromArgb("#FF6B35");
+                trackButton.TextColor = Colors.White;
+                trackButton.Text = "▶";
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[UpdateTrackingButtonState] Error: {ex.Message}");
+        }
+    }
+
+    private void SubscribeToLocationUpdates()
+    {
+        if (_locationService != null && !_locationSubscribed)
+        {
+            _locationService.LocationUpdated += OnLocationUpdated;
+            _locationSubscribed = true;
+            UpdateTrackingButtonState();
+        }
+    }
+
+    private void UnsubscribeFromLocationUpdates()
+    {
+        if (_locationService != null && _locationSubscribed)
+        {
+            _locationService.LocationUpdated -= OnLocationUpdated;
+            _locationSubscribed = false;
+        }
+    }
+
+    private void OnLocationUpdated(object? sender, LocationUpdatedEventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine($"[OnLocationUpdated] Location: {e.Latitude:F6}, {e.Longitude:F6}");
+        
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            var currentLocation = new Location(e.Latitude, e.Longitude);
+            
+            if (_geofenceEngine != null)
+            {
+                _geofenceEngine.UpdateLocation(e.Latitude, e.Longitude);
+                System.Diagnostics.Debug.WriteLine($"[OnLocationUpdated] Geofence engine updated");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[OnLocationUpdated] Geofence engine is NULL!");
+            }
+            
+            if (_currentLocationPin == null)
+            {
+                _currentLocationPin = new Pin
+                {
+                    Label = "📍 You",
+                    Location = currentLocation,
+                    Type = PinType.Generic
+                };
+                map.Pins.Add(_currentLocationPin);
+            }
+            else
+            {
+                _currentLocationPin.Location = currentLocation;
+            }
+
+            map.MoveToRegion(MapSpan.FromCenterAndRadius(currentLocation, Distance.FromKilometers(0.5)));
+        });
+    }
+
+    private async void OnTrackButtonClicked(object sender, EventArgs e)
+    {
+        if (_locationService == null)
+        {
+            await DisplayAlert("Error", "Location service not available", "OK");
+            return;
+        }
+
+        try
+        {
+            if (_locationService.IsTracking)
+            {
+                await _locationService.StopTrackingAsync();
+            }
+            else
+            {
+                await _locationService.StartTrackingAsync();
+                
+                // Auto-find and display nearest POI when tracking starts
+                await Task.Delay(1000); // Wait for location to update
+                await FindAndShowNearestPOIAsync();
+            }
+            UpdateTrackingButtonState();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Track] Error: {ex.Message}");
+            await DisplayAlert("Error", $"Cannot change tracking: {ex.Message}", "OK");
+        }
+    }
+
+    private async Task FindAndShowNearestPOIAsync()
+    {
+        try
+        {
+            if (_currentLocationPin?.Location == null)
+            {
+                System.Diagnostics.Debug.WriteLine("[FindAndShowNearestPOIAsync] Current location not available");
+                return;
+            }
+
+            var pois = await _databaseService.GetPOIsAsync();
+            if (pois.Count == 0)
+            {
+                System.Diagnostics.Debug.WriteLine("[FindAndShowNearestPOIAsync] No POIs in database");
+                return;
+            }
+
+            // Find nearest POI
+            var userLocation = _currentLocationPin.Location;
+            POI? nearestPOI = null;
+            double minDistance = double.MaxValue;
+
+            foreach (var poi in pois)
+            {
+                var poiLocation = new Location(poi.Latitude, poi.Longitude);
+                var distance = userLocation.CalculateDistance(poiLocation, DistanceUnits.Kilometers) * 1000; // meters
+
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    nearestPOI = poi;
+                }
+            }
+
+            if (nearestPOI != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[FindAndShowNearestPOIAsync] Found nearest POI: {nearestPOI.NameVi} ({minDistance:F0}m)");
+                
+                _currentNearestPOI = nearestPOI;
+                
+                // Show POI card
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    poiCard.IsVisible = true;
+                    poiNameLabel.Text = nearestPOI.NameVi;
+                    poiDistanceLabel.Text = $"{minDistance:F0}m away";
+                    poiHoursLabel.Text = string.IsNullOrEmpty(nearestPOI.OpeningHours) ? "" : $"Open: {nearestPOI.OpeningHours}";
+                    poiAddressLabel.Text = nearestPOI.Address;
+                    
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[FindAndShowNearestPOIAsync] Error: {ex.Message}");
+        }
+    }
+
+    private async void OnFindNearestPOI(object sender, EventArgs e)
+    {
+        try
+        {
+            var pois = await _databaseService.GetPOIsAsync();
+            
+            if (pois.Count == 0)
+            {
+                await DisplayAlert("Notice", "No POI in database", "OK");
+                return;
+            }
+
+            var currentLocation = _currentLocationPin?.Location;
+            if (currentLocation == null)
+            {
+                await DisplayAlert("Notice", "Please enable tracking first", "OK");
+                return;
+            }
+
+            POI? nearest = null;
+            double minDistance = double.MaxValue;
+
+            foreach (var poi in pois)
+            {
+                var poiLocation = new Location(poi.Latitude, poi.Longitude);
+                var distance = currentLocation.CalculateDistance(poiLocation, DistanceUnits.Kilometers);
+                
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    nearest = poi;
+                }
+            }
+
+            if (nearest != null)
+            {
+                var distanceMeters = minDistance * 1000;
+                await DisplayAlert(
+                    "Nearest POI",
+                    $"{nearest.NameVi}\nDistance: {distanceMeters:F0}m\nRadius: {nearest.Radius}m",
+                    "OK");
+
+                map.MoveToRegion(
+                    MapSpan.FromCenterAndRadius(
+                        new Location(nearest.Latitude, nearest.Longitude),
+                        Distance.FromMeters(100)
+                    )
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", ex.Message, "OK");
+        }
+    }
+
+    private async void OnPOIEntered(object? sender, GeofenceEventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine($"[OnPOIEntered] START - POI: {e.POI.NameVi}, Distance: {e.DistanceMeters:F1}m");
+        
+        await MainThread.InvokeOnMainThreadAsync(async () =>
+        {
+            System.Diagnostics.Debug.WriteLine($"[OnPOIEntered] OnMainThread - POI: {e.POI.NameVi}");
+            
+            try
+            {
+                var message = $"You are approaching {e.POI.NameVi}. {e.POI.DescriptionVi}";
+                System.Diagnostics.Debug.WriteLine($"[TTS] Preparing: '{message}' for POI {e.POI.Id}:{e.POI.NameVi}");
+                
+                if (_ttsService != null && _settingsService?.GetNarrationEnabled() != false)
+                {
+                    await _ttsService.StopAsync();
+                    await _ttsService.SpeakAsync(message);
+                    System.Diagnostics.Debug.WriteLine($"[TTS] Completed for {e.POI.NameVi}");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[TTS] Skipped (narration disabled or service unavailable)");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TTS] Exception: {ex.Message}");
+            }
+        });
+    }
+
+    private void OnNearestPOIChanged(object? sender, NearestPOIChangedEventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine($"[OnNearestPOIChanged] START - NewPOI: {e.NewPOI?.NameVi}, Distance: {e.DistanceMeters:F0}m");
+        
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            if (e.NewPOI != null)
+            {
+                _currentNearestPOI = e.NewPOI;
+                System.Diagnostics.Debug.WriteLine($"[OnNearestPOIChanged] Updating POI card for {e.NewPOI.NameVi}");
+
+                poiCard.IsVisible = true;
+                poiNameLabel.Text = e.NewPOI.NameVi;
+                poiDistanceLabel.Text = $"{e.DistanceMeters:F0}m away";
+                poiHoursLabel.Text = string.IsNullOrEmpty(e.NewPOI.OpeningHours) ? "" : $"Open: {e.NewPOI.OpeningHours}";
+                poiAddressLabel.Text = e.NewPOI.Address;
+
+                // Move FABs above the card (POI card height 280 + spacing + tab bar height)
+                fabStack.Margin = new Thickness(0, 0, 16, 380);
+
+                _ = _databaseService.GetPOIsAsync().ContinueWith(task =>
+                {
+                    if (task.Result != null)
+                    {
+                        MainThread.BeginInvokeOnMainThread(() =>
+                        {
+                            DisplayPOIMarkers(task.Result, e.NewPOI.Id);
+                        });
+                    }
+                });
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[OnNearestPOIChanged] NewPOI is null, hiding card");
+                poiCard.IsVisible = false;
+            }
+        });
+    }
+
+    private void DisplayPOIMarkers(List<POI> pois, int? nearestPOIId = null)
+    {
+        if (map == null) return;
+
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            // Clear existing pins
+            foreach (var pin in _poiPins)
+            {
+                map.Pins.Remove(pin);
+            }
+            _poiPins.Clear();
+            _poiPinDictionary.Clear();
+
+            // Add all pins with highlight for nearest
+            foreach (var poi in pois)
+            {
+                bool isNearest = nearestPOIId.HasValue && poi.Id == nearestPOIId.Value;
+                var poiPin = new Pin
+                {
+                    Label = isNearest ? "★ " + poi.NameVi : poi.NameVi,
+                    Location = new Location(poi.Latitude, poi.Longitude),
+                    Type = isNearest ? PinType.SavedPin : PinType.Place
+                };
+                map.Pins.Add(poiPin);
+                _poiPins.Add(poiPin);
+                _poiPinDictionary[poi.Id] = poiPin;
+            }
+            
+            System.Diagnostics.Debug.WriteLine($"[DisplayPOIMarkers] Added {pois.Count} pins, nearest: {nearestPOIId}");
+        });
+    }
+
+    private async void OnDirectionsClicked(object? sender, EventArgs e)
+    {
+        if (_currentNearestPOI == null) return;
+        
+        var location = new Location(_currentNearestPOI.Latitude, _currentNearestPOI.Longitude);
+        var options = new MapLaunchOptions 
+        { 
+            Name = _currentNearestPOI.NameVi,
+            NavigationMode = NavigationMode.Driving 
+        };
+        
+        try
+        {
+            await Microsoft.Maui.ApplicationModel.Map.Default.OpenAsync(location, options);
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", $"Cannot open map: {ex.Message}", "OK");
+        }
+    }
+
+    private void OnRecenterTapped(object sender, EventArgs e)
+    {
+        if (_currentLocationPin?.Location != null)
+        {
+            map.MoveToRegion(MapSpan.FromCenterAndRadius(_currentLocationPin.Location, Distance.FromKilometers(0.5)));
+        }
+    }
+
+    private void OnZoomInClicked(object sender, EventArgs e)
+    {
+        if (map?.VisibleRegion != null)
+        {
+            var newRadius = map.VisibleRegion.Radius.Kilometers / 2;
+            map.MoveToRegion(MapSpan.FromCenterAndRadius(map.VisibleRegion.Center, Distance.FromKilometers(newRadius)));
+        }
+    }
+
+    private void OnZoomOutClicked(object sender, EventArgs e)
+    {
+        if (map?.VisibleRegion != null)
+        {
+            var newRadius = map.VisibleRegion.Radius.Kilometers * 2;
+            map.MoveToRegion(MapSpan.FromCenterAndRadius(map.VisibleRegion.Center, Distance.FromKilometers(newRadius)));
+        }
+    }
+
+    private void OnClosePOICardClicked(object? sender, EventArgs e)
+    {
+        poiCard.IsVisible = false;
+    }
+
+    private async void OnNarrateClicked(object? sender, EventArgs e)
+    {
+        if (_currentNearestPOI == null || _ttsService == null) return;
+        
+        var message = $"You are approaching {_currentNearestPOI.NameVi}. {_currentNearestPOI.DescriptionVi}";
+        await _ttsService.SpeakAsync(message);
+    }
+
+    private async void OnDetailsClicked(object? sender, EventArgs e)
+    {
+        if (_currentNearestPOI == null) return;
+        
+        var detailPage = new ContentPage
+        {
+            BackgroundColor = Color.FromArgb("#80000000"),
+            Padding = new Thickness(20)
+        };
+
+        var scrollView = new ScrollView
+        {
+            VerticalOptions = LayoutOptions.Center,
+            HorizontalOptions = LayoutOptions.Center
+        };
+
+        var card = new Frame
+        {
+            BackgroundColor = Colors.White,
+            CornerRadius = 24,
+            Padding = new Thickness(20),
+            HasShadow = true,
+            VerticalOptions = LayoutOptions.Center,
+            HorizontalOptions = LayoutOptions.Fill
+        };
+
+        var cardContent = new VerticalStackLayout { Spacing = 16 };
+
+        if (!string.IsNullOrEmpty(_currentNearestPOI.Image))
+        {
+            cardContent.Children.Add(new Image
+            {
+                Source = _currentNearestPOI.Image,
+                Aspect = Aspect.AspectFill,
+                HeightRequest = 200,
+                BackgroundColor = Colors.LightGray,
+                Margin = new Thickness(-20, -20, -20, 0)
+            });
+        }
+
+        cardContent.Children.Add(new Label
+        {
+            Text = _currentNearestPOI.NameVi,
+            FontSize = 24,
+            FontAttributes = FontAttributes.Bold,
+            TextColor = Color.FromArgb("#1C1C1E")
+        });
+
+        cardContent.Children.Add(new Label
+        {
+            Text = $"{_currentNearestPOI.Radius}m radius",
+            FontSize = 14,
+            TextColor = Color.FromArgb("#8E8E93")
+        });
+
+        cardContent.Children.Add(new Label
+        {
+            Text = _currentNearestPOI.DescriptionVi ?? "",
+            FontSize = 15,
+            TextColor = Color.FromArgb("#1C1C1E"),
+            LineBreakMode = LineBreakMode.WordWrap
+        });
+
+        if (!string.IsNullOrEmpty(_currentNearestPOI.Address))
+        {
+            cardContent.Children.Add(new Frame
+            {
+                BackgroundColor = Color.FromArgb("#F2F2F7"),
+                CornerRadius = 12,
+                Padding = new Thickness(12),
+                Content = new Label
+                {
+                    Text = _currentNearestPOI.Address,
+                    FontSize = 14,
+                    TextColor = Color.FromArgb("#1C1C1E")
+                }
+            });
+        }
+
+        if (!string.IsNullOrEmpty(_currentNearestPOI.OpeningHours))
+        {
+            var hoursFrame = new Frame
+            {
+                BackgroundColor = Color.FromArgb("#34C759").WithAlpha(0.1f),
+                CornerRadius = 12,
+                Padding = new Thickness(12),
+                Content = new Label
+                {
+                    Text = "Open: " + _currentNearestPOI.OpeningHours,
+                    FontSize = 14,
+                    TextColor = Color.FromArgb("#34C759"),
+                    FontAttributes = FontAttributes.Bold
+                }
+            };
+            cardContent.Children.Add(hoursFrame);
+        }
+
+        var closeButton = new Button
+        {
+            Text = "Close",
+            BackgroundColor = Color.FromArgb("#1C1C1E"),
+            TextColor = Colors.White,
+            CornerRadius = 12,
+            FontSize = 16,
+            FontAttributes = FontAttributes.Bold,
+            Margin = new Thickness(0, 16, 0, 0)
+        };
+        closeButton.Clicked += async (s, args) => await Navigation.PopModalAsync();
+        cardContent.Children.Add(closeButton);
+
+        card.Content = cardContent;
+        scrollView.Content = card;
+        detailPage.Content = scrollView;
+
+        await Navigation.PushModalAsync(detailPage);
+    }
+
+    private async void OnFindNearestClicked(object? sender, EventArgs e)
+    {
+        if (_currentNearestPOI == null)
+        {
+            await DisplayAlert("Info", "No nearby POI found. Start tracking to find nearby restaurants.", "OK");
+            return;
+        }
+
+        // Center map on nearest POI
+        var poiLocation = new Location(_currentNearestPOI.Latitude, _currentNearestPOI.Longitude);
+        map.MoveToRegion(
+            MapSpan.FromCenterAndRadius(
+                poiLocation,
+                Distance.FromMeters(100)
+            )
+        );
+
+        // Show POI card
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            poiCard.IsVisible = true;
+            poiNameLabel.Text = _currentNearestPOI.NameVi;
+            poiDistanceLabel.Text = "Nearest restaurant";
+            poiAddressLabel.Text = _currentNearestPOI.Address ?? "Address not available";
+            
+        });
+    }
+
+    private void OnNarrateManualClicked(object? sender, EventArgs e)
+    {
+        if (_currentNearestPOI == null || _ttsService == null) return;
+        
+        var message = $"You are approaching {_currentNearestPOI.NameVi}. {_currentNearestPOI.DescriptionVi}";
+        _ttsService.SpeakAsync(message);
+    }
+}

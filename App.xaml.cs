@@ -14,6 +14,27 @@ public partial class App : Application
 
         //Database.Init();
 
+        // Record app visit for analytics (no login required)
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await databaseService.Init();
+                var deviceId = Preferences.Get("DeviceId", string.Empty);
+                if (string.IsNullOrEmpty(deviceId))
+                {
+                    deviceId = Guid.NewGuid().ToString();
+                    Preferences.Set("DeviceId", deviceId);
+                }
+                await databaseService.RecordAppVisitAsync(deviceId);
+                System.Diagnostics.Debug.WriteLine($"[App] Visit recorded for device: {deviceId.Substring(0, 8)}...");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[App] Failed to record visit: {ex.Message}");
+            }
+        });
+
         MainPage = new AppShell();
     }
 
