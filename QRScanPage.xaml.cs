@@ -64,47 +64,29 @@ public partial class QRScanPage : ContentPage
 
         try
         {
-            // Extract POI ID from QR code
+            // Check if it's a dynamic QR code (foodstreetguide://qr/TOKEN)
+            if (code.StartsWith("foodstreetguide://qr/"))
+            {
+                await ProcessDynamicQR(code);
+                return;
+            }
+
+            // Legacy support: Direct POI ID or poi/ID format
             int? poiId = ExtractPoiId(code);
             
             if (!poiId.HasValue)
             {
                 await DisplayAlert("Mã không hợp lệ", 
                     "Mã QR không đúng định dạng FoodStreetGuide.\n\nCác định dạng hỗ trợ:\n" +
+                    "• foodstreetguide://qr/abc123 (QR động)\n" +
                     "• foodstreetguide://poi/123\n" +
-                    "• https://.../poi/123\n" +
                     "• ID trực tiếp: 123", "OK");
                 _isProcessing = false;
                 return;
             }
 
-            // Check for duplicate scan with cooldown
-            var (isDuplicate, timeRemaining) = await _databaseService.RecordQRScanAsync(
-                poiId.Value, _deviceId, code);
-
-            if (isDuplicate)
-            {
-                // Show duplicate warning but still allow navigation
-                var minutesRemaining = (int)Math.Ceiling(timeRemaining?.TotalMinutes ?? 60);
-                var navigateAnyway = await DisplayAlert("Quét trùng", 
-                    $"Bạn đã quét quán này cách đây chưa đầy 1 giờ.\n\n" +
-                    $"Thời gian còn lại: {minutesRemaining} phút\n\n" +
-                    $"Quét trùng sẽ KHÔNG tính thêm lượt xem.",
-                    "Vẫn đi đến", "Hủy");
-
-                if (navigateAnyway)
-                {
-                    await NavigateToPOI(poiId.Value, countedAsVisit: false);
-                }
-                _isProcessing = false;
-                return;
-            }
-
-            // New scan - show check-in success and navigate
-            await DisplayAlert("Check-in thành công!", 
-                "Cảm ơn bạn đã đến thăm quán này.", "OK");
-            
-            await NavigateToPOI(poiId.Value, countedAsVisit: true);
+            // Process legacy QR (direct POI reference)
+            await ProcessLegacyQR(poiId.Value, code);
         }
         catch (Exception ex)
         {
@@ -114,6 +96,92 @@ public partial class QRScanPage : ContentPage
         {
             _isProcessing = false;
         }
+    }
+
+    /// <summary>
+    /// Process dynamic QR code with unique token
+    /// </summary>
+    private async Task ProcessDynamicQR(string code)
+    {
+        // Extract token
+        var token = code.Replace("foodstreetguide://qr/", "").Trim();
+        
+        if (string.IsNullOrEmpty(token))
+        {
+            await DisplayAlert("Lỗi", "Mã QR không hợp lệ (thiếu token)", "OK");
+            _isProcessing = false;
+            return;
+        }
+
+        // Validate dynamic QR code
+        var (isValid, poi, errorMessage) = await _databaseService.ValidateDynamicQRAsync(token);
+
+        if (!isValid || poi == null)
+        {
+            await DisplayAlert("QR không hợp lệ", errorMessage ?? "Mã QR không thể sử dụng", "OK");
+            _isProcessing = false;
+            return;
+        }
+
+        // Check for duplicate scan with cooldown
+        var (isDuplicate, timeRemaining) = await _databaseService.RecordQRScanAsync(
+            poi.Id, _deviceId, code);
+
+        if (isDuplicate)
+        {
+            var minutesRemaining = (int)Math.Ceiling(timeRemaining?.TotalMinutes ?? 60);
+            var navigateAnyway = await DisplayAlert("Quét trùng", 
+                $"Bạn đã quét quán này cách đây chưa đầy 1 giờ.\n\n" +
+                $"Thời gian còn lại: {minutesRemaining} phút\n\n" +
+                $"Quét trùng sẽ KHÔNG tính thêm lượt xem.",
+                "Vẫn đi đến", "Hủy");
+
+            if (navigateAnyway)
+            {
+                await NavigateToPOI(poi, countedAsVisit: false, isDynamicQR: true);
+            }
+            _isProcessing = false;
+            return;
+        }
+
+        // New scan - show success
+        await DisplayAlert("Check-in thành công!", 
+            $"Cảm ơn bạn đã đến thăm:\n{poi.NameVi}", "OK");
+        
+        await NavigateToPOI(poi, countedAsVisit: true, isDynamicQR: true);
+    }
+
+    /// <summary>
+    /// Process legacy QR code (direct POI ID)
+    /// </summary>
+    private async Task ProcessLegacyQR(int poiId, string code)
+    {
+        // Check for duplicate scan with cooldown
+        var (isDuplicate, timeRemaining) = await _databaseService.RecordQRScanAsync(
+            poiId, _deviceId, code);
+
+        if (isDuplicate)
+        {
+            var minutesRemaining = (int)Math.Ceiling(timeRemaining?.TotalMinutes ?? 60);
+            var navigateAnyway = await DisplayAlert("Quét trùng", 
+                $"Bạn đã quét quán này cách đây chưa đầy 1 giờ.\n\n" +
+                $"Thời gian còn lại: {minutesRemaining} phút\n\n" +
+                $"Quét trùng sẽ KHÔNG tính thêm lượt xem.",
+                "Vẫn đi đến", "Hủy");
+
+            if (navigateAnyway)
+            {
+                await NavigateToPOI(poiId, countedAsVisit: false);
+            }
+            _isProcessing = false;
+            return;
+        }
+
+        // New scan
+        await DisplayAlert("Check-in thành công!", 
+            "Cảm ơn bạn đã đến thăm quán này.", "OK");
+        
+        await NavigateToPOI(poiId, countedAsVisit: true);
     }
 
     private int? ExtractPoiId(string code)
@@ -147,9 +215,11 @@ public partial class QRScanPage : ContentPage
         return null;
     }
 
+    /// <summary>
+    /// Navigate to POI by ID (legacy support)
+    /// </summary>
     private async Task NavigateToPOI(int poiId, bool countedAsVisit)
     {
-        // Get POI from database
         var pois = await _databaseService.GetPOIsAsync();
         var poi = pois.FirstOrDefault(p => p.Id == poiId);
 
@@ -161,6 +231,14 @@ public partial class QRScanPage : ContentPage
             return;
         }
 
+        await NavigateToPOI(poi, countedAsVisit, isDynamicQR: false);
+    }
+
+    /// <summary>
+    /// Navigate to POI object
+    /// </summary>
+    private async Task NavigateToPOI(POI poi, bool countedAsVisit, bool isDynamicQR)
+    {
         // Check if POI is approved
         if (poi.ApprovalStatus != "approved")
         {
@@ -174,7 +252,7 @@ public partial class QRScanPage : ContentPage
         await Navigation.PopAsync();
 
         // Send message to MainPage to focus on this POI
-        WeakReferenceMessenger.Default.Send(new QRCodeScannedMessage(poi, countedAsVisit));
+        WeakReferenceMessenger.Default.Send(new QRCodeScannedMessage(poi, countedAsVisit, isDynamicQR));
     }
 }
 
@@ -183,10 +261,12 @@ public class QRCodeScannedMessage
 {
     public POI POI { get; }
     public bool CountedAsVisit { get; }
+    public bool IsDynamicQR { get; }
 
-    public QRCodeScannedMessage(POI poi, bool countedAsVisit)
+    public QRCodeScannedMessage(POI poi, bool countedAsVisit, bool isDynamicQR)
     {
         POI = poi;
         CountedAsVisit = countedAsVisit;
+        IsDynamicQR = isDynamicQR;
     }
 }

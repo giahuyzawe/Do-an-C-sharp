@@ -27,6 +27,7 @@ namespace FoodStreetGuide.Services
             await database.CreateTableAsync<Review>();
             await database.CreateTableAsync<QRScanRecord>();
             await database.CreateTableAsync<AppVisitRecord>();
+            await database.CreateTableAsync<QRCode>();
 
             // Seed data if empty
             var pois = await database.Table<POI>().ToListAsync();
@@ -291,6 +292,102 @@ namespace FoodStreetGuide.Services
             return await database.Table<AppVisitRecord>()
                 .Where(v => v.VisitDate == today)
                 .CountAsync();
+        }
+
+        // ==================== DYNAMIC QR CODE ====================
+
+        /// <summary>
+        /// Validates a dynamic QR code and returns the associated POI if valid
+        /// </summary>
+        public async Task<(bool IsValid, POI? POI, string? ErrorMessage)> ValidateDynamicQRAsync(string uniqueToken)
+        {
+            await Init();
+            
+            // Find QR code by unique token
+            var qrCode = await database.Table<QRCode>()
+                .Where(q => q.UniqueToken == uniqueToken)
+                .FirstOrDefaultAsync();
+
+            if (qrCode == null)
+            {
+                return (false, null, "Mã QR không tồn tại trong hệ thống");
+            }
+
+            // Check if valid
+            if (!qrCode.IsValid())
+            {
+                if (qrCode.ExpiresAt.HasValue && DateTime.UtcNow > qrCode.ExpiresAt.Value)
+                {
+                    return (false, null, "Mã QR đã hết hạn sử dụng");
+                }
+                
+                if (qrCode.MaxScans.HasValue && qrCode.ScanCount >= qrCode.MaxScans.Value)
+                {
+                    return (false, null, "Mã QR đã đạt giới hạn số lần quét");
+                }
+                
+                if (qrCode.QRType == "single_use" && qrCode.IsUsed)
+                {
+                    return (false, null, "Mã QR đã được sử dụng (chỉ dùng 1 lần)");
+                }
+                
+                return (false, null, "Mã QR không còn hiệu lực");
+            }
+
+            // Get associated POI
+            var poi = await database.Table<POI>()
+                .Where(p => p.Id == qrCode.POIId)
+                .FirstOrDefaultAsync();
+
+            if (poi == null)
+            {
+                return (false, null, "Không tìm thấy nhà hàng liên kết với mã QR này");
+            }
+
+            // Check POI approval status
+            if (poi.ApprovalStatus != "approved")
+            {
+                return (false, null, "Nhà hàng này chưa được duyệt");
+            }
+
+            // Update scan count
+            qrCode.ScanCount++;
+            if (qrCode.QRType == "single_use")
+            {
+                qrCode.IsUsed = true;
+            }
+            await database.UpdateAsync(qrCode);
+
+            return (true, poi, null);
+        }
+
+        /// <summary>
+        /// Gets all QR codes for a specific POI
+        /// </summary>
+        public async Task<List<QRCode>> GetQRCodesForPOIAsync(int poiId)
+        {
+            await Init();
+            return await database.Table<QRCode>()
+                .Where(q => q.POIId == poiId)
+                .OrderByDescending(q => q.CreatedAt)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// Gets QR code statistics
+        /// </summary>
+        public async Task<(int Total, int Valid, int Expired, int SingleUseUsed)> GetQRCodeStatsAsync()
+        {
+            await Init();
+            
+            var allQRCodes = await database.Table<QRCode>().ToListAsync();
+            
+            int total = allQRCodes.Count;
+            int valid = allQRCodes.Count(q => q.IsValid());
+            int expired = allQRCodes.Count(q => q.ExpiresAt.HasValue && DateTime.UtcNow > q.ExpiresAt.Value);
+            int singleUseUsed = allQRCodes.Count(q => q.QRType == "single_use" && q.IsUsed);
+            
+            return (total, valid, expired, singleUseUsed);
         }
     }
 }
