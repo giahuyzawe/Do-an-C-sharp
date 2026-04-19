@@ -51,8 +51,10 @@
         </Frame>
 
         <!-- Content -->
-        <ScrollView Grid.Row="1">
-            <VerticalStackLayout Padding="16,8,16,24" Spacing="16">
+        <ScrollView Grid.Row="1" 
+                    x:Name="contentScrollView"
+                    VerticalScrollBarVisibility="Default">
+            <VerticalStackLayout Padding="16,8,16,100" Spacing="16">
 
                 <!-- Image Carousel -->
                 <Grid HeightRequest="200">
@@ -153,6 +155,138 @@
                         
                         <VerticalStackLayout x:Name="dishesContainer" Spacing="12">
                             <!-- Dish items will be added dynamically -->
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Reviews Section -->
+                <Frame BackgroundColor="{StaticResource Surface}"
+                       CornerRadius="12"
+                       Padding="16"
+                       BorderColor="Transparent">
+                    <VerticalStackLayout Spacing="12">
+                        <Label x:Name="reviewsTitleLabel"
+                               Text="&#11088; Đánh giá"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource TextPrimary}"/>
+                        
+                        <!-- Average Rating -->
+                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                            <Label x:Name="averageRatingLabel"
+                                   Text="4.5"
+                                   FontSize="28"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource Primary}"/>
+                            <Label x:Name="totalReviewsLabel"
+                                   Text="(12 đánh giá)"
+                                   FontSize="14"
+                                   TextColor="{StaticResource TextSecondary}"
+                                   VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                        
+                        <!-- Existing Reviews List -->
+                        <VerticalStackLayout x:Name="reviewsContainer" Spacing="12">
+                            <!-- Reviews added dynamically -->
+                        </VerticalStackLayout>
+                        
+                        <!-- Add Review Button -->
+                        <Button x:Name="addReviewButton"
+                                Text="+ Thêm đánh giá"
+                                BackgroundColor="Transparent"
+                                TextColor="{StaticResource Primary}"
+                                BorderColor="{StaticResource Primary}"
+                                BorderWidth="1"
+                                CornerRadius="12"
+                                HeightRequest="44"
+                                Clicked="OnAddReviewClicked"/>
+                        
+                        <!-- Add Review Form (hidden by default) -->
+                        <VerticalStackLayout x:Name="reviewFormContainer" 
+                                             Spacing="12" 
+                                             IsVisible="False">
+                            <!-- Rating Stars -->
+                            <Label Text="Chạm sao để đánh giá:" 
+                                   FontSize="14" 
+                                   TextColor="{StaticResource TextSecondary}"
+                                   HorizontalOptions="Center"/>
+                            <HorizontalStackLayout Spacing="4" HorizontalOptions="Center">
+                                <Frame x:Name="star1Frame" 
+                                       Padding="8" 
+                                       BackgroundColor="Transparent" 
+                                       BorderColor="Transparent"
+                                       CornerRadius="8">
+                                    <Frame.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnStar1Tapped"/>
+                                    </Frame.GestureRecognizers>
+                                    <Label x:Name="star1" Text="☆" FontSize="32" TextColor="#FFC107"/>
+                                </Frame>
+                                <Frame x:Name="star2Frame" 
+                                       Padding="8" 
+                                       BackgroundColor="Transparent" 
+                                       BorderColor="Transparent"
+                                       CornerRadius="8">
+                                    <Frame.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnStar2Tapped"/>
+                                    </Frame.GestureRecognizers>
+                                    <Label x:Name="star2" Text="☆" FontSize="32" TextColor="#FFC107"/>
+                                </Frame>
+                                <Frame x:Name="star3Frame" 
+                                       Padding="8" 
+                                       BackgroundColor="Transparent" 
+                                       BorderColor="Transparent"
+                                       CornerRadius="8">
+                                    <Frame.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnStar3Tapped"/>
+                                    </Frame.GestureRecognizers>
+                                    <Label x:Name="star3" Text="☆" FontSize="32" TextColor="#FFC107"/>
+                                </Frame>
+                                <Frame x:Name="star4Frame" 
+                                       Padding="8" 
+                                       BackgroundColor="Transparent" 
+                                       BorderColor="Transparent"
+                                       CornerRadius="8">
+                                    <Frame.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnStar4Tapped"/>
+                                    </Frame.GestureRecognizers>
+                                    <Label x:Name="star4" Text="☆" FontSize="32" TextColor="#FFC107"/>
+                                </Frame>
+                                <Frame x:Name="star5Frame" 
+                                       Padding="8" 
+                                       BackgroundColor="Transparent" 
+                                       BorderColor="Transparent"
+                                       CornerRadius="8">
+                                    <Frame.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnStar5Tapped"/>
+                                    </Frame.GestureRecognizers>
+                                    <Label x:Name="star5" Text="☆" FontSize="32" TextColor="#FFC107"/>
+                                </Frame>
+                            </HorizontalStackLayout>
+                            
+                            <!-- Comment Entry -->
+                            <Editor x:Name="reviewCommentEditor"
+                                    Placeholder="Viết đánh giá của bạn..."
+                                    HeightRequest="100"
+                                    BackgroundColor="#F7F7F7"
+                                    TextColor="{StaticResource TextPrimary}"/>
+                            
+                            <!-- Submit/Cancel Buttons -->
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                                <Button Grid.Column="0"
+                                        Text="Hủy"
+                                        BackgroundColor="#F7F7F7"
+                                        TextColor="{StaticResource TextPrimary}"
+                                        CornerRadius="12"
+                                        HeightRequest="44"
+                                        Clicked="OnCancelReviewClicked"/>
+                                <Button Grid.Column="1"
+                                        Text="Gửi đánh giá"
+                                        BackgroundColor="{StaticResource Primary}"
+                                        TextColor="White"
+                                        CornerRadius="12"
+                                        HeightRequest="44"
+                                        Clicked="OnSubmitReviewClicked"/>
+                            </Grid>
                         </VerticalStackLayout>
                     </VerticalStackLayout>
                 </Frame>

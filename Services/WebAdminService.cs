@@ -227,10 +227,3 @@ public class WebAdminService : IWebAdminService
         System.Diagnostics.Debug.WriteLine("[WebAdminService] Full sync completed");
     }
 }
-
-public class ApiResponse<T>
-{
-    public bool Success { get; set; }
-    public T Data { get; set; }
-    public string Error { get; set; }
-}

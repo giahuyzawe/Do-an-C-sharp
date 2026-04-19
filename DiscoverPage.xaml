@@ -62,6 +62,34 @@
                         <Label x:Name="filterFoodLabel" Text="Món Việt" FontSize="13" TextColor="{StaticResource TextPrimary}"/>
                     </HorizontalStackLayout>
                 </Frame>
+                
+                <Frame x:Name="filterRatingFrame"
+                       Padding="12,6"
+                       CornerRadius="16"
+                       BackgroundColor="{StaticResource Surface}"
+                       BorderColor="{StaticResource Border}">
+                    <Frame.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnFilterRatingTapped"/>
+                    </Frame.GestureRecognizers>
+                    <HorizontalStackLayout Spacing="4">
+                        <Label Text="&#11088;" FontSize="14"/>
+                        <Label x:Name="filterRatingLabel" Text="Đánh giá cao" FontSize="13" TextColor="{StaticResource TextPrimary}"/>
+                    </HorizontalStackLayout>
+                </Frame>
+                
+                <Frame x:Name="filterOpenFrame"
+                       Padding="12,6"
+                       CornerRadius="16"
+                       BackgroundColor="{StaticResource Surface}"
+                       BorderColor="{StaticResource Border}">
+                    <Frame.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnFilterOpenTapped"/>
+                    </Frame.GestureRecognizers>
+                    <HorizontalStackLayout Spacing="4">
+                        <Label Text="&#128308;" FontSize="14"/>
+                        <Label x:Name="filterOpenLabel" Text="Đang mở" FontSize="13" TextColor="{StaticResource TextPrimary}"/>
+                    </HorizontalStackLayout>
+                </Frame>
             </HorizontalStackLayout>
         </ScrollView>
 

@@ -1,0 +1,530 @@
+[
+    {
+        "id": "anl_20240418001",
+        "type": "app_visit",
+        "date": "2025-04-18",
+        "timestamp": "2025-04-18 08:30:00",
+        "deviceId": "dev_abc123",
+        "metadata": []
+    },
+    {
+        "id": "anl_20240418002",
+        "type": "app_visit",
+        "date": "2025-04-18",
+        "timestamp": "2025-04-18 09:15:00",
+        "deviceId": "dev_def456",
+        "metadata": []
+    },
+    {
+        "id": "anl_20240418003",
+        "type": "poi_view",
+        "date": "2025-04-18",
+        "timestamp": "2025-04-18 10:20:00",
+        "poiId": 1,
+        "deviceId": "dev_abc123",
+        "metadata": []
+    },
+    {
+        "id": "anl_20240418004",
+        "type": "check_in",
+        "date": "2025-04-18",
+        "timestamp": "2025-04-18 14:30:00",
+        "poiId": 1,
+        "qrToken": "ft-20260418-f72759804038",
+        "deviceId": "dev_abc123",
+        "metadata": []
+    },
+    {
+        "id": "anl_20240418005",
+        "type": "check_in",
+        "date": "2025-04-18",
+        "timestamp": "2025-04-18 16:45:00",
+        "poiId": 4,
+        "qrToken": "ft-20260418-xxx",
+        "deviceId": "dev_def456",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e3bc72dc371",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 00:16:34",
+        "deviceId": "9a1bdee5-78c0-4667-aad8-d663005cde2e",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e3bd30e4bfe",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 00:19:44",
+        "deviceId": "f5908bef-1f2f-4cfa-badb-cd194ef724c0",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e3c1da3036f",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 00:39:37",
+        "deviceId": "05a40f8a-40d3-478f-820a-67a0a4307745",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e3c37ff0951",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 00:46:39",
+        "deviceId": "6001bb31-15ba-421c-842c-d9e460b891d3",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e3c5552def1",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 00:54:28",
+        "deviceId": "8c84b9d4-f36f-4d84-b1a7-01d6eb3170ce",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e3c8ac2c66e",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 01:08:43",
+        "deviceId": "a7656783-bf73-4fab-b77a-c6ff4601bcce",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e3cb051b3ea",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 01:18:44",
+        "deviceId": "1209d8b8-c6e4-49c2-912b-e026e388ec4c",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e3cc0592e64",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 01:23:01",
+        "deviceId": "39500ab7-c1e6-484c-a95e-0e7d2bc69ba6",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e3ced09237f",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 01:34:56",
+        "deviceId": "01589098-279f-4b0a-9dab-2286bfbc5dce",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e3ced358426",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 01:34:58",
+        "deviceId": "01589098-279f-4b0a-9dab-2286bfbc5dce",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e3d15a84b0e",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 01:45:46",
+        "deviceId": "b45b570f-7684-4612-813d-58aee881d45e",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e3d24437616",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 01:49:39",
+        "deviceId": "140f3407-a1d4-43b3-b7f8-6150a6affb95",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e3d37d78eaf",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 01:54:53",
+        "deviceId": "4fe255a4-839f-43b2-bc19-2d2f6e7d7f71",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e3d53c17cda",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 02:02:19",
+        "deviceId": "92df2b31-5bef-416f-a680-8be9dac32a73",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e3d54706178",
+        "type": "poi_view",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 02:02:30",
+        "deviceId": "92df2b31-5bef-416f-a680-8be9dac32a73",
+        "metadata": [],
+        "poiId": 1
+    },
+    {
+        "id": "anl_69e3d8b41310a",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 02:17:07",
+        "deviceId": "347bdb43-0500-42bd-a765-2db373212800",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e3dac7e1fa1",
+        "type": "poi_view",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 02:25:59",
+        "deviceId": "347bdb43-0500-42bd-a765-2db373212800",
+        "metadata": [],
+        "poiId": 1
+    },
+    {
+        "id": "anl_202604190347a494",
+        "type": "login",
+        "timestamp": "2026-04-19 06:29:10",
+        "date": "2026-04-19",
+        "data": {
+            "userId": "usr_owner_001",
+            "role": "restaurant_owner"
+        }
+    },
+    {
+        "id": "anl_202604192b844ba7",
+        "type": "login",
+        "timestamp": "2026-04-19 06:43:09",
+        "date": "2026-04-19",
+        "data": {
+            "userId": "usr_admin_001",
+            "role": "admin"
+        }
+    },
+    {
+        "id": "anl_69e45da77c45f",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 11:44:21",
+        "deviceId": "5235ef02-4aaa-4f92-90aa-5ec6bc61aff9",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e45f7228896",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 11:52:00",
+        "deviceId": "0d9b8a91-a9ec-4eae-81ed-e073f7ee4a6a",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e46354ea38e",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 12:08:34",
+        "deviceId": "7ac8eb33-c2ab-440f-9a74-2ce0f481e682",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e46593344ed",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 12:18:08",
+        "deviceId": "274777f3-b06b-4f2e-8841-fce81c611131",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e465bad805f",
+        "type": "poi_view",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 12:18:48",
+        "deviceId": "274777f3-b06b-4f2e-8841-fce81c611131",
+        "metadata": [],
+        "poiId": 1
+    },
+    {
+        "id": "anl_69e465c25310d",
+        "type": "poi_view",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 12:18:56",
+        "deviceId": "274777f3-b06b-4f2e-8841-fce81c611131",
+        "metadata": [],
+        "poiId": 2
+    },
+    {
+        "id": "anl_69e465d329a0b",
+        "type": "poi_view",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 12:19:13",
+        "deviceId": "274777f3-b06b-4f2e-8841-fce81c611131",
+        "metadata": [],
+        "poiId": 13
+    },
+    {
+        "id": "anl_69e469400b7f2",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 12:33:49",
+        "deviceId": "6169d698-43f9-4a53-939f-b4a7ce3cfcea",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e46c1eafdc7",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 12:46:04",
+        "deviceId": "f272a07d-e28c-44de-ac39-3d98fe49242b",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e46c91732a0",
+        "type": "poi_view",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 12:47:59",
+        "deviceId": "f272a07d-e28c-44de-ac39-3d98fe49242b",
+        "metadata": [],
+        "poiId": 1
+    },
+    {
+        "id": "anl_69e46cf10f609",
+        "type": "poi_view",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 12:49:35",
+        "deviceId": "f272a07d-e28c-44de-ac39-3d98fe49242b",
+        "metadata": [],
+        "poiId": 4
+    },
+    {
+        "id": "anl_69e46cf17f647",
+        "type": "poi_view",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 12:49:35",
+        "deviceId": "f272a07d-e28c-44de-ac39-3d98fe49242b",
+        "metadata": [],
+        "poiId": 4
+    },
+    {
+        "id": "anl_69e46d10ddf6a",
+        "type": "poi_view",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 12:50:06",
+        "deviceId": "f272a07d-e28c-44de-ac39-3d98fe49242b",
+        "metadata": [],
+        "poiId": 4
+    },
+    {
+        "id": "anl_202604199e394177",
+        "type": "login",
+        "timestamp": "2026-04-19 07:53:40",
+        "date": "2026-04-19",
+        "data": {
+            "userId": "usr_admin_001",
+            "role": "admin"
+        }
+    },
+    {
+        "id": "anl_20260419bcdb2bdd",
+        "type": "login",
+        "timestamp": "2026-04-19 07:54:48",
+        "date": "2026-04-19",
+        "data": {
+            "userId": "usr_owner_001",
+            "role": "restaurant_owner"
+        }
+    },
+    {
+        "id": "anl_2026041978795dbe",
+        "type": "qr_scan_attempt",
+        "timestamp": "2026-04-19 07:56:28",
+        "date": "2026-04-19",
+        "data": {
+            "token": "ft-20260419-d0a4599aa034",
+            "poiId": 1,
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/146.0.0.0 Safari\/537.36 Edg\/146.0.0.0",
+            "source": "web_redirect"
+        }
+    },
+    {
+        "id": "anl_20260419fea53125",
+        "type": "qr_scan_attempt",
+        "timestamp": "2026-04-19 07:59:07",
+        "date": "2026-04-19",
+        "data": {
+            "token": "ft-20260419-d0a4599aa034",
+            "poiId": 1,
+            "userAgent": "Mozilla\/5.0 (Linux; Android 13; sdk_gphone64_x86_64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/109.0.0.0 Mobile Safari\/537.36",
+            "source": "web_redirect"
+        }
+    },
+    {
+        "id": "anl_69e471b104abc",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 13:09:50",
+        "deviceId": "b636ffcc-f53b-41ef-81d1-5f8e6850fa8a",
+        "metadata": []
+    },
+    {
+        "id": "anl_202604190157d8f4",
+        "type": "qr_scan_attempt",
+        "timestamp": "2026-04-19 08:17:16",
+        "date": "2026-04-19",
+        "data": {
+            "token": "ft-20260419-33a055428da4",
+            "poiId": 1,
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/146.0.0.0 Safari\/537.36 Edg\/146.0.0.0",
+            "source": "web_redirect"
+        }
+    },
+    {
+        "id": "anl_69e475a0f0f93",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 13:26:38",
+        "deviceId": "4499373f-c2c3-4880-a51f-d52ba14b6581",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e475a5b60f4",
+        "type": "check_in",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 13:26:43",
+        "deviceId": "4499373f-c2c3-4880-a51f-d52ba14b6581",
+        "metadata": [],
+        "poiId": 1,
+        "qrToken": "ft-20260419-d0a4599aa034"
+    },
+    {
+        "id": "anl_69e475a6210de",
+        "type": "poi_view",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 13:26:44",
+        "deviceId": "4499373f-c2c3-4880-a51f-d52ba14b6581",
+        "metadata": [],
+        "poiId": 1
+    },
+    {
+        "id": "anl_69e47745b1f77",
+        "type": "poi_view",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 13:33:39",
+        "deviceId": "4499373f-c2c3-4880-a51f-d52ba14b6581",
+        "metadata": [],
+        "poiId": 1
+    },
+    {
+        "id": "anl_202604192b54f8ea",
+        "type": "login",
+        "timestamp": "2026-04-19 08:38:27",
+        "date": "2026-04-19",
+        "data": {
+            "userId": "usr_admin_001",
+            "role": "admin"
+        }
+    },
+    {
+        "id": "anl_69e479376b446",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 13:41:57",
+        "deviceId": "2ed89925-50f3-40f6-9e5a-f5137f58e792",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e4794729d2f",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 13:42:12",
+        "deviceId": "2ed89925-50f3-40f6-9e5a-f5137f58e792",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e4798044b36",
+        "type": "poi_view",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 13:43:10",
+        "deviceId": "2ed89925-50f3-40f6-9e5a-f5137f58e792",
+        "metadata": [],
+        "poiId": 4
+    },
+    {
+        "id": "anl_69e47b8701b92",
+        "type": "poi_view",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 13:51:48",
+        "deviceId": "2ed89925-50f3-40f6-9e5a-f5137f58e792",
+        "metadata": [],
+        "poiId": 1
+    },
+    {
+        "id": "anl_20260419a0810443",
+        "type": "login",
+        "timestamp": "2026-04-19 08:52:51",
+        "date": "2026-04-19",
+        "data": {
+            "userId": "usr_owner_001",
+            "role": "restaurant_owner"
+        }
+    },
+    {
+        "id": "anl_69e47c53e191f",
+        "type": "poi_view",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 13:55:13",
+        "deviceId": "2ed89925-50f3-40f6-9e5a-f5137f58e792",
+        "metadata": [],
+        "poiId": 1
+    },
+    {
+        "id": "anl_69e47dc8f12f4",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 14:01:26",
+        "deviceId": "b445d3d0-00c4-46df-81d0-515259d8cfcc",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e47de0519ef",
+        "type": "poi_view",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 14:01:50",
+        "deviceId": "b445d3d0-00c4-46df-81d0-515259d8cfcc",
+        "metadata": [],
+        "poiId": 1
+    },
+    {
+        "id": "anl_69e47df91be02",
+        "type": "poi_view",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 14:02:15",
+        "deviceId": "b445d3d0-00c4-46df-81d0-515259d8cfcc",
+        "metadata": [],
+        "poiId": 1
+    },
+    {
+        "id": "anl_69e48230b0620",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 14:20:14",
+        "deviceId": "33a2eb18-4946-4eed-9e25-387ca68e77f8",
+        "metadata": []
+    },
+    {
+        "id": "anl_69e4829acdc03",
+        "type": "poi_view",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 14:22:00",
+        "deviceId": "33a2eb18-4946-4eed-9e25-387ca68e77f8",
+        "metadata": [],
+        "poiId": 1
+    },
+    {
+        "id": "anl_69e4845392d3d",
+        "type": "app_visit",
+        "date": "2026-04-19",
+        "timestamp": "2026-04-19 14:29:21",
+        "deviceId": "1a06d677-9876-44c3-8381-99ed15876989",
+        "metadata": []
+    }
+]

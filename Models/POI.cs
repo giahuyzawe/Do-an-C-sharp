@@ -16,6 +16,16 @@ namespace FoodStreetGuide.Models
 
         public string DescriptionEn { get; set; }
 
+        // Contact and Location Info (synced from Web Admin)
+        public string Address { get; set; } = "";
+        public string Phone { get; set; } = "";
+        public string OpeningHours { get; set; } = "";
+        public string ImageUrl { get; set; } = "";
+
+        // Statistics (synced from Web Admin)
+        public int CheckInCount { get; set; }
+        public double Rating { get; set; }
+
         // Category and Tags (synced from Web)
         public string Category { get; set; } = "landmark";
 
@@ -41,10 +51,6 @@ namespace FoodStreetGuide.Models
 
         public string MapUrl { get; set; }
 
-        public string Address { get; set; }
-
-        public string OpeningHours { get; set; }
-
         public string DistanceText { get; set; }
 
         // Approval status (pending, approved, rejected)
@@ -59,6 +65,7 @@ namespace FoodStreetGuide.Models
         // Sync tracking
         public DateTime? LastSyncFromWeb { get; set; }
         public DateTime? LastSyncToWeb { get; set; }
+        public DateTime LastUpdated { get; set; } = DateTime.Now;
 
         // Computed property to generate Google Maps URL if not provided
         public string GetGoogleMapsUrl()

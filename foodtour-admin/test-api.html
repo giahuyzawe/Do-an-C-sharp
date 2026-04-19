@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Web Admin - Food Tour</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .test-card { margin-bottom: 20px; }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body class="p-4">
+    <div class="container">
+        <h2>🧪 Kiểm tra Web Admin</h2>
+        <p class="text-muted">Test các chức năng hiện tại (không cần app)</p>
+        
+        <!-- Test 1: Data Files -->
+        <div class="card test-card">
+            <div class="card-header">📁 Kiểm tra file dữ liệu</div>
+            <div class="card-body">
+                <button class="btn btn-primary" onclick="testDataFiles()">Test Files</button>
+                <div id="filesResult" class="mt-3"></div>
+            </div>
+        </div>
+        
+        <!-- Test 2: POIs -->
+        <div class="card test-card">
+            <div class="card-header">🏪 Danh sách nhà hàng</div>
+            <div class="card-body">
+                <button class="btn btn-success" onclick="loadPOIs()">Load POIs</button>
+                <div id="poisResult" class="mt-3"></div>
+            </div>
+        </div>
+        
+        <!-- Test 3: Analytics -->
+        <div class="card test-card">
+            <div class="card-header">📊 Thống kê hiện tại</div>
+            <div class="card-body">
+                <button class="btn btn-info" onclick="loadAnalytics()">Load Analytics</button>
+                <div id="analyticsResult" class="mt-3"></div>
+            </div>
+        </div>
+        
+        <!-- Test 4: Reviews -->
+        <div class="card test-card">
+            <div class="card-header">⭐ Đánh giá</div>
+            <div class="card-body">
+                <button class="btn btn-warning" onclick="loadReviews()">Load Reviews</button>
+                <div id="reviewsResult" class="mt-3"></div>
+            </div>
+        </div>
+        
+        <!-- Test 5: QR Codes -->
+        <div class="card test-card">
+            <div class="card-header">📱 QR Codes</div>
+            <div class="card-body">
+                <button class="btn btn-secondary" onclick="loadQRCodes()">Load QR Codes</button>
+                <div id="qrResult" class="mt-3"></div>
+            </div>
+        </div>
+        
+        <!-- Test 6: Simulate App Actions -->
+        <div class="card test-card border-primary">
+            <div class="card-header bg-primary text-white">📲 Giả lập hành động App</div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <button class="btn btn-outline-primary w-100" onclick="simulateAppOpen()">🚀 Mở App</button>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-outline-success w-100" onclick="simulateViewPOI()">👁️ Xem POI #1</button>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-outline-warning w-100" onclick="simulateQRCheckin()">📱 Check-in QR</button>
+                    </div>
+                </div>
+                <div id="simulateResult" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = window.location.origin + '/foodtour-admin';
+        
+        async function testDataFiles() {
+            const files = ['pois.json', 'users.json', 'analytics.json', 'reviews.json', 'qr_codes.json'];
+            let html = '<ul>';
+            for (let file of files) {
+                try {
+                    const res = await fetch(`${BASE_URL}/data/${file}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        html += `<li class="success">✅ ${file}: ${data.length} records</li>`;
+                    } else {
+                        html += `<li class="error">❌ ${file}: Not found</li>`;
+                    }
+                } catch (e) {
+                    html += `<li class="error">❌ ${file}: ${e.message}</li>`;
+                }
+            }
+            html += '</ul>';
+            document.getElementById('filesResult').innerHTML = html;
+        }
+        
+        async function loadPOIs() {
+            try {
+                const res = await fetch(`${BASE_URL}/data/pois.json`);
+                const data = await res.json();
+                let html = `<p class="success">✅ Tìm thấy ${data.length} nhà hàng</p>`;
+                html += '<table class="table table-sm"><thead><tr><th>ID</th><th>Tên</th><th>Status</th><th>Views</th></tr></thead><tbody>';
+                data.slice(0, 5).forEach(p => {
+                    html += `<tr><td>${p.id}</td><td>${p.nameVi}</td><td><span class="badge bg-${p.status==='approved'?'success':(p.status==='rejected'?'danger':'warning')}">${p.status}</span></td><td>${p.visitCount}</td></tr>`;
+                });
+                html += '</tbody></table>';
+                document.getElementById('poisResult').innerHTML = html;
+            } catch (e) {
+                document.getElementById('poisResult').innerHTML = `<p class="error">❌ Lỗi: ${e.message}</p>`;
+            }
+        }
+        
+        async function loadAnalytics() {
+            try {
+                const res = await fetch(`${BASE_URL}/data/analytics.json`);
+                const data = await res.json();
+                const today = new Date().toISOString().split('T')[0];
+                const todayData = data.filter(a => a.date === today);
+                let html = `<p class="success">✅ Tổng ${data.length} bản ghi analytics</p>`;
+                html += `<p>Hôm nay (${today}): ${todayData.length} hoạt động</p>`;
+                html += '<ul>';
+                ['app_visit', 'poi_view', 'check_in'].forEach(type => {
+                    const count = todayData.filter(a => a.type === type).length;
+                    html += `<li>${type}: ${count}</li>`;
+                });
+                html += '</ul>';
+                document.getElementById('analyticsResult').innerHTML = html;
+            } catch (e) {
+                document.getElementById('analyticsResult').innerHTML = `<p class="error">❌ Lỗi: ${e.message}</p>`;
+            }
+        }
+        
+        async function loadReviews() {
+            try {
+                const res = await fetch(`${BASE_URL}/data/reviews.json`);
+                const data = await res.json();
+                let html = `<p class="success">✅ Tìm thấy ${data.length} đánh giá</p>`;
+                html += '<ul>';
+                data.forEach(r => {
+                    html += `<li>${r.userName}: ${r.rating}⭐ - ${r.comment.substring(0, 30)}... <span class="badge bg-${r.status==='approved'?'success':'warning'}">${r.status}</span></li>`;
+                });
+                html += '</ul>';
+                document.getElementById('reviewsResult').innerHTML = html;
+            } catch (e) {
+                document.getElementById('reviewsResult').innerHTML = `<p class="error">❌ Lỗi: ${e.message}</p>`;
+            }
+        }
+        
+        async function loadQRCodes() {
+            try {
+                const res = await fetch(`${BASE_URL}/data/qr_codes.json`);
+                const data = await res.json();
+                let html = `<p class="success">✅ Tìm thấy ${data.length} QR codes</p>`;
+                if (data.length > 0) {
+                    html += '<ul>';
+                    data.slice(0, 3).forEach(qr => {
+                        html += `<li>${qr.token} - ${qr.type} - Đã quét: ${qr.scanCount}/${qr.maxScans || '∞'}</li>`;
+                    });
+                    html += '</ul>';
+                }
+                document.getElementById('qrResult').innerHTML = html;
+            } catch (e) {
+                document.getElementById('qrResult').innerHTML = `<p class="error">❌ Lỗi: ${e.message}</p>`;
+            }
+        }
+        
+        function simulateAppOpen() {
+            document.getElementById('simulateResult').innerHTML = `
+                <div class="alert alert-info">
+                    <strong>🚀 Giả lập:</strong> User mở app<br>
+                    → Gọi API: POST /api/post-analytics.php<br>
+                    → Body: {type: "app_visit", deviceId: "dev_abc123", timestamp: "${new Date().toISOString()}"}
+                </div>
+            `;
+        }
+        
+        function simulateViewPOI() {
+            document.getElementById('simulateResult').innerHTML = `
+                <div class="alert alert-success">
+                    <strong>👁️ Giả lập:</strong> User xem nhà hàng #1 (Phở Gà Vĩnh Phúc)<br>
+                    → Gọi API: POST /api/post-analytics.php<br>
+                    → Body: {type: "poi_view", poiId: 1, deviceId: "dev_abc123", timestamp: "${new Date().toISOString()}"}
+                </div>
+            `;
+        }
+        
+        function simulateQRCheckin() {
+            document.getElementById('simulateResult').innerHTML = `
+                <div class="alert alert-warning">
+                    <strong>📱 Giả lập:</strong> User quét QR check-in<br>
+                    → Gọi API: POST /api/post-checkin.php<br>
+                    → Body: {token: "ft-20260418-xxx", poiId: 1, deviceId: "dev_abc123", timestamp: "${new Date().toISOString()}"}
+                </div>
+            `;
+        }
+        
+        // Auto test on load
+        window.onload = function() {
+            testDataFiles();
+        };
+    </script>
+</body>
+</html>

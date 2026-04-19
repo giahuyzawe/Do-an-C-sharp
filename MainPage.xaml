@@ -73,26 +73,7 @@
             </Grid>
         </Frame>
 
-        <!-- 3. TRACKING STATUS BADGE -->
-        <Frame x:Name="trackingIndicator"
-               AbsoluteLayout.LayoutBounds="0.5,72,-1,-1"
-               AbsoluteLayout.LayoutFlags="XProportional"
-               Padding="12,6"
-               BackgroundColor="White"
-               CornerRadius="16"
-               HasShadow="True"
-               IsVisible="False"
-               BorderColor="#E3E3E3">
-            <HorizontalStackLayout Spacing="6">
-                <Ellipse WidthRequest="8" HeightRequest="8" Fill="#4CAF50"/>
-                <Label x:Name="trackingStatusLabel"
-                       Text="Đang theo dõi"
-                       TextColor="#2D2D2D"
-                       FontSize="12"
-                       FontAttributes="Bold"
-                       VerticalOptions="Center"/>
-            </HorizontalStackLayout>
-        </Frame>
+        <!-- Tracking UI removed - using passive tracking only -->
 
         <!-- 3.5 RIGHT SIDE BUTTONS (Top area) -->
         <VerticalStackLayout AbsoluteLayout.LayoutBounds="1,80,-1,-1"
@@ -152,87 +133,15 @@
             </Frame>
         </VerticalStackLayout>
 
-        <!-- 4. CONTROL BAR (BOTTOM) - White background wrapper -->
-        <Frame x:Name="controlBarFrame"
-               AbsoluteLayout.LayoutBounds="0.5,1,AutoSize,AutoSize"
-               AbsoluteLayout.LayoutFlags="XProportional,YProportional"
-               Margin="0,0,0,20"
-               Padding="12,8"
-               BackgroundColor="White"
-               CornerRadius="20"
-               HasShadow="True"
-               BorderColor="#E3E3E3"
-               ZIndex="5">
-            <HorizontalStackLayout x:Name="controlBar"
-                                 Spacing="12"
-                                 VerticalOptions="Center"
-                                 HorizontalOptions="Center">
+        <!-- 5. BOTTOM CONTROL BAR - Tracking buttons removed -->
+        <!-- Control bar hidden - passive tracking enabled by default -->
 
-            <!-- 5.1 TRACKING BUTTON -->
-            <Frame x:Name="trackButtonFrame"
-                   Padding="0"
-                   BackgroundColor="#FF6B35"
-                   CornerRadius="14"
-                   WidthRequest="120"
-                   HeightRequest="44"
-                   HasShadow="True"
-                   BorderColor="Transparent">
-                <Button x:Name="trackButton"
-                        Text="Tracking"
-                        FontSize="14"
-                        FontAttributes="Bold"
-                        BackgroundColor="Transparent"
-                        TextColor="White"
-                        Padding="0"
-                        Clicked="OnTrackButtonClicked"/>
-            </Frame>
-
-            <!-- 5.2 NEAREST POI BUTTON -->
-            <Frame x:Name="nearestButtonFrame"
-                   Padding="0"
-                   BackgroundColor="White"
-                   CornerRadius="14"
-                   WidthRequest="110"
-                   HeightRequest="44"
-                   HasShadow="True"
-                   BorderColor="#E3E3E3">
-                <Button x:Name="nearestButton"
-                        Text="Nearest"
-                        FontSize="14"
-                        BackgroundColor="Transparent"
-                        TextColor="#2D2D2D"
-                        Padding="0"
-                        Clicked="OnFindNearestClicked"/>
-            </Frame>
-
-            <!-- 5.3 QR SCAN BUTTON -->
-            <Frame x:Name="qrButtonFrame"
-                   Padding="0"
-                   BackgroundColor="White"
-                   CornerRadius="14"
-                   WidthRequest="44"
-                   HeightRequest="44"
-                   HasShadow="True"
-                   BorderColor="#E3E3E3">
-                <Button x:Name="qrButton"
-                        Text="QR"
-                        FontSize="12"
-                        FontAttributes="Bold"
-                        BackgroundColor="Transparent"
-                        TextColor="#2D2D2D"
-                        Padding="0"
-                        Clicked="OnQRScanClicked"/>
-            </Frame>
-
-            </HorizontalStackLayout>
-        </Frame>
-
-        <!-- 6. POI CARD (BOTTOM SHEET) - Compact layout -->
+        <!-- 6. EXPANDABLE POI BOTTOM SHEET -->
         <Border x:Name="poiCard"
-                AbsoluteLayout.LayoutBounds="0,1,1,AutoSize"
+                AbsoluteLayout.LayoutBounds="0,1,1,280"
                 AbsoluteLayout.LayoutFlags="XProportional,YProportional,WidthProportional"
                 Margin="0,0,0,0"
-                Padding="0,0,0,8"
+                Padding="0"
                 BackgroundColor="White"
                 Stroke="White"
                 StrokeThickness="0"
@@ -242,163 +151,299 @@
                 <RoundRectangle CornerRadius="24,24,0,0"/>
             </Border.StrokeShape>
 
-            <VerticalStackLayout Spacing="0">
-
-                <!-- Drag Handle -->
-                <BoxView WidthRequest="40"
-                         HeightRequest="4"
-                         BackgroundColor="#CCCCCC"
-                         CornerRadius="2"
-                         HorizontalOptions="Center"
-                         Margin="0,6,0,4"/>
-
-                <!-- Restaurant Image Carousel -->
-                <Grid Margin="16,0,16,4" HeightRequest="100">
-                    <CarouselView x:Name="poiImageCarousel"
-                                  Loop="False"
-                                  IsSwipeEnabled="True"
-                                  HeightRequest="100"
-                                  IndicatorView="poiImageIndicator">
-                        <CarouselView.ItemTemplate>
-                            <DataTemplate>
-                                <Frame Padding="0"
-                                       CornerRadius="12"
-                                       IsClippedToBounds="True"
-                                       BorderColor="Transparent"
-                                       BackgroundColor="#F0F0F0">
-                                    <Image Source="{Binding .}"
-                                           Aspect="AspectFill"
-                                           HeightRequest="100"/>
-                                </Frame>
-                            </DataTemplate>
-                        </CarouselView.ItemTemplate>
-                    </CarouselView>
-                    <!-- Image Indicator -->
-                    <IndicatorView x:Name="poiImageIndicator"
-                                   IndicatorColor="#CCCCCC"
-                                   SelectedIndicatorColor="#FF6B35"
-                                   IndicatorSize="6"
-                                   HorizontalOptions="Center"
-                                   VerticalOptions="End"
-                                   Margin="0,0,0,8"/>
+            <Grid RowDefinitions="Auto,*">
+                <!-- DRAG HANDLE - Tap to expand/collapse -->
+                <Grid Grid.Row="0" HeightRequest="32" BackgroundColor="White">
+                    <Grid.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnDragHandleTapped"/>
+                        <PanGestureRecognizer PanUpdated="OnBottomSheetPanUpdated"/>
+                    </Grid.GestureRecognizers>
+                    <BoxView WidthRequest="40"
+                             HeightRequest="4"
+                             BackgroundColor="#CCCCCC"
+                             CornerRadius="2"
+                             HorizontalOptions="Center"
+                             VerticalOptions="Center"/>
+                    <!-- Expand/Collapse indicator -->
+                    <Label x:Name="expandIndicator"
+                           Text="&#9650;"
+                           FontSize="12"
+                           TextColor="#999999"
+                           HorizontalOptions="Center"
+                           VerticalOptions="End"
+                           Margin="0,0,0,2"/>
                 </Grid>
 
-                <!-- Restaurant Name -->
-                <Label x:Name="poiNameLabel"
-                       Text="Tên nhà hàng"
-                       FontSize="16"
-                       FontAttributes="Bold"
-                       TextColor="#2D2D2D"
-                       LineBreakMode="TailTruncation"
-                       Margin="16,2,16,2"/>
+                <!-- SCROLLABLE CONTENT -->
+                <ScrollView Grid.Row="1" x:Name="poiScrollView">
+                    <VerticalStackLayout Spacing="0" Padding="0,0,0,24">
+                        
+                        <!-- COMPACT VIEW (Always visible) -->
+                        <VerticalStackLayout x:Name="compactView" Spacing="0">
+                            <!-- Restaurant Image Carousel -->
+                            <Grid Margin="16,0,16,8" HeightRequest="120">
+                                <CarouselView x:Name="poiImageCarousel"
+                                              Loop="False"
+                                              IsSwipeEnabled="True"
+                                              HeightRequest="120"
+                                              IndicatorView="poiImageIndicator">
+                                    <CarouselView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Frame Padding="0"
+                                                   CornerRadius="12"
+                                                   IsClippedToBounds="True"
+                                                   BorderColor="Transparent"
+                                                   BackgroundColor="#F0F0F0">
+                                                <Image Source="{Binding .}"
+                                                       Aspect="AspectFill"
+                                                       HeightRequest="120"/>
+                                            </Frame>
+                                        </DataTemplate>
+                                    </CarouselView.ItemTemplate>
+                                </CarouselView>
+                                <IndicatorView x:Name="poiImageIndicator"
+                                               IndicatorColor="#CCCCCC"
+                                               SelectedIndicatorColor="#FF6B35"
+                                               IndicatorSize="6"
+                                               HorizontalOptions="Center"
+                                               VerticalOptions="End"
+                                               Margin="0,0,0,8"/>
+                            </Grid>
 
-                <!-- Rating • Distance • Status -->
-                <HorizontalStackLayout Margin="16,0,16,2" Spacing="8">
-                    <Label x:Name="poiRatingLabel"
-                           Text="&#11088; 4.5"
-                           FontSize="13"
-                           TextColor="#666666"/>
-                    <Label Text="&#8226;" FontSize="13" TextColor="#999999" VerticalOptions="Center"/>
-                    <Label x:Name="poiDistanceLabel"
-                           Text="120m away"
-                           FontSize="13"
-                           TextColor="#666666"/>
-                    <Label Text="&#8226;" FontSize="13" TextColor="#999999" VerticalOptions="Center"/>
-                    <Label x:Name="poiStatusLabel"
-                           Text="Đang mở cửa"
-                           FontSize="13"
-                           TextColor="#4CAF50"/>
-                </HorizontalStackLayout>
+                            <!-- Restaurant Name -->
+                            <Label x:Name="poiNameLabel"
+                                   Text="Tên nhà hàng"
+                                   FontSize="18"
+                                   FontAttributes="Bold"
+                                   TextColor="#2D2D2D"
+                                   LineBreakMode="TailTruncation"
+                                   Margin="16,4,16,4"/>
 
-                <!-- Address -->
-                <Label x:Name="poiAddressLabel"
-                       Text="Địa chỉ nhà hàng"
-                       FontSize="12"
-                       TextColor="#999999"
-                       LineBreakMode="TailTruncation"
-                       Margin="16,0,16,8"/>
+                            <!-- Rating • Distance • Status -->
+                            <HorizontalStackLayout Margin="16,0,16,4" Spacing="8">
+                                <Label x:Name="poiRatingLabel"
+                                       Text="&#11088; 4.5"
+                                       FontSize="14"
+                                       TextColor="#666666"/>
+                                <Label Text="&#8226;" FontSize="14" TextColor="#999999" VerticalOptions="Center"/>
+                                <Label x:Name="poiDistanceLabel"
+                                       Text="120m away"
+                                       FontSize="14"
+                                       TextColor="#666666"/>
+                                <Label Text="&#8226;" FontSize="14" TextColor="#999999" VerticalOptions="Center"/>
+                                <Label x:Name="poiStatusLabel"
+                                       Text="Đang mở cửa"
+                                       FontSize="14"
+                                       TextColor="#4CAF50"/>
+                            </HorizontalStackLayout>
 
-                <!-- Action Buttons -->
-                <FlexLayout Direction="Row"
-                            JustifyContent="SpaceEvenly"
-                            AlignItems="Center"
-                            Padding="8,0,8,8"
-                            HeightRequest="44">
+                            <!-- Address -->
+                            <Label x:Name="poiAddressLabel"
+                                   Text="Địa chỉ nhà hàng"
+                                   FontSize="13"
+                                   TextColor="#999999"
+                                   LineBreakMode="TailTruncation"
+                                   Margin="16,0,16,8"/>
 
-                    <!-- Nghe -->
-                    <Frame x:Name="listenButtonFrame"
-                           Padding="8,0"
-                           CornerRadius="20"
-                           HeightRequest="40"
-                           WidthRequest="90"
-                           BackgroundColor="#FF6B35"
-                           BorderColor="Transparent">
-                        <Frame.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNarrateClicked"/>
-                        </Frame.GestureRecognizers>
-                        <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="4">
-                            <Label Text="&#9658;" FontSize="12" VerticalOptions="Center" TextColor="White"/>
-                            <Label x:Name="listenLabel" Text="Listen" FontSize="12" TextColor="White" FontAttributes="Bold" VerticalOptions="Center"/>
-                        </HorizontalStackLayout>
-                    </Frame>
+                            <!-- Action Buttons -->
+                            <FlexLayout Direction="Row"
+                                        JustifyContent="SpaceEvenly"
+                                        AlignItems="Center"
+                                        Padding="8,0,8,12"
+                                        HeightRequest="52">
 
-                    <!-- Chi duong -->
-                    <Frame x:Name="directionsButtonFrame"
-                           Padding="8,0"
-                           CornerRadius="20"
-                           HeightRequest="40"
-                           WidthRequest="90"
-                           BackgroundColor="#F7F7F7"
-                           BorderColor="#E3E3E3">
-                        <Frame.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnDirectionsClicked"/>
-                        </Frame.GestureRecognizers>
-                        <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="4">
-                            <Label Text="&#10148;" FontSize="14" VerticalOptions="Center" TextColor="#2D2D2D"/>
-                            <Label x:Name="directionsLabel" Text="Directions" FontSize="12" TextColor="#2D2D2D" VerticalOptions="Center"/>
-                        </HorizontalStackLayout>
-                    </Frame>
+                                <!-- Nghe -->
+                                <Frame x:Name="listenButtonFrame"
+                                       Padding="8,0"
+                                       CornerRadius="20"
+                                       HeightRequest="44"
+                                       WidthRequest="95"
+                                       BackgroundColor="#FF6B35"
+                                       BorderColor="Transparent">
+                                    <Frame.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnNarrateClicked"/>
+                                    </Frame.GestureRecognizers>
+                                    <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="4">
+                                        <Label Text="&#9658;" FontSize="14" VerticalOptions="Center" TextColor="White"/>
+                                        <Label x:Name="listenLabel" Text="Nghe" FontSize="13" TextColor="White" FontAttributes="Bold" VerticalOptions="Center"/>
+                                    </HorizontalStackLayout>
+                                </Frame>
 
-                    <!-- Chi tiet -->
-                    <Frame x:Name="detailsButtonFrame"
-                           Padding="8,0"
-                           CornerRadius="20"
-                           HeightRequest="40"
-                           WidthRequest="90"
-                           BackgroundColor="#F7F7F7"
-                           BorderColor="Transparent">
-                        <Frame.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnDetailsClicked"/>
-                        </Frame.GestureRecognizers>
-                        <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="4">
-                            <Label Text="&#8505;" FontSize="14" VerticalOptions="Center" TextColor="#2D2D2D"/>
-                            <Label x:Name="detailsLabel" Text="Details" FontSize="12" TextColor="#2D2D2D" VerticalOptions="Center"/>
-                        </HorizontalStackLayout>
-                    </Frame>
+                                <!-- Chi duong -->
+                                <Frame x:Name="directionsButtonFrame"
+                                       Padding="8,0"
+                                       CornerRadius="20"
+                                       HeightRequest="44"
+                                       WidthRequest="95"
+                                       BackgroundColor="#F7F7F7"
+                                       BorderColor="#E3E3E3">
+                                    <Frame.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnDirectionsClicked"/>
+                                    </Frame.GestureRecognizers>
+                                    <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="4">
+                                        <Label Text="&#10148;" FontSize="16" VerticalOptions="Center" TextColor="#2D2D2D"/>
+                                        <Label x:Name="directionsLabel" Text="Chỉ đường" FontSize="13" TextColor="#2D2D2D" VerticalOptions="Center"/>
+                                    </HorizontalStackLayout>
+                                </Frame>
 
-                    <!-- Luu - Toggle save state -->
-                    <Frame x:Name="saveButtonFrame"
-                           Padding="0"
-                           CornerRadius="20"
-                           HeightRequest="40"
-                           WidthRequest="40"
-                           BackgroundColor="#F7F7F7"
-                           BorderColor="Transparent">
-                        <Frame.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnSaveClicked"/>
-                        </Frame.GestureRecognizers>
-                        <Label x:Name="saveHeartLabel"
-                               Text="&#10084;" 
-                               FontSize="16" 
-                               HorizontalOptions="Center" 
-                               VerticalOptions="Center" 
-                               TextColor="#666666"/>
-                    </Frame>
-                </FlexLayout>
+                                <!-- Call -->
+                                <Frame x:Name="callButtonFrame"
+                                       Padding="8,0"
+                                       CornerRadius="20"
+                                       HeightRequest="44"
+                                       WidthRequest="75"
+                                       BackgroundColor="#F7F7F7"
+                                       BorderColor="#E3E3E3">
+                                    <Frame.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnCallClicked"/>
+                                    </Frame.GestureRecognizers>
+                                    <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="4">
+                                        <Label Text="&#128222;" FontSize="14" VerticalOptions="Center" TextColor="#2D2D2D"/>
+                                        <Label Text="Gọi" FontSize="13" TextColor="#2D2D2D" VerticalOptions="Center"/>
+                                    </HorizontalStackLayout>
+                                </Frame>
 
-            </VerticalStackLayout>
+                                <!-- Luu -->
+                                <Frame x:Name="saveButtonFrame"
+                                       Padding="0"
+                                       CornerRadius="22"
+                                       HeightRequest="44"
+                                       WidthRequest="44"
+                                       BackgroundColor="#F7F7F7"
+                                       BorderColor="Transparent">
+                                    <Frame.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnSaveClicked"/>
+                                    </Frame.GestureRecognizers>
+                                    <Label x:Name="saveHeartLabel"
+                                           Text="&#10084;" 
+                                           FontSize="18" 
+                                           HorizontalOptions="Center" 
+                                           VerticalOptions="Center" 
+                                           TextColor="#666666"/>
+                                </Frame>
+                            </FlexLayout>
+                        </VerticalStackLayout>
 
-            <!-- Swipe to close gesture -->
+                        <!-- DIVIDER -->
+                        <BoxView HeightRequest="1" BackgroundColor="#E3E3E3" Margin="16,0,16,12"/>
+
+                        <!-- EXPANDED DETAILS -->
+                        <VerticalStackLayout x:Name="expandedDetails" Spacing="12" Padding="16,0">
+                            
+                            <!-- Opening Hours -->
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="&#128339; Giờ mở cửa" FontSize="14" FontAttributes="Bold" TextColor="#2D2D2D"/>
+                                <Label x:Name="poiHoursLabel" Text="8:00 - 22:00" FontSize="13" TextColor="#666666"/>
+                            </VerticalStackLayout>
+
+                            <!-- Phone -->
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="&#128222; Điện thoại" FontSize="14" FontAttributes="Bold" TextColor="#2D2D2D"/>
+                                <Label x:Name="poiPhoneLabel" Text="Chưa có thông tin" FontSize="13" TextColor="#666666"/>
+                            </VerticalStackLayout>
+
+                            <!-- Description -->
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="&#8505; Mô tả" FontSize="14" FontAttributes="Bold" TextColor="#2D2D2D"/>
+                                <Label x:Name="poiDescriptionLabel" 
+                                       Text="Mô tả nhà hàng..." 
+                                       FontSize="13" 
+                                       TextColor="#666666"
+                                       LineBreakMode="WordWrap"/>
+                            </VerticalStackLayout>
+
+                            <!-- Reviews Section -->
+                            <VerticalStackLayout Spacing="8" Margin="0,8,0,0">
+                                <Label Text="&#11088; Đánh giá" FontSize="14" FontAttributes="Bold" TextColor="#2D2D2D"/>
+                                
+                                <!-- Average Rating -->
+                                <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                                    <Label x:Name="averageRatingLabel" Text="4.5" FontSize="24" FontAttributes="Bold" TextColor="#FF6B35"/>
+                                    <Label x:Name="totalReviewsLabel" Text="(12 đánh giá)" FontSize="13" TextColor="#666666" VerticalOptions="Center"/>
+                                </HorizontalStackLayout>
+                                
+                                <!-- Reviews List -->
+                                <VerticalStackLayout x:Name="reviewsContainer" Spacing="8">
+                                    <!-- Reviews added dynamically -->
+                                </VerticalStackLayout>
+                                
+                                <!-- Add Review Button -->
+                                <Button x:Name="addReviewButton"
+                                        Text="+ Thêm đánh giá"
+                                        BackgroundColor="Transparent"
+                                        TextColor="#FF6B35"
+                                        BorderColor="#FF6B35"
+                                        BorderWidth="1"
+                                        CornerRadius="12"
+                                        HeightRequest="40"
+                                        Clicked="OnAddReviewClicked"/>
+                                
+                                <!-- Review Form (hidden) -->
+                                <VerticalStackLayout x:Name="reviewFormContainer" Spacing="12" IsVisible="False">
+                                    <Label Text="Chạm sao để đánh giá:" FontSize="13" TextColor="#666666" HorizontalOptions="Center"/>
+                                    <HorizontalStackLayout Spacing="4" HorizontalOptions="Center">
+                                        <Label x:Name="star1" Text="☆" FontSize="32" TextColor="#FFC107">
+                                            <Label.GestureRecognizers>
+                                                <TapGestureRecognizer Tapped="OnStar1Tapped"/>
+                                            </Label.GestureRecognizers>
+                                        </Label>
+                                        <Label x:Name="star2" Text="☆" FontSize="32" TextColor="#FFC107">
+                                            <Label.GestureRecognizers>
+                                                <TapGestureRecognizer Tapped="OnStar2Tapped"/>
+                                            </Label.GestureRecognizers>
+                                        </Label>
+                                        <Label x:Name="star3" Text="☆" FontSize="32" TextColor="#FFC107">
+                                            <Label.GestureRecognizers>
+                                                <TapGestureRecognizer Tapped="OnStar3Tapped"/>
+                                            </Label.GestureRecognizers>
+                                        </Label>
+                                        <Label x:Name="star4" Text="☆" FontSize="32" TextColor="#FFC107">
+                                            <Label.GestureRecognizers>
+                                                <TapGestureRecognizer Tapped="OnStar4Tapped"/>
+                                            </Label.GestureRecognizers>
+                                        </Label>
+                                        <Label x:Name="star5" Text="☆" FontSize="32" TextColor="#FFC107">
+                                            <Label.GestureRecognizers>
+                                                <TapGestureRecognizer Tapped="OnStar5Tapped"/>
+                                            </Label.GestureRecognizers>
+                                        </Label>
+                                    </HorizontalStackLayout>
+                                    <Editor x:Name="reviewCommentEditor"
+                                            Placeholder="Viết đánh giá của bạn..."
+                                            HeightRequest="80"
+                                            BackgroundColor="#F7F7F7"
+                                            TextColor="#2D2D2D"/>
+                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                                        <Button Grid.Column="0" Text="Hủy" BackgroundColor="#F7F7F7" TextColor="#2D2D2D" CornerRadius="12" HeightRequest="40" Clicked="OnCancelReviewClicked"/>
+                                        <Button Grid.Column="1" Text="Gửi" BackgroundColor="#FF6B35" TextColor="White" CornerRadius="12" HeightRequest="40" Clicked="OnSubmitReviewClicked"/>
+                                    </Grid>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </ScrollView>
+
+                <!-- CLOSE BUTTON (X) -->
+                <Frame x:Name="closeButtonFrame"
+                       AbsoluteLayout.LayoutBounds="1,0,AutoSize,AutoSize"
+                       AbsoluteLayout.LayoutFlags="XProportional"
+                       Margin="0,40,16,0"
+                       Padding="0"
+                       CornerRadius="20"
+                       HeightRequest="40"
+                       WidthRequest="40"
+                       BackgroundColor="White"
+                       BorderColor="#E3E3E3"
+                       IsVisible="False"
+                       ZIndex="250">
+                    <Frame.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnClosePOICardClicked"/>
+                    </Frame.GestureRecognizers>
+                    <Label Text="&#10005;" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center" TextColor="#2D2D2D"/>
+                </Frame>
+            </Grid>
+
+            <!-- Swipe down to close -->
             <Border.GestureRecognizers>
                 <SwipeGestureRecognizer Direction="Down" Swiped="OnClosePOICardSwiped"/>
             </Border.GestureRecognizers>

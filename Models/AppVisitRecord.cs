@@ -25,5 +25,20 @@ namespace FoodStreetGuide.Models
         /// Date only for grouping
         /// </summary>
         public DateTime VisitDate { get; set; }
+        
+        /// <summary>
+        /// App version when visit occurred
+        /// </summary>
+        public string? AppVersion { get; set; }
+        
+        /// <summary>
+        /// Platform (Android/iOS)
+        /// </summary>
+        public string? Platform { get; set; }
+        
+        /// <summary>
+        /// Session ID for grouping visits
+        /// </summary>
+        public string? SessionId { get; set; }
     }
 }

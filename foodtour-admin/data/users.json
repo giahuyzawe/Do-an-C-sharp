@@ -1,0 +1,24 @@
+[
+    {
+        "id": "usr_admin_001",
+        "email": "admin@foodtour.vn",
+        "username": "admin",
+        "password": "$2y$10$YgW4wSa7OtRemRCC4FFxR.t.N2oMuugeElz9LVJne6ULyNrz4FqdK",
+        "name": "Administrator",
+        "role": "admin",
+        "createdAt": "2026-04-19 08:52:51"
+    },
+    {
+        "id": "usr_owner_001",
+        "email": "owner@phohoa.vn",
+        "username": "pho_hoa",
+        "password": "$2y$10$CTzMD9.Rk91XXNWm0ILhve4vc8QjG7BGrZYmMeZcicjkPNuD66mxm",
+        "name": "Chủ quán Phở Hòa",
+        "role": "restaurant_owner",
+        "restaurantIds": [
+            1,
+            4
+        ],
+        "createdAt": "2026-04-19 08:52:51"
+    }
+]

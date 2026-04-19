@@ -1,5 +1,6 @@
 using FoodStreetGuide.Models;
 using FoodStreetGuide.Services;
+using System.Linq;
 
 namespace FoodStreetGuide;
 
@@ -35,6 +36,35 @@ public partial class POIDetailPage : ContentPage
         
         try
         {
+            // Track POI view for analytics (local + API)
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    if (_poi != null)
+                    {
+                        var deviceId = Preferences.Get("DeviceId", string.Empty);
+                        if (!string.IsNullOrEmpty(deviceId))
+                        {
+                            // Local record
+                            await App.Database.RecordPOIViewAsync(_poi.Id, deviceId, "detail_page");
+                            
+                            // Send to Web Admin API
+                            var apiService = new ApiService();
+                            var result = await apiService.PostAnalyticsAsync("poi_view", deviceId, _poi.Id);
+                            if (result.Success)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"[POIDetailPage] POI view sent to Web Admin: {_poi.Id}");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[POIDetailPage] Failed to record view: {ex.Message}");
+                }
+            });
+            
             // Delay to ensure UI is ready
             MainThread.BeginInvokeOnMainThread(async () =>
             {
@@ -93,8 +123,11 @@ public partial class POIDetailPage : ContentPage
                     var images = GetPOIImages(_poi);
                     if (poiImageCarousel != null) poiImageCarousel.ItemsSource = images;
                     
-                    // Load featured dishes
+                    // Featured dishes
                     LoadFeaturedDishes(language);
+                    
+                    // Reviews
+                    _ = LoadReviewsAsync();
                     
                     // Button labels
                     if (backButton != null) backButton.Text = "&#8592;";
@@ -359,5 +392,271 @@ public partial class POIDetailPage : ContentPage
     {
         public string Name { get; set; } = "";
         public string Price { get; set; } = "";
+    }
+
+    // ==================== REVIEWS ====================
+    private int _selectedRating = 0;
+    private bool _isReviewFormVisible = false;
+
+    private async Task LoadReviewsAsync()
+    {
+        try
+        {
+            if (_poi == null) return;
+            
+            // First load local reviews
+            var localReviews = await App.Database.GetReviewsAsync(_poi.Id);
+            
+            // Then try to fetch from Web Admin
+            try
+            {
+                var apiService = new ApiService();
+                var webResult = await apiService.GetReviewsAsync(_poi.Id);
+                
+                if (webResult.Success && webResult.Data?.Data != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[POIDetailPage] Fetched {webResult.Data.Count} reviews from Web Admin");
+                    
+                    var webReviewIds = webResult.Data.Data.Select(r => r.Id).ToList();
+                    
+                    // DELETE reviews that were removed from Web Admin
+                    foreach (var localReview in localReviews.Where(r => !string.IsNullOrEmpty(r.WebReviewId)))
+                    {
+                        if (!webReviewIds.Contains(localReview.WebReviewId))
+                        {
+                            await App.Database.DeleteReviewByWebIdAsync(localReview.WebReviewId);
+                            System.Diagnostics.Debug.WriteLine($"[POIDetailPage] Deleted review removed from Web: {localReview.WebReviewId}");
+                        }
+                    }
+                    
+                    // ADD new reviews from Web
+                    foreach (var webReview in webResult.Data.Data)
+                    {
+                        var exists = localReviews.Any(r => r.WebReviewId == webReview.Id);
+                        if (!exists)
+                        {
+                            var newReview = new Review
+                            {
+                                POIId = webReview.PoiId,
+                                UserId = webReview.UserId ?? "",
+                                UserName = webReview.UserName ?? "Khách tham quan",
+                                Rating = webReview.Rating,
+                                Comment = webReview.Comment ?? "",
+                                CreatedAt = DateTime.TryParse(webReview.CreatedAt, out var date) ? date : DateTime.Now,
+                                WebReviewId = webReview.Id,
+                                LastSyncFromWeb = DateTime.Now
+                            };
+                            
+                            await App.Database.AddReviewAsync(newReview);
+                            System.Diagnostics.Debug.WriteLine($"[POIDetailPage] Added web review: {webReview.Id}");
+                        }
+                    }
+                    
+                    // Reload after sync
+                    localReviews = await App.Database.GetReviewsAsync(_poi.Id);
+                }
+            }
+            catch (Exception apiEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"[POIDetailPage] Failed to fetch web reviews: {apiEx.Message}");
+            }
+            
+            var reviews = localReviews;
+            var averageRating = reviews.Count > 0 ? reviews.Average(r => r.Rating) : 0;
+            
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                // Update average rating display
+                if (averageRatingLabel != null) 
+                    averageRatingLabel.Text = averageRating.ToString("F1");
+                if (totalReviewsLabel != null) 
+                    totalReviewsLabel.Text = $"({reviews.Count} đánh giá)";
+                
+                // Clear and populate reviews container
+                if (reviewsContainer != null)
+                {
+                    reviewsContainer.Children.Clear();
+                    
+                    foreach (var review in reviews.Take(5)) // Show max 5 reviews
+                    {
+                        var reviewFrame = new Frame
+                        {
+                            BackgroundColor = Color.FromArgb("#F7F7F7"),
+                            CornerRadius = 8,
+                            Padding = new Thickness(12),
+                            BorderColor = Colors.Transparent
+                        };
+                        
+                        var reviewLayout = new VerticalStackLayout { Spacing = 4 };
+                        
+                        // Stars
+                        var stars = string.Join("", Enumerable.Repeat("⭐", review.Rating));
+                        reviewLayout.Children.Add(new Label 
+                        { 
+                            Text = stars, 
+                            FontSize = 12 
+                        });
+                        
+                        // Comment
+                        if (!string.IsNullOrEmpty(review.Comment))
+                        {
+                            reviewLayout.Children.Add(new Label 
+                            { 
+                                Text = review.Comment, 
+                                FontSize = 14,
+                                TextColor = Color.FromArgb("#2D2D2D"),
+                                LineBreakMode = LineBreakMode.WordWrap
+                            });
+                        }
+                        
+                        // Date
+                        reviewLayout.Children.Add(new Label 
+                        { 
+                            Text = review.CreatedAt.ToString("dd/MM/yyyy"), 
+                            FontSize = 12,
+                            TextColor = Color.FromArgb("#8E8E93")
+                        });
+                        
+                        reviewFrame.Content = reviewLayout;
+                        reviewsContainer.Children.Add(reviewFrame);
+                    }
+                    
+                    // Add "See all" button if more than 5
+                    if (reviews.Count > 5)
+                    {
+                        var seeAllLabel = new Label 
+                        { 
+                            Text = $"Xem thêm {reviews.Count - 5} đánh giá...",
+                            FontSize = 14,
+                            TextColor = Color.FromArgb("#FF6B35"),
+                            FontAttributes = FontAttributes.Bold,
+                            HorizontalOptions = LayoutOptions.Center
+                        };
+                        seeAllLabel.GestureRecognizers.Add(new TapGestureRecognizer
+                        {
+                            Command = new Command(async () => await DisplayAlert("Thông báo", "Tính năng xem tất cả đánh giá sẽ có trong phiên bản sau!", "OK"))
+                        });
+                        reviewsContainer.Children.Add(seeAllLabel);
+                    }
+                }
+            });
+            
+            System.Diagnostics.Debug.WriteLine($"[POIDetailPage] Loaded {reviews.Count} reviews");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[POIDetailPage] Error loading reviews: {ex.Message}");
+        }
+    }
+
+    private void OnAddReviewClicked(object? sender, EventArgs e)
+    {
+        _isReviewFormVisible = !_isReviewFormVisible;
+        
+        if (addReviewButton != null) 
+            addReviewButton.IsVisible = !_isReviewFormVisible;
+        if (reviewFormContainer != null) 
+            reviewFormContainer.IsVisible = _isReviewFormVisible;
+        
+        // Reset form
+        _selectedRating = 0;
+        UpdateStarDisplay();
+        if (reviewCommentEditor != null) 
+            reviewCommentEditor.Text = "";
+    }
+
+    private void OnCancelReviewClicked(object? sender, EventArgs e)
+    {
+        _isReviewFormVisible = false;
+        
+        if (addReviewButton != null) 
+            addReviewButton.IsVisible = true;
+        if (reviewFormContainer != null) 
+            reviewFormContainer.IsVisible = false;
+    }
+
+    private async void OnSubmitReviewClicked(object? sender, EventArgs e)
+    {
+        try
+        {
+            if (_poi == null) return;
+            if (_selectedRating == 0)
+            {
+                await DisplayAlert("Thông báo", "Vui lòng chọn số sao đánh giá!", "OK");
+                return;
+            }
+            
+            var deviceId = Preferences.Get("DeviceId", Guid.NewGuid().ToString());
+            Preferences.Set("DeviceId", deviceId);
+            
+            var review = new Review
+            {
+                POIId = _poi.Id,
+                Rating = _selectedRating,
+                Comment = reviewCommentEditor?.Text ?? "",
+                UserId = deviceId,
+                UserName = "Khách tham quan", // Anonymous user
+                CreatedAt = DateTime.Now
+            };
+            
+            // Capture comment BEFORE clearing form
+            var commentText = reviewCommentEditor?.Text ?? "";
+            
+            await App.Database.AddReviewAsync(review);
+            
+            System.Diagnostics.Debug.WriteLine($"[POIDetailPage] Review added locally: {_selectedRating} stars");
+            
+            // Hide form and reload reviews immediately (local)
+            OnCancelReviewClicked(sender, e);
+            await LoadReviewsAsync();
+            
+            // Sync to Web Admin
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    System.Diagnostics.Debug.WriteLine($"[POIDetailPage] Syncing review to Web Admin: POI={_poi.Id}, Rating={_selectedRating}");
+                    var apiService = new ApiService();
+                    var result = await apiService.PostReviewAsync(_poi.Id, deviceId, "Khách tham quan", _selectedRating, commentText);
+                    if (result.Success)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[POIDetailPage] ✓ Review synced to Web Admin");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[POIDetailPage] ✗ Failed to sync review: {result.Error}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[POIDetailPage] ✗ Review sync error: {ex.Message}");
+                }
+            });
+            
+            await DisplayAlert("Cảm ơn!", "Đánh giá của bạn đã được ghi nhận!", "OK");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[POIDetailPage] Error submitting review: {ex.Message}");
+            await DisplayAlert("Lỗi", "Không thể gửi đánh giá. Vui lòng thử lại!", "OK");
+        }
+    }
+
+    private void OnStar1Tapped(object? sender, TappedEventArgs e) { _selectedRating = 1; UpdateStarDisplay(); }
+    private void OnStar2Tapped(object? sender, TappedEventArgs e) { _selectedRating = 2; UpdateStarDisplay(); }
+    private void OnStar3Tapped(object? sender, TappedEventArgs e) { _selectedRating = 3; UpdateStarDisplay(); }
+    private void OnStar4Tapped(object? sender, TappedEventArgs e) { _selectedRating = 4; UpdateStarDisplay(); }
+    private void OnStar5Tapped(object? sender, TappedEventArgs e) { _selectedRating = 5; UpdateStarDisplay(); }
+
+    private void UpdateStarDisplay()
+    {
+        var stars = new[] { star1, star2, star3, star4, star5 };
+        for (int i = 0; i < 5; i++)
+        {
+            if (stars[i] != null)
+            {
+                stars[i].Text = i < _selectedRating ? "★" : "☆"; // Filled vs empty star
+            }
+        }
     }
 }

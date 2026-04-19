@@ -1,0 +1,20 @@
+[
+    {
+        "id": "rev_001",
+        "poiId": 1,
+        "userName": "Nguyen Van A",
+        "rating": 5,
+        "comment": "Pho rat ngon, nuoc dung dam da!",
+        "status": "approved",
+        "createdAt": "2025-04-18 10:30:00"
+    },
+    {
+        "id": "rev_003",
+        "poiId": 4,
+        "userName": "Le Van C",
+        "rating": 5,
+        "comment": "Cha ca thom ngon, se quay lai!",
+        "status": "approved",
+        "createdAt": "2025-04-17 09:15:00"
+    }
+]

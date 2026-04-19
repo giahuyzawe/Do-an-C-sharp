@@ -1,6 +1,6 @@
 using FoodStreetGuide.Services;
 using FoodStreetGuide.Models;
-using CommunityToolkit.Mvvm.Messaging;
+// using CommunityToolkit.Mvvm.Messaging; // Temporarily removed for build
 
 namespace FoodStreetGuide;
 
@@ -113,40 +113,46 @@ public partial class QRScanPage : ContentPage
             return;
         }
 
-        // Validate dynamic QR code
-        var (isValid, poi, errorMessage) = await _databaseService.ValidateDynamicQRAsync(token);
-
-        if (!isValid || poi == null)
+        // Validate dynamic QR code via Web Admin API
+        ApiService apiService = new ApiService();
+        var qrResult = await apiService.CheckQRAsync(token, _deviceId);
+        
+        if (!qrResult.Success)
         {
-            await DisplayAlert("QR không hợp lệ", errorMessage ?? "Mã QR không thể sử dụng", "OK");
+            await DisplayAlert("QR không hợp lệ", qrResult.Error ?? "Mã QR không thể sử dụng", "OK");
             _isProcessing = false;
             return;
         }
 
-        // Check for duplicate scan with cooldown
-        var (isDuplicate, timeRemaining) = await _databaseService.RecordQRScanAsync(
-            poi.Id, _deviceId, code);
-
-        if (isDuplicate)
+        // Get POI from local database
+        var poi = await _databaseService.GetPOIAsync(qrResult.Data.PoiId);
+        if (poi == null)
         {
-            var minutesRemaining = (int)Math.Ceiling(timeRemaining?.TotalMinutes ?? 60);
-            var navigateAnyway = await DisplayAlert("Quét trùng", 
-                $"Bạn đã quét quán này cách đây chưa đầy 1 giờ.\n\n" +
-                $"Thời gian còn lại: {minutesRemaining} phút\n\n" +
-                $"Quét trùng sẽ KHÔNG tính thêm lượt xem.",
-                "Vẫn đi đến", "Hủy");
-
-            if (navigateAnyway)
-            {
-                await NavigateToPOI(poi, countedAsVisit: false, isDynamicQR: true);
-            }
+            await DisplayAlert("Lỗi", "Không tìm thấy thông tin nhà hàng", "OK");
             _isProcessing = false;
             return;
         }
 
         // New scan - show success
         await DisplayAlert("Check-in thành công!", 
-            $"Cảm ơn bạn đã đến thăm:\n{poi.NameVi}", "OK");
+            $"Cảm ơn bạn đã đến thăm:\n{poi.NameVi}\n\nBạn là khách thứ {qrResult.Data.CheckInNumber} check-in tại đây!", "OK");
+        
+        // Record check-in for analytics (local + API)
+        try
+        {
+            await _databaseService.RecordCheckInAsync(poi.Id, _deviceId, token);
+            
+            // Send to Web Admin API
+            var analyticsResult = await apiService.PostAnalyticsAsync("check_in", _deviceId, poi.Id, token);
+            if (analyticsResult.Success)
+            {
+                System.Diagnostics.Debug.WriteLine($"[QRScanPage] Check-in sent to Web Admin: {poi.Id}");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[QRScanPage] Failed to record check-in: {ex.Message}");
+        }
         
         await NavigateToPOI(poi, countedAsVisit: true, isDynamicQR: true);
     }
@@ -180,6 +186,16 @@ public partial class QRScanPage : ContentPage
         // New scan
         await DisplayAlert("Check-in thành công!", 
             "Cảm ơn bạn đã đến thăm quán này.", "OK");
+        
+        // Record check-in for analytics
+        try
+        {
+            await _databaseService.RecordCheckInAsync(poiId, _deviceId, code);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[QRScanPage] Failed to record check-in: {ex.Message}");
+        }
         
         await NavigateToPOI(poiId, countedAsVisit: true);
     }
@@ -252,11 +268,14 @@ public partial class QRScanPage : ContentPage
         await Navigation.PopAsync();
 
         // Send message to MainPage to focus on this POI
-        WeakReferenceMessenger.Default.Send(new QRCodeScannedMessage(poi, countedAsVisit, isDynamicQR));
+        // TODO: Re-enable when CommunityToolkit.Mvvm is installed
+        // WeakReferenceMessenger.Default.Send(new QRCodeScannedMessage(poi, countedAsVisit, isDynamicQR));
     }
 }
 
 // Message class for communication between pages
+// TODO: Re-enable when CommunityToolkit.Mvvm is installed
+/*
 public class QRCodeScannedMessage
 {
     public POI POI { get; }
@@ -270,3 +289,4 @@ public class QRCodeScannedMessage
         IsDynamicQR = isDynamicQR;
     }
 }
+*/

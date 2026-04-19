@@ -9,6 +9,7 @@ public partial class DiscoverPage : ContentPage
     private readonly ISettingsService? _settingsService;
     private readonly ILocationService? _locationService;
     private readonly ISavedPOIService? _savedPOIService;
+    private readonly DatabaseService? _databaseService;
     private List<POI> _allPOIs = new();
     private string _currentFilter = "popular"; // popular, distance, food
 
@@ -40,6 +41,10 @@ public partial class DiscoverPage : ContentPage
             _settingsService = ServiceProviderHelper.GetService<ISettingsService>();
             _locationService = ServiceProviderHelper.GetService<ILocationService>();
             _savedPOIService = ServiceProviderHelper.GetService<ISavedPOIService>();
+            _databaseService = ServiceProviderHelper.GetService<DatabaseService>();
+            
+            // POIs will be loaded in OnAppearing when tab becomes active
+            
             System.Diagnostics.Debug.WriteLine("[DiscoverPage] Constructor END");
         }
         catch (Exception ex)
@@ -59,10 +64,13 @@ public partial class DiscoverPage : ContentPage
             UpdateLanguage();
             UpdateFilterUI();
             
+            // 🔥 Refresh POIs from database each time tab becomes active
+            _ = LoadPOIsFromDatabaseAsync();
+            
             // 🔥 LUÔN tính khoảng cách thực từ GPS khi load trang
             MainThread.BeginInvokeOnMainThread(async () =>
             {
-                await Task.Delay(100);
+                await Task.Delay(500); // Wait for POIs to load first
                 await UpdateDistancesFromCurrentLocation();
                 UpdateCardStatuses();
             });
@@ -214,9 +222,15 @@ public partial class DiscoverPage : ContentPage
             // Update distances based on actual coordinates
             foreach (var r in _restaurants)
             {
-                var poi = CreatePOIFromRestaurant(r);
+                // Skip if no coordinates
+                if (r.Latitude == 0 && r.Longitude == 0)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[UpdateDistances] {r.NameVi}: No coordinates, skipping");
+                    continue;
+                }
+                
                 var distance = CalculateDistance(currentLocation.Latitude, currentLocation.Longitude, 
-                    poi.Latitude, poi.Longitude);
+                    r.Latitude, r.Longitude);
                 
                 var oldDistance = r.Distance;
                 
@@ -304,9 +318,71 @@ public partial class DiscoverPage : ContentPage
         UpdateCardOrder();
     }
 
+    private async void OnFilterRatingTapped(object? sender, TappedEventArgs e)
+    {
+        _currentFilter = "rating";
+        UpdateFilterUI();
+        
+        // 🔥 Đảm bảo khoảng cách đã được tính từ GPS
+        await UpdateDistancesFromCurrentLocation();
+        
+        // Sort by rating descending
+        _restaurants.Sort((a, b) => b.Rating.CompareTo(a.Rating));
+        System.Diagnostics.Debug.WriteLine("[OnFilterRatingTapped] Sorted by rating (highest first)");
+        UpdateCardOrder();
+    }
+
+    private async void OnFilterOpenTapped(object? sender, TappedEventArgs e)
+    {
+        _currentFilter = "open";
+        UpdateFilterUI();
+        
+        // 🔥 Đảm bảo khoảng cách đã được tính từ GPS
+        await UpdateDistancesFromCurrentLocation();
+        
+        // Sort: open restaurants first, then by distance
+        var currentTime = DateTime.Now.TimeOfDay;
+        _restaurants.Sort((a, b) =>
+        {
+            var aOpen = IsRestaurantOpen(a.OpeningHours, currentTime);
+            var bOpen = IsRestaurantOpen(b.OpeningHours, currentTime);
+            
+            if (aOpen && !bOpen) return -1;
+            if (!aOpen && bOpen) return 1;
+            
+            // Both open or both closed - sort by distance
+            return ParseDistance(a.Distance).CompareTo(ParseDistance(b.Distance));
+        });
+        
+        System.Diagnostics.Debug.WriteLine("[OnFilterOpenTapped] Sorted by open status");
+        UpdateCardOrder();
+    }
+
+    private bool IsRestaurantOpen(string? openingHours, TimeSpan currentTime)
+    {
+        if (string.IsNullOrEmpty(openingHours)) return true; // Assume open if no info
+        
+        try
+        {
+            var parts = openingHours.Split('-');
+            if (parts.Length == 2 &&
+                TimeSpan.TryParse(parts[0].Trim(), out var openTime) &&
+                TimeSpan.TryParse(parts[1].Trim(), out var closeTime))
+            {
+                if (closeTime < openTime) // Overnight hours (e.g., 18:00-02:00)
+                    return currentTime >= openTime || currentTime <= closeTime;
+                return currentTime >= openTime && currentTime <= closeTime;
+            }
+        }
+        catch { }
+        
+        return true; // Default to open
+    }
+
     private void UpdateFilterUI()
     {
         if (filterPopularFrame == null || filterDistanceFrame == null || filterFoodFrame == null) return;
+        if (filterRatingFrame == null || filterOpenFrame == null) return;
         
         MainThread.BeginInvokeOnMainThread(() =>
         {
@@ -325,6 +401,14 @@ public partial class DiscoverPage : ContentPage
                 filterFoodFrame.BorderColor = Color.FromArgb("#E3E3E3");
                 if (filterFoodLabel != null) filterFoodLabel.TextColor = Color.FromArgb("#2D2D2D");
                 
+                filterRatingFrame.BackgroundColor = Color.FromArgb("#FFFFFF");
+                filterRatingFrame.BorderColor = Color.FromArgb("#E3E3E3");
+                if (filterRatingLabel != null) filterRatingLabel.TextColor = Color.FromArgb("#2D2D2D");
+                
+                filterOpenFrame.BackgroundColor = Color.FromArgb("#FFFFFF");
+                filterOpenFrame.BorderColor = Color.FromArgb("#E3E3E3");
+                if (filterOpenLabel != null) filterOpenLabel.TextColor = Color.FromArgb("#2D2D2D");
+                
                 // Set active filter
                 switch (_currentFilter)
                 {
@@ -342,6 +426,16 @@ public partial class DiscoverPage : ContentPage
                         filterFoodFrame.BackgroundColor = Color.FromArgb("#FF6B35");
                         filterFoodFrame.BorderColor = Color.FromArgb("#FF6B35");
                         if (filterFoodLabel != null) filterFoodLabel.TextColor = Color.FromArgb("#FFFFFF");
+                        break;
+                    case "rating":
+                        filterRatingFrame.BackgroundColor = Color.FromArgb("#FF6B35");
+                        filterRatingFrame.BorderColor = Color.FromArgb("#FF6B35");
+                        if (filterRatingLabel != null) filterRatingLabel.TextColor = Color.FromArgb("#FFFFFF");
+                        break;
+                    case "open":
+                        filterOpenFrame.BackgroundColor = Color.FromArgb("#FF6B35");
+                        filterOpenFrame.BorderColor = Color.FromArgb("#FF6B35");
+                        if (filterOpenLabel != null) filterOpenLabel.TextColor = Color.FromArgb("#FFFFFF");
                         break;
                 }
             }
@@ -605,6 +699,69 @@ public partial class DiscoverPage : ContentPage
         }
     }
 
+    private async Task LoadPOIsFromDatabaseAsync()
+    {
+        try
+        {
+            if (_databaseService == null) return;
+            
+            System.Diagnostics.Debug.WriteLine("[DiscoverPage] Loading POIs from database...");
+            var pois = await _databaseService.GetPOIsAsync();
+            
+            if (pois.Count > 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"[DiscoverPage] Loaded {pois.Count} POIs from database");
+                _allPOIs = pois;
+                
+                // Convert POIs to RestaurantInfo and replace _restaurants
+                var newRestaurants = pois.Take(4).Select(p => new RestaurantInfo
+                {
+                    Id = p.Id,
+                    NameVi = p.NameVi,
+                    NameEn = p.NameEn,
+                    Distance = "--", // Will be calculated by GPS
+                    Rating = p.Rating,
+                    Reviews = p.VisitCount / 10, // Estimate
+                    OpeningHours = p.OpeningHours ?? "06:00-22:00",
+                    Status = p.Status == "active" ? "open" : "closed",
+                    Type = "vietnamese",
+                    Address = p.Address ?? "Vĩnh Phúc",
+                    Latitude = p.Latitude,
+                    Longitude = p.Longitude
+                }).ToList();
+                
+                if (newRestaurants.Count > 0)
+                {
+                    _restaurants.Clear();
+                    foreach (var r in newRestaurants)
+                    {
+                        _restaurants.Add(r);
+                    }
+                    
+                    System.Diagnostics.Debug.WriteLine($"[DiscoverPage] Replaced _restaurants with {newRestaurants.Count} real POIs");
+                    
+                    // Update UI on main thread
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        UpdateCardOrder();
+                        UpdateCardStatuses();
+                    });
+                    
+                    // Calculate real distances
+                    _ = UpdateDistancesFromCurrentLocation();
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("[DiscoverPage] No POIs in database, using sample data");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DiscoverPage] Error loading POIs: {ex.Message}");
+        }
+    }
+
     private class RestaurantInfo
     {
         public int Id { get; set; }
@@ -617,5 +774,7 @@ public partial class DiscoverPage : ContentPage
         public string Status { get; set; } = "";
         public string Type { get; set; } = "";
         public string Address { get; set; } = "";
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
     }
 }
