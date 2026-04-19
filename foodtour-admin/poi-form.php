@@ -22,7 +22,7 @@ if ($id) {
     }
     
     // Owner can only edit their restaurants
-    if ($isOwner && $poi && !in_array($poi['id'], $user['restaurantIds'] ?? [])) {
+    if ($isOwner && $poi && ($poi['ownerId'] ?? '') !== $user['id']) {
         header('Location: pois.php');
         exit;
     }
@@ -50,23 +50,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'openingHours' => $_POST['openingHours'] ?? '',
         'latitude' => (float)($_POST['latitude'] ?? 0),
         'longitude' => (float)($_POST['longitude'] ?? 0),
+        'radius' => (int)($_POST['radius'] ?? 100),  // Default 100m
+        'priority' => (int)($_POST['priority'] ?? 1), // Default priority 1
         'status' => $poi['status'] ?? 'pending', // Keep existing status, or default to pending for new
         'visitCount' => $poi['visitCount'] ?? 0,
         'updatedAt' => date('Y-m-d H:i:s')
     ];
     
-    // Owner assignment
+    // Owner assignment - use ownerId field
     if (!$id && $isOwner) {
         $data['ownerId'] = $user['id'];
-        // Add to user's restaurant list
-        $users = load_json($USERS_FILE);
-        foreach ($users as &$u) {
-            if ($u['id'] === $user['id']) {
-                $u['restaurantIds'][] = $data['id'];
-                break;
-            }
-        }
-        save_json($USERS_FILE, $users);
     } elseif ($poi && isset($poi['ownerId'])) {
         $data['ownerId'] = $poi['ownerId'];
     }
@@ -185,6 +178,28 @@ $pageTitle = $id ? 'Sửa nhà hàng' : 'Thêm nhà hàng';
                                     <input type="number" step="any" name="longitude" class="form-control" 
                                            value="<?= $poi['longitude'] ?? '' ?>">
                                 </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-<?= $isOwner ? '12' : '6' ?> mb-3">
+                                    <label class="form-label">Bán kính phát hiện (m) <span class="text-danger">*</span></label>
+                                    <input type="number" name="radius" class="form-control" 
+                                           value="<?= $poi['radius'] ?? 100 ?>" min="10" max="1000" required>
+                                    <small class="text-muted">User trong vòng này sẽ được thông báo (mét)</small>
+                                </div>
+                                <?php if (!$isOwner): // Only admin can edit priority ?>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Độ ưu tiên (1-3) <span class="text-danger">*</span></label>
+                                    <select name="priority" class="form-select" required>
+                                        <option value="3" <?= ($poi['priority'] ?? 1) == 3 ? 'selected' : '' ?>>3 - Cao nhất</option>
+                                        <option value="2" <?= ($poi['priority'] ?? 1) == 2 ? 'selected' : '' ?>>2 - Trung bình</option>
+                                        <option value="1" <?= ($poi['priority'] ?? 1) == 1 ? 'selected' : '' ?>>1 - Thấp</option>
+                                    </select>
+                                    <small class="text-muted">Ưu tiên cao sẽ hiện trước khi có nhiều POI gần nhau. <strong>Chỉ Admin chỉnh.</strong></small>
+                                </div>
+                                <?php else: ?>
+                                <input type="hidden" name="priority" value="<?= $poi['priority'] ?? 1 ?>">
+                                <?php endif; ?>
                             </div>
                             
                             <!-- Status: Always PENDING for new restaurants, owners cannot change -->

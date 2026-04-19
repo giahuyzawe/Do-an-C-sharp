@@ -213,7 +213,8 @@ namespace FoodStreetGuide.Services
         public string NameVi { get; set; }
         public string NameEn { get; set; }
         public string Address { get; set; }
-        public string Description { get; set; }
+        public string DescriptionVi { get; set; }
+        public string DescriptionEn { get; set; }
         public string Phone { get; set; }
         public string OpeningHours { get; set; }
         public double Rating { get; set; }
@@ -221,6 +222,8 @@ namespace FoodStreetGuide.Services
         public int CheckInCount { get; set; }
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
+        public double Radius { get; set; } = 100;  // Default 100m
+        public int Priority { get; set; } = 1;   // Default priority 1
         public string ImageUrl { get; set; }
         public string AudioUrl { get; set; }
         public string Status { get; set; }

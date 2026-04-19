@@ -10,15 +10,37 @@
 ## 🌐 PHẦN 1: WEB ADMIN TEST
 
 ### 1.1 Dashboard & POI Management
-| # | Test Case | Cách Test | Pass? |
-|---|-----------|-----------|-------|
-| 1 | Truy cập Web Admin | Mở `http://localhost/foodtour-admin/` | |
-| 2 | Đăng nhập | Dùng admin/admin | |
-| 3 | Xem danh sách 20 POIs | Kiểm tra có đủ 20 nhà hàng | |
-| 4 | Xem chi tiết POI | Click "Sửa" một nhà hàng | |
-| 5 | Thêm POI mới | Click "Thêm nhà hàng" → Điền form → Lưu | |
-| 6 | Cập nhật POI | Sửa tên/mô tả → Lưu | |
-| 7 | Xóa POI | Click "Xóa" → Xác nhận | |
+| # | Test Case | Chi tiết các bước | Dữ liệu test | Pass? |
+|---|-----------|------------------|--------------|-------|
+| 1 | Truy cập Web Admin | Mở `http://localhost/foodtour-admin/` | | |
+| 2 | Đăng nhập | User: `admin` / Pass: `admin` | | |
+| 3 | Xem danh sách 20 POIs | Kiểm tra có đủ 20 nhà hàng trong `pois.php` | | |
+| 4 | Xem chi tiết POI | Click "Sửa" → Kiểm tra form đầy đủ fields | | |
+| 5 | **Thêm POI mới** | | | |
+| | | ① Click "Thêm nhà hàng" | | |
+| | | ② Điền: Tên VN=`Bánh Mì Hội An Test` | | |
+| | | ③ Tên EN=`Banh Mi Hoi An Test` | | |
+| | | ④ Địa chỉ=`123 Trần Hưng Đạo, Hội An` | | |
+| | | ⑤ Mô tả VN=`Bánh mì đặc sản Hội An, pate thơm ngon` | | |
+| | | ⑥ Mô tả EN=`Hoi An specialty banh mi` | | |
+| | | ⑦ Điện thoại=`0909123456` | | |
+| | | ⑧ Giờ mở cửa=`06:00 - 22:00` | | |
+| | | ⑨ Tọa độ: Lat=`15.8798`, Long=`108.3265` | | |
+| | | ⑩ Radius=`100` (mét) | | |
+| | | ⑪ Priority=`2` (1-3) | | |
+| | | ⑫ Upload ảnh hoặc dùng URL ảnh | | |
+| | | ⑬ Click "Lưu" → Kiểm tra alert "Thêm thành công!" | | |
+| 6 | **Cập nhật POI** | | | |
+| | | ① Click "Sửa" tại POI #1 (Phở Gà) | | |
+| | | ② Đổi tên VN thành `Phở Gà Vĩnh Phúc (Updated)` | | |
+| | | ③ Đổi mô tả thêm `"**Đã cập nhật**"` | | |
+| | | ④ Đổi giờ mở cửa thành `05:30 - 21:30` | | |
+| | | ⑤ Click "Lưu" → Kiểm tra tên mới hiển thị | | |
+| | | ⑥ Mở app xem tên đã sync chưa | | |
+| 7 | **Xóa POI** | | | |
+| | | ① Click "Xóa" tại POI vừa tạo (Test) | | |
+| | | ② Xác nhận "Có" → Kiểm tra đã biến mất khỏi list | | |
+| | | ③ Mở app refresh → POI test không còn trên map | | |
 
 ### 1.2 API Endpoints
 | # | API | URL | Test |

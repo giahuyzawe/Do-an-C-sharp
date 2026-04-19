@@ -9,16 +9,23 @@ $isOwner = $role === 'restaurant_owner';
 // Load POIs
 $pois = load_json($POIS_FILE);
 
-// Filter for restaurant owner
+// Filter for restaurant owner - show POIs where ownerId matches current user
 if ($isOwner) {
-    $myIds = $user['restaurantIds'] ?? [];
-    $pois = array_filter($pois, fn($p) => in_array($p['id'], $myIds));
+    $pois = array_filter($pois, fn($p) => ($p['ownerId'] ?? '') === $user['id']);
 }
 
 // Handle delete
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
     $deleteId = (int)$_POST['delete_id'];
-    $canDelete = $isOwner ? in_array($deleteId, $user['restaurantIds'] ?? []) : true;
+    // Find POI to check ownership
+    $poiToDelete = null;
+    foreach ($pois as $p) {
+        if ($p['id'] === $deleteId) {
+            $poiToDelete = $p;
+            break;
+        }
+    }
+    $canDelete = $isOwner ? ($poiToDelete && ($poiToDelete['ownerId'] ?? '') === $user['id']) : true;
     
     if ($canDelete) {
         $pois = array_filter($pois, fn($p) => $p['id'] !== $deleteId);

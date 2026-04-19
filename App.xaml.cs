@@ -34,31 +34,10 @@ public partial class App : Application
                     Preferences.Set("DeviceId", _currentDeviceId);
                 }
                 
-                // Record app visit (local)
+                // Record app visit (local) - will be used for session tracking
                 await databaseService.RecordAppVisitAsync(_currentDeviceId, DateTime.Now, AppInfo.Version.ToString(), DeviceInfo.Platform.ToString());
-                System.Diagnostics.Debug.WriteLine($"[App] Visit recorded for device: {_currentDeviceId.Substring(0, 8)}...");
-                
-                // Send to Web Admin API
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        var apiService = new ApiService();
-                        var result = await apiService.PostAnalyticsAsync("app_visit", _currentDeviceId);
-                        if (result.Success)
-                        {
-                            System.Diagnostics.Debug.WriteLine("[App] Analytics sent to Web Admin");
-                        }
-                        else
-                        {
-                            System.Diagnostics.Debug.WriteLine($"[App] Failed to send analytics: {result.Error}");
-                        }
-                    }
-                    catch (Exception apiEx)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[App] API error: {apiEx.Message}");
-                    }
-                });
+                var deviceIdShort = _currentDeviceId?.Length >= 8 ? _currentDeviceId.Substring(0, 8) : _currentDeviceId ?? "unknown";
+                System.Diagnostics.Debug.WriteLine($"[App] Visit recorded for device: {deviceIdShort}...");
                 
                 // Initialize OfflineManager for sync and offline support
                 var offlineManager = new OfflineManager(databaseService);
@@ -138,15 +117,35 @@ public partial class App : Application
             if (!string.IsNullOrEmpty(_currentSessionId))
             {
                 await Database.RecordAppOpenAsync(_currentDeviceId, _currentSessionId);
-                System.Diagnostics.Debug.WriteLine($"[App] App open recorded in existing session: {_currentSessionId.Substring(0, 8)}...");
+                var sessionIdShort = _currentSessionId?.Length >= 8 ? _currentSessionId.Substring(0, 8) : _currentSessionId ?? "unknown";
+            System.Diagnostics.Debug.WriteLine($"[App] App open recorded in existing session: {sessionIdShort}...");
                 return;
             }
         }
 
-        // Start new session
+        // Start new session - only send analytics on NEW session (app kill & reopen)
         _currentSessionId = await Database.StartNewSessionAsync(_currentDeviceId);
         Preferences.Set("CurrentSessionId", _currentSessionId);
-        System.Diagnostics.Debug.WriteLine($"[App] New session started: {_currentSessionId.Substring(0, 8)}...");
+        var newSessionIdShort = _currentSessionId?.Length >= 8 ? _currentSessionId.Substring(0, 8) : _currentSessionId ?? "unknown";
+        System.Diagnostics.Debug.WriteLine($"[App] New session started: {newSessionIdShort}...");
+        
+        // Send app_visit analytics only on new session
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                var apiService = new ApiService();
+                var result = await apiService.PostAnalyticsAsync("app_visit", _currentDeviceId);
+                if (result.Success)
+                {
+                    System.Diagnostics.Debug.WriteLine("[App] Analytics sent to Web Admin (new session)");
+                }
+            }
+            catch (Exception apiEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"[App] API error: {apiEx.Message}");
+            }
+        });
     }
 
     protected override void OnSleep()

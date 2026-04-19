@@ -131,6 +131,20 @@
                         Padding="0"
                         Clicked="OnZoomOutClicked"/>
             </Frame>
+            <!-- Test GPS (for demo) -->
+            <Frame Padding="0"
+                   BackgroundColor="#FF6B35"
+                   CornerRadius="10"
+                   WidthRequest="40"
+                   HeightRequest="40"
+                   HasShadow="True">
+                <Button Text="&#9889;"
+                        FontSize="16"
+                        BackgroundColor="Transparent"
+                        TextColor="White"
+                        Padding="0"
+                        Clicked="OnTestGPSClicked"/>
+            </Frame>
         </VerticalStackLayout>
 
         <!-- 5. BOTTOM CONTROL BAR - Tracking buttons removed -->

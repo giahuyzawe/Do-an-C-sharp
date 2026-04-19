@@ -82,7 +82,17 @@ public partial class POIDetailPage : ContentPage
     {
         try
         {
-            if (_poi == null) return;
+            if (_poi == null) 
+            {
+                System.Diagnostics.Debug.WriteLine("[LoadPOIData] ERROR: _poi is null");
+                return;
+            }
+            
+            // Debug: Log POI data
+            System.Diagnostics.Debug.WriteLine($"[LoadPOIData] POI ID: {_poi.Id}, Name: {_poi.NameVi}");
+            System.Diagnostics.Debug.WriteLine($"[LoadPOIData] Address: '{_poi.Address}'");
+            System.Diagnostics.Debug.WriteLine($"[LoadPOIData] OpeningHours: '{_poi.OpeningHours}'");
+            System.Diagnostics.Debug.WriteLine($"[LoadPOIData] DescriptionVi: '{_poi.DescriptionVi}'");
             
             var language = _settingsService?.GetLanguage() ?? "vi";
             
@@ -93,14 +103,24 @@ public partial class POIDetailPage : ContentPage
                     // Basic info
                     if (titleLabel != null) titleLabel.Text = language == "en" ? "Restaurant Details" : "Chi tiết nhà hàng";
                     if (poiNameLabel != null) poiNameLabel.Text = language == "en" ? _poi.NameEn : _poi.NameVi;
-                    if (poiAddressLabel != null) poiAddressLabel.Text = $"📍 {_poi.Address}";
+                    
+                    // Address - fix null handling
+                    var addressText = string.IsNullOrWhiteSpace(_poi.Address) 
+                        ? (language == "en" ? "📍 Address not available" : "📍 Chưa có địa chỉ")
+                        : $"📍 {_poi.Address}";
+                    if (poiAddressLabel != null) 
+                    {
+                        poiAddressLabel.Text = addressText;
+                        poiAddressLabel.IsVisible = true;
+                    }
+                    
                     if (poiRatingLabel != null) poiRatingLabel.Text = "⭐ 4.5";
                     
                     // Status
                     UpdateStatus(language);
                     
-                    // Hours
-                    if (!string.IsNullOrEmpty(_poi.OpeningHours))
+                    // Hours - fix null handling
+                    if (!string.IsNullOrWhiteSpace(_poi.OpeningHours))
                     {
                         if (poiHoursLabel != null)
                         {
@@ -110,12 +130,19 @@ public partial class POIDetailPage : ContentPage
                     }
                     else
                     {
-                        if (poiHoursLabel != null) poiHoursLabel.IsVisible = false;
+                        if (poiHoursLabel != null) 
+                        {
+                            poiHoursLabel.Text = language == "en" ? "🕐 Hours not available" : "🕐 Chưa có giờ mở";
+                            poiHoursLabel.IsVisible = true;
+                        }
                     }
                     
-                    // Description
+                    // Description - fix null handling
                     var description = language == "en" ? _poi.DescriptionEn : _poi.DescriptionVi;
-                    if (poiDescriptionLabel != null) poiDescriptionLabel.Text = description ?? (language == "en" ? "No description available." : "Chưa có mô tả.");
+                    var descText = string.IsNullOrWhiteSpace(description) 
+                        ? (language == "en" ? "No description available." : "Chưa có mô tả.")
+                        : description;
+                    if (poiDescriptionLabel != null) poiDescriptionLabel.Text = descText;
                     if (descriptionTitleLabel != null) descriptionTitleLabel.Text = language == "en" ? "About" : "Giới thiệu";
                     if (dishesTitleLabel != null) dishesTitleLabel.Text = language == "en" ? "Featured Dishes" : "Món nổi bật";
                     
@@ -402,10 +429,17 @@ public partial class POIDetailPage : ContentPage
     {
         try
         {
-            if (_poi == null) return;
+            if (_poi == null) 
+            {
+                System.Diagnostics.Debug.WriteLine("[POIDetailPage.LoadReviewsAsync] ERROR: _poi is null");
+                return;
+            }
+            
+            System.Diagnostics.Debug.WriteLine($"[POIDetailPage.LoadReviewsAsync] START loading reviews for POI {_poi.Id}");
             
             // First load local reviews
             var localReviews = await App.Database.GetReviewsAsync(_poi.Id);
+            System.Diagnostics.Debug.WriteLine($"[POIDetailPage.LoadReviewsAsync] Found {localReviews.Count} local reviews");
             
             // Then try to fetch from Web Admin
             try
@@ -413,59 +447,89 @@ public partial class POIDetailPage : ContentPage
                 var apiService = new ApiService();
                 var webResult = await apiService.GetReviewsAsync(_poi.Id);
                 
+                System.Diagnostics.Debug.WriteLine($"[POIDetailPage.LoadReviewsAsync] Web API result: Success={webResult.Success}, Count={webResult.Data?.Count ?? 0}");
+                
                 if (webResult.Success && webResult.Data?.Data != null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[POIDetailPage] Fetched {webResult.Data.Count} reviews from Web Admin");
+                    var webReviews = webResult.Data.Data;
+                    System.Diagnostics.Debug.WriteLine($"[POIDetailPage.LoadReviewsAsync] Fetched {webReviews.Length} reviews from Web Admin");
                     
-                    var webReviewIds = webResult.Data.Data.Select(r => r.Id).ToList();
-                    
-                    // DELETE reviews that were removed from Web Admin
-                    foreach (var localReview in localReviews.Where(r => !string.IsNullOrEmpty(r.WebReviewId)))
+                    // If web returns empty, delete ALL local reviews for this POI
+                    if (webReviews.Length == 0 && localReviews.Count > 0)
                     {
-                        if (!webReviewIds.Contains(localReview.WebReviewId))
+                        System.Diagnostics.Debug.WriteLine($"[POIDetailPage.LoadReviewsAsync] Web returned empty, deleting {localReviews.Count} local reviews");
+                        foreach (var localReview in localReviews)
+                        {
+                            await App.Database.DeleteReviewAsync(localReview);
+                        }
+                        localReviews.Clear();
+                    }
+                    else if (webReviews.Length > 0)
+                    {
+                        var webReviewIds = webReviews.Select(r => r.Id).ToList();
+                        System.Diagnostics.Debug.WriteLine($"[POIDetailPage.LoadReviewsAsync] Web review IDs: {string.Join(", ", webReviewIds)}");
+                        
+                        // DELETE reviews that were removed from Web Admin
+                        var reviewsToDelete = localReviews.Where(r => !string.IsNullOrEmpty(r.WebReviewId) && !webReviewIds.Contains(r.WebReviewId)).ToList();
+                        System.Diagnostics.Debug.WriteLine($"[POIDetailPage.LoadReviewsAsync] Need to delete {reviewsToDelete.Count} local reviews");
+                        
+                        foreach (var localReview in reviewsToDelete)
                         {
                             await App.Database.DeleteReviewByWebIdAsync(localReview.WebReviewId);
-                            System.Diagnostics.Debug.WriteLine($"[POIDetailPage] Deleted review removed from Web: {localReview.WebReviewId}");
+                            System.Diagnostics.Debug.WriteLine($"[POIDetailPage.LoadReviewsAsync] Deleted review removed from Web: {localReview.WebReviewId}");
                         }
-                    }
-                    
-                    // ADD new reviews from Web
-                    foreach (var webReview in webResult.Data.Data)
-                    {
-                        var exists = localReviews.Any(r => r.WebReviewId == webReview.Id);
-                        if (!exists)
+                        
+                        // ADD new reviews from Web
+                        foreach (var webReview in webReviews)
                         {
-                            var newReview = new Review
+                            var exists = localReviews.Any(r => r.WebReviewId == webReview.Id);
+                            if (!exists)
                             {
-                                POIId = webReview.PoiId,
-                                UserId = webReview.UserId ?? "",
-                                UserName = webReview.UserName ?? "Khách tham quan",
-                                Rating = webReview.Rating,
-                                Comment = webReview.Comment ?? "",
-                                CreatedAt = DateTime.TryParse(webReview.CreatedAt, out var date) ? date : DateTime.Now,
-                                WebReviewId = webReview.Id,
-                                LastSyncFromWeb = DateTime.Now
-                            };
-                            
-                            await App.Database.AddReviewAsync(newReview);
-                            System.Diagnostics.Debug.WriteLine($"[POIDetailPage] Added web review: {webReview.Id}");
+                                var newReview = new Review
+                                {
+                                    POIId = webReview.PoiId,
+                                    UserId = webReview.UserId ?? "",
+                                    UserName = webReview.UserName ?? "Khách tham quan",
+                                    Rating = webReview.Rating,
+                                    Comment = webReview.Comment ?? "",
+                                    CreatedAt = DateTime.TryParse(webReview.CreatedAt, out var date) ? date : DateTime.Now,
+                                    WebReviewId = webReview.Id,
+                                    LastSyncFromWeb = DateTime.Now
+                                };
+                                
+                                await App.Database.AddReviewAsync(newReview);
+                                System.Diagnostics.Debug.WriteLine($"[POIDetailPage.LoadReviewsAsync] Added web review: {webReview.Id}, Rating={webReview.Rating}");
+                            }
+                            else
+                            {
+                                System.Diagnostics.Debug.WriteLine($"[POIDetailPage.LoadReviewsAsync] Review already exists: {webReview.Id}");
+                            }
                         }
+                        
+                        // Reload after sync
+                        localReviews = await App.Database.GetReviewsAsync(_poi.Id);
+                        System.Diagnostics.Debug.WriteLine($"[POIDetailPage.LoadReviewsAsync] After sync: {localReviews.Count} local reviews");
                     }
-                    
-                    // Reload after sync
-                    localReviews = await App.Database.GetReviewsAsync(_poi.Id);
+                }
+                else if (!webResult.Success)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[POIDetailPage.LoadReviewsAsync] Web API failed: {webResult.Error}");
                 }
             }
             catch (Exception apiEx)
             {
-                System.Diagnostics.Debug.WriteLine($"[POIDetailPage] Failed to fetch web reviews: {apiEx.Message}");
+                System.Diagnostics.Debug.WriteLine($"[POIDetailPage.LoadReviewsAsync] Failed to fetch web reviews: {apiEx.Message}");
             }
             
             var reviews = localReviews;
             var averageRating = reviews.Count > 0 ? reviews.Average(r => r.Rating) : 0;
             
+            System.Diagnostics.Debug.WriteLine($"[POIDetailPage.LoadReviewsAsync] Final: {reviews.Count} reviews, Avg={averageRating:F1}");
+            
             MainThread.BeginInvokeOnMainThread(() =>
             {
+                System.Diagnostics.Debug.WriteLine($"[POIDetailPage.LoadReviewsAsync] UI Update - Rating={averageRating:F1}, Count={reviews.Count}");
+                
                 // Update average rating display
                 if (averageRatingLabel != null) 
                     averageRatingLabel.Text = averageRating.ToString("F1");
@@ -475,10 +539,12 @@ public partial class POIDetailPage : ContentPage
                 // Clear and populate reviews container
                 if (reviewsContainer != null)
                 {
+                    System.Diagnostics.Debug.WriteLine($"[POIDetailPage.LoadReviewsAsync] Rendering {reviews.Count} reviews to UI");
                     reviewsContainer.Children.Clear();
                     
                     foreach (var review in reviews.Take(5)) // Show max 5 reviews
                     {
+                        System.Diagnostics.Debug.WriteLine($"[POIDetailPage.LoadReviewsAsync] Rendering review: {review.UserName}, Rating={review.Rating}");
                         var reviewFrame = new Frame
                         {
                             BackgroundColor = Color.FromArgb("#F7F7F7"),

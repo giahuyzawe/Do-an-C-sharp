@@ -60,21 +60,7 @@ if (!empty($qr['maxScans']) && ($qr['scanCount'] ?? 0) >= $qr['maxScans']) {
     exit;
 }
 
-// Check if device already scanned (cooldown: 1 hour)
-$oneHourAgo = date('Y-m-d H:i:s', strtotime('-1 hour'));
-$existingScan = false;
-foreach ($qr['scans'] ?? [] as $scan) {
-    if ($scan['deviceId'] === $deviceId && $scan['timestamp'] > $oneHourAgo) {
-        $existingScan = true;
-        break;
-    }
-}
-
-if ($existingScan) {
-    echo json_encode(['success' => false, 'error' => 'Already checked in (cooldown: 1 hour)']);
-    exit;
-}
-
+// Note: No cooldown - every QR scan counts as a check-in
 // Valid QR - update scan count and POI checkInCount
 $scanCount = 0;
 foreach ($qrCodes as &$q) {
@@ -102,6 +88,18 @@ foreach ($pois as &$p) {
     }
 }
 save_json($POIS_FILE, $pois);
+
+// Record analytics for check-in
+$analytics = load_json($ANALYTICS_FILE);
+$analytics[] = [
+    'id' => uniqid(),
+    'type' => 'check_in',
+    'deviceId' => $deviceId,
+    'poiId' => $qr['poiId'],
+    'date' => date('Y-m-d'),
+    'timestamp' => date('Y-m-d H:i:s')
+];
+save_json($ANALYTICS_FILE, $analytics);
 
 // Get POI info
 $pois = load_json($POIS_FILE);

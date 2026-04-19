@@ -16,7 +16,7 @@ $approved = array_filter($pois, function($p) {
     return ($p['status'] ?? '') === 'approved';
 });
 
-// Format response
+// Format response - match POIApiData model
 $response = [];
 foreach ($approved as $poi) {
     $response[] = [
@@ -24,16 +24,22 @@ foreach ($approved as $poi) {
         'nameVi' => $poi['nameVi'] ?? '',
         'nameEn' => $poi['nameEn'] ?? '',
         'address' => $poi['address'] ?? '',
-        'description' => $poi['description'] ?? '',
+        'descriptionVi' => $poi['descriptionVi'] ?? ($poi['description'] ?? ''),
+        'descriptionEn' => $poi['descriptionEn'] ?? '',
+        'phone' => $poi['phone'] ?? '',
+        'openingHours' => $poi['openingHours'] ?? '',
         'rating' => $poi['rating'] ?? 0,
         'visitCount' => $poi['visitCount'] ?? 0,
         'checkInCount' => $poi['checkInCount'] ?? 0,
         'latitude' => $poi['latitude'] ?? null,
         'longitude' => $poi['longitude'] ?? null,
+        'radius' => $poi['radius'] ?? 100,
+        'priority' => $poi['priority'] ?? 1,
         'imageUrl' => $poi['imageUrl'] ?? null,
         'audioUrl' => $poi['audioUrl'] ?? null,
         'hasTTS' => ($poi['audioType'] ?? '') === 'tts',
-        'autoPlayAudio' => $poi['autoPlayAudio'] ?? false
+        'autoPlayAudio' => $poi['autoPlayAudio'] ?? false,
+        'status' => $poi['status'] ?? 'approved'
     ];
 }
 

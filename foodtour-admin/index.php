@@ -18,9 +18,8 @@ $pois = load_json($POIS_FILE);
 $analytics = load_json($ANALYTICS_FILE);
 
 if ($role === 'restaurant_owner') {
-    // Owner only sees their restaurants
-    $myRestaurantIds = $user['restaurantIds'] ?? [];
-    $pois = array_filter($pois, fn($p) => in_array($p['id'], $myRestaurantIds));
+    // Owner only sees their restaurants - filter by ownerId
+    $pois = array_filter($pois, fn($p) => ($p['ownerId'] ?? '') === $user['id']);
 }
 
 // Calculate stats
@@ -30,14 +29,15 @@ $pendingPOIs = count(array_filter($pois, fn($p) => ($p['status'] ?? 'pending') =
 
 // Today's analytics
 $today = date('Y-m-d');
+$todayAppVisits = array_filter($analytics, fn($a) => $a['date'] === $today && $a['type'] === 'app_visit');
 $todayStats = [
-    'dau' => count(array_filter($analytics, fn($a) => $a['date'] === $today && $a['type'] === 'app_visit')),
+    'dau' => count(array_unique(array_column($todayAppVisits, 'deviceId'))), // Unique devices
     'views' => count(array_filter($analytics, fn($a) => $a['date'] === $today && $a['type'] === 'poi_view')),
     'checkins' => count(array_filter($analytics, fn($a) => $a['date'] === $today && $a['type'] === 'check_in'))
 ];
 
-// Total views for owner's restaurants
-$totalViews = array_sum(array_column($pois, 'visitCount'));
+// Total views from analytics (consistent with statistics)
+$totalViews = count(array_filter($analytics, fn($a) => $a['date'] === $today && $a['type'] === 'poi_view'));
 
 $pageTitle = $role === 'admin' ? 'Dashboard Quản trị' : 'Dashboard Nhà hàng';
 ?>

@@ -14,7 +14,6 @@ $reviews = load_json($REVIEWS_FILE);
 
 // Filter for owner
 if ($isOwner) {
-    $myIds = $user['restaurantIds'] ?? [];
     $filteredReviews = [];
     foreach ($reviews as $r) {
         $poiFound = null;
@@ -24,7 +23,7 @@ if ($isOwner) {
                 break;
             }
         }
-        if ($poiFound && in_array($poiFound['id'], $myIds)) {
+        if ($poiFound && ($poiFound['ownerId'] ?? '') === $user['id']) {
             $filteredReviews[] = $r;
         }
     }

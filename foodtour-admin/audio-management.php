@@ -8,8 +8,7 @@ $isOwner = $user['role'] === 'restaurant_owner';
 
 // Filter for owner
 if ($isOwner) {
-    $myIds = $user['restaurantIds'] ?? [];
-    $pois = array_filter($pois, fn($p) => in_array($p['id'], $myIds));
+    $pois = array_filter($pois, fn($p) => ($p['ownerId'] ?? '') === $user['id']);
 }
 
 // Handle save
@@ -24,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach ($pois as &$poi) {
             if ($poi['id'] == $poiId) {
                 // Check permission for owner
-                if ($isOwner && !in_array($poiId, $user['restaurantIds'] ?? [])) {
+                if ($isOwner && ($poi['ownerId'] ?? '') !== $user['id']) {
                     break;
                 }
                 

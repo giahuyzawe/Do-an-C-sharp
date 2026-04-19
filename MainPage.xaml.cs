@@ -108,9 +108,17 @@ public partial class MainPage : ContentPage
             }
             
             // Auto-enable passive tracking (no button needed)
-            if (_locationService != null && !_locationSubscribed)
+            if (_locationService != null)
             {
-                SubscribeToLocationUpdates();
+                System.Diagnostics.Debug.WriteLine($"[OnAppearing] LocationService exists, _locationSubscribed={_locationSubscribed}, IsTracking={_locationService.IsTracking}");
+                
+                // Always ensure subscription is active
+                if (!_locationSubscribed)
+                {
+                    SubscribeToLocationUpdates();
+                    System.Diagnostics.Debug.WriteLine("[OnAppearing] Subscribed to location updates");
+                }
+                
                 if (!_locationService.IsTracking)
                 {
                     _ = _locationService.StartTrackingAsync();
@@ -120,6 +128,10 @@ public partial class MainPage : ContentPage
                 {
                     System.Diagnostics.Debug.WriteLine("[OnAppearing] Location tracking already active");
                 }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("[OnAppearing] ERROR: LocationService is NULL!");
             }
             
             // Request and display current location
@@ -201,7 +213,7 @@ public partial class MainPage : ContentPage
                     NameVi = poiData.NameVi ?? "",
                     NameEn = poiData.NameEn ?? "",
                     Address = poiData.Address ?? "",
-                    DescriptionVi = poiData.Description ?? "",
+                    DescriptionVi = poiData.DescriptionVi ?? "",
                     Latitude = poiData.Latitude ?? 0,
                     Longitude = poiData.Longitude ?? 0,
                     ImageUrl = poiData.ImageUrl ?? "",
@@ -216,15 +228,30 @@ public partial class MainPage : ContentPage
             }
             
             // Show check-in success - include qrToken for tracking
-            await apiService.PostAnalyticsAsync("check_in", deviceId, poiId, token);
+            try
+            {
+                await apiService.PostAnalyticsAsync("check_in", deviceId, poiId, token);
+            }
+            catch (Exception analyticsEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"[HandleDeepLink] Analytics error: {analyticsEx.Message}");
+                // Don't fail if analytics fails
+            }
             
             // Navigate to POI detail
-            System.Diagnostics.Debug.WriteLine($"[HandleDeepLink] Navigating to POI: {poi.NameVi}");
+            if (poi == null)
+            {
+                await DisplayAlert("Lỗi", "Không thể tải thông tin nhà hàng", "OK");
+                return;
+            }
+            
+            var poiName = poi.NameVi ?? "nhà hàng";
+            System.Diagnostics.Debug.WriteLine($"[HandleDeepLink] Navigating to POI: {poiName}");
             var detailPage = new POIDetailPage(poi);
             await Navigation.PushAsync(detailPage);
             
             // Show success message
-            await DisplayAlert("🎉 Check-in thành công!", $"Bạn đã check-in tại {poi.NameVi}", "Xem chi tiết");
+            await DisplayAlert("🎉 Check-in thành công!", $"Bạn đã check-in tại {poiName}", "Xem chi tiết");
         }
         catch (Exception ex)
         {
@@ -268,11 +295,17 @@ public partial class MainPage : ContentPage
 
     private void SubscribeToLocationUpdates()
     {
+        System.Diagnostics.Debug.WriteLine($"[SubscribeToLocationUpdates] Called, _locationSubscribed={_locationSubscribed}");
         if (_locationService != null && !_locationSubscribed)
         {
             _locationService.LocationUpdated += OnLocationUpdated;
             _locationSubscribed = true;
             UpdateTrackingButtonState();
+            System.Diagnostics.Debug.WriteLine("[SubscribeToLocationUpdates] ✅ SUCCESSFULLY SUBSCRIBED");
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine($"[SubscribeToLocationUpdates] SKIP: _locationService={_locationService != null}, _locationSubscribed={_locationSubscribed}");
         }
     }
 
@@ -824,6 +857,41 @@ public partial class MainPage : ContentPage
             var newRadius = map.VisibleRegion.Radius.Kilometers * 2;
             map.MoveToRegion(MapSpan.FromCenterAndRadius(map.VisibleRegion.Center, Distance.FromKilometers(newRadius)));
         }
+    }
+
+    private void OnTestGPSClicked(object sender, EventArgs e)
+    {
+        // Mock location for demo - simulate being near Pho Ga Vinh Phuc (POI #1)
+        var mockLocation = new Location(21.35, 105.55); // Exact location of Pho Ga Vinh Phuc
+        
+        System.Diagnostics.Debug.WriteLine("[TEST GPS] Simulating location: 21.35, 105.55");
+        
+        // Update location pin
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            if (_currentLocationPin == null)
+            {
+                _currentLocationPin = new Pin
+                {
+                    Label = "📍 You (Test)",
+                    Location = mockLocation,
+                    Type = PinType.Generic
+                };
+                map.Pins.Add(_currentLocationPin);
+            }
+            else
+            {
+                _currentLocationPin.Location = mockLocation;
+            }
+            
+            // Update geofence with mock location
+            _geofenceEngine?.UpdateLocation(21.35, 105.55);
+            
+            // Center map
+            map.MoveToRegion(MapSpan.FromCenterAndRadius(mockLocation, Distance.FromMeters(200)));
+            
+            DisplayAlert("Test GPS", "Đã giả lập vị trí tại Phở Gà Vĩnh Phúc!", "OK");
+        });
     }
 
     private void OnClosePOICardClicked(object? sender, EventArgs e)

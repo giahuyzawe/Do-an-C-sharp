@@ -16,8 +16,7 @@ $qrCodes = load_json($QR_CODES_FILE);
 
 // Filter for owner
 if ($isOwner) {
-    $myIds = $user['restaurantIds'] ?? [];
-    $pois = array_filter($pois, fn($p) => in_array($p['id'], $myIds));
+    $pois = array_filter($pois, fn($p) => ($p['ownerId'] ?? '') === $user['id']);
 }
 
 // Calculate stats
@@ -26,22 +25,26 @@ $thisWeek = date('Y-m-d', strtotime('-7 days'));
 $thisMonth = date('Y-m-d', strtotime('-30 days'));
 
 // Today's stats
+// DAU = Daily Active Users = unique deviceId with app_visit
+$todayAppVisits = array_filter($analytics, fn($a) => $a['date'] === $today && $a['type'] === 'app_visit');
 $todayStats = [
-    'dau' => count(array_filter($analytics, fn($a) => $a['date'] === $today && $a['type'] === 'app_visit')),
+    'dau' => count(array_unique(array_column($todayAppVisits, 'deviceId'))), // Unique devices
     'views' => count(array_filter($analytics, fn($a) => $a['date'] === $today && $a['type'] === 'poi_view')),
     'checkins' => count(array_filter($analytics, fn($a) => $a['date'] === $today && $a['type'] === 'check_in'))
 ];
 
 // Week stats
+$weekAppVisits = array_filter($analytics, fn($a) => $a['date'] >= $thisWeek && $a['type'] === 'app_visit');
 $weekStats = [
-    'dau' => count(array_filter($analytics, fn($a) => $a['date'] >= $thisWeek && $a['type'] === 'app_visit')),
+    'dau' => count(array_unique(array_column($weekAppVisits, 'deviceId'))), // Unique devices
     'views' => count(array_filter($analytics, fn($a) => $a['date'] >= $thisWeek && $a['type'] === 'poi_view')),
     'checkins' => count(array_filter($analytics, fn($a) => $a['date'] >= $thisWeek && $a['type'] === 'check_in'))
 ];
 
 // Month stats
+$monthAppVisits = array_filter($analytics, fn($a) => $a['date'] >= $thisMonth && $a['type'] === 'app_visit');
 $monthStats = [
-    'dau' => count(array_filter($analytics, fn($a) => $a['date'] >= $thisMonth && $a['type'] === 'app_visit')),
+    'dau' => count(array_unique(array_column($monthAppVisits, 'deviceId'))), // Unique devices
     'views' => count(array_filter($analytics, fn($a) => $a['date'] >= $thisMonth && $a['type'] === 'poi_view')),
     'checkins' => count(array_filter($analytics, fn($a) => $a['date'] >= $thisMonth && $a['type'] === 'check_in'))
 ];
@@ -49,8 +52,9 @@ $monthStats = [
 // POI Stats
 $totalPOIs = count($pois);
 $approvedPOIs = count(array_filter($pois, fn($p) => ($p['status'] ?? '') === 'approved'));
-$totalViews = array_sum(array_column($pois, 'visitCount'));
-$totalCheckIns = array_sum(array_column($pois, 'checkInCount'));
+// Use analytics for views/checkins (consistent with today/week/month stats)
+$totalViews = count(array_filter($analytics, fn($a) => $a['type'] === 'poi_view'));
+$totalCheckIns = count(array_filter($analytics, fn($a) => $a['type'] === 'check_in'));
 
 // Top POIs
 usort($pois, fn($a, $b) => ($b['visitCount'] ?? 0) <=> ($a['visitCount'] ?? 0));

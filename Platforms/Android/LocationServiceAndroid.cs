@@ -17,21 +17,34 @@ public class LocationServiceAndroid : ILocationService
 
     public Task StartTrackingAsync()
     {
-        if (IsTracking) return Task.CompletedTask;
+        if (IsTracking)
+        {
+            System.Diagnostics.Debug.WriteLine("[LocationServiceAndroid] StartTrackingAsync: Already tracking, skipping");
+            return Task.CompletedTask;
+        }
 
         var context = Platform.CurrentActivity;
-        if (context == null) return Task.CompletedTask;
+        if (context == null)
+        {
+            System.Diagnostics.Debug.WriteLine("[LocationServiceAndroid] StartTrackingAsync: ERROR - Context is null!");
+            return Task.CompletedTask;
+        }
+
+        System.Diagnostics.Debug.WriteLine("[LocationServiceAndroid] StartTrackingAsync: Starting...");
 
         // Register broadcast receiver
         _receiver = new LocationBroadcastReceiver(this);
         var filter = new IntentFilter("LOCATION_UPDATE");
         context.RegisterReceiver(_receiver, filter);
+        System.Diagnostics.Debug.WriteLine("[LocationServiceAndroid] Broadcast receiver registered");
 
         // Start foreground service
         var intent = new Intent(context, typeof(LocationTrackingService));
         context.StartForegroundService(intent);
+        System.Diagnostics.Debug.WriteLine("[LocationServiceAndroid] Foreground service started");
 
         _isTracking = true;
+        System.Diagnostics.Debug.WriteLine("[LocationServiceAndroid] Tracking started successfully");
         return Task.CompletedTask;
     }
 
@@ -121,6 +134,7 @@ public class LocationServiceAndroid : ILocationService
 
     internal void OnLocationReceived(double latitude, double longitude, float accuracy)
     {
+        System.Diagnostics.Debug.WriteLine($"[LocationServiceAndroid] OnLocationReceived: {latitude}, {longitude}");
         LocationUpdated?.Invoke(this, new LocationUpdatedEventArgs
         {
             Latitude = latitude,
@@ -128,6 +142,7 @@ public class LocationServiceAndroid : ILocationService
             Accuracy = accuracy,
             Timestamp = DateTime.Now
         });
+        System.Diagnostics.Debug.WriteLine("[LocationServiceAndroid] LocationUpdated event fired");
     }
 
     public async Task<LocationUpdatedEventArgs?> GetCurrentLocationAsync()
@@ -223,11 +238,13 @@ public class LocationBroadcastReceiver : BroadcastReceiver
 
     public override void OnReceive(Context? context, Intent? intent)
     {
+        System.Diagnostics.Debug.WriteLine($"[LocationBroadcastReceiver] OnReceive: Action={intent?.Action}");
         if (intent?.Action == "LOCATION_UPDATE")
         {
             var lat = intent.GetDoubleExtra("latitude", 0);
             var lng = intent.GetDoubleExtra("longitude", 0);
             var accuracy = intent.GetFloatExtra("accuracy", 0);
+            System.Diagnostics.Debug.WriteLine($"[LocationBroadcastReceiver] Location received: {lat}, {lng}");
 
             _service?.OnLocationReceived(lat, lng, accuracy);
         }

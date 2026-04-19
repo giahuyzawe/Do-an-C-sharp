@@ -10,8 +10,7 @@ $isOwner = $user['role'] === 'restaurant_owner';
 
 // Filter POIs for owner
 if ($isOwner) {
-    $myIds = $user['restaurantIds'] ?? [];
-    $pois = array_filter($pois, fn($p) => in_array($p['id'], $myIds) && ($p['status'] ?? '') === 'approved');
+    $pois = array_filter($pois, fn($p) => ($p['ownerId'] ?? '') === $user['id'] && ($p['status'] ?? '') === 'approved');
 } else {
     $pois = array_filter($pois, fn($p) => ($p['status'] ?? '') === 'approved');
 }

@@ -174,18 +174,21 @@ namespace FoodStreetGuide.Services
                 var poi = new POI
                 {
                     Id = poiData.Id,
-                    NameVi = poiData.NameVi,
-                    NameEn = poiData.NameEn,
-                    DescriptionVi = poiData.Description,
-                    Address = poiData.Address,
-                    Phone = poiData.Phone,
-                    OpeningHours = poiData.OpeningHours,
+                    NameVi = poiData.NameVi ?? "",
+                    NameEn = poiData.NameEn ?? "",
+                    DescriptionVi = poiData.DescriptionVi ?? "",
+                    DescriptionEn = poiData.DescriptionEn ?? "",
+                    Address = poiData.Address ?? "",
+                    Phone = poiData.Phone ?? "",
+                    OpeningHours = poiData.OpeningHours ?? "",
                     ImageUrl = poiData.ImageUrl,
                     VisitCount = poiData.VisitCount,
                     CheckInCount = poiData.CheckInCount,
                     Rating = poiData.Rating,
                     Latitude = poiData.Latitude ?? 0,
                     Longitude = poiData.Longitude ?? 0,
+                    Radius = poiData.Radius > 0 ? poiData.Radius : 100,  // Default 100m
+                    Priority = poiData.Priority > 0 ? poiData.Priority : 1, // Default priority 1
                     Status = poiData.Status == "approved" ? "active" : poiData.Status,
                     LastUpdated = DateTime.Now
                 };
