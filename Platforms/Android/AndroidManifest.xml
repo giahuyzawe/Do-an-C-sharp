@@ -14,18 +14,13 @@
 			android:value="AIzaSyAfYZleEDm-CeZHLj2karJ22JhpF0vcIUo" />
 
 		<!-- MainActivity with deep link support -->
-		<activity android:name="com.companyname.foodstreetguide.MainActivity" 
+		<activity android:name="com.companyname.foodstreetguide.MainActivity"
 				  android:exported="true"
 				  android:launchMode="singleTop">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
 			<intent-filter android:autoVerify="true">
 				<action android:name="android.intent.action.VIEW" />
-				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
-				<data android:scheme="foodtour" 
+				<data android:scheme="foodtour"
 					  android:host="qr" />
 			</intent-filter>
 		</activity>

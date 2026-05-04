@@ -15,7 +15,12 @@ public partial class AppShell : Shell
         if (_localizationService != null)
         {
             _localizationService.LanguageChanged += OnLanguageChanged;
-            UpdateTabTitles();
+            // Delay to ensure TabBar items are loaded
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                await Task.Delay(100);
+                UpdateTabTitles();
+            });
         }
     }
 
@@ -26,19 +31,26 @@ public partial class AppShell : Shell
 
     private void UpdateTabTitles()
     {
+        // Update tab titles based on current language
         if (_localizationService == null) return;
-        var loc = _localizationService;
-        
-        // Update tab titles
-        if (Items.Count >= 4)
+
+        if (Items.Count > 0 && Items[0] is TabBar tabBar)
         {
-            if (Items[0] is TabBar tabBar && tabBar.Items.Count >= 4)
+            var titles = new[] { "Tab_Map", "Tab_Discover", "Tab_Saved", "Tab_Settings" };
+            
+            for (int i = 0; i < tabBar.Items.Count && i < titles.Length; i++)
             {
-                tabBar.Items[0].Title = loc.GetString("Tab_Map");
-                tabBar.Items[1].Title = loc.GetString("Tab_Discover");
-                tabBar.Items[2].Title = loc.GetString("Tab_Saved");
-                tabBar.Items[3].Title = loc.GetString("Tab_Settings");
+                var translatedTitle = _localizationService.GetString(titles[i]);
+                if (!string.IsNullOrEmpty(translatedTitle))
+                {
+                    tabBar.Items[i].Title = translatedTitle;
+                }
             }
         }
+    }
+
+    public void RefreshTabTitles()
+    {
+        UpdateTabTitles();
     }
 }

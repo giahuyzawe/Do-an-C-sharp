@@ -77,6 +77,12 @@ public partial class SettingsPage : ContentPage
         
         // Update UI immediately
         LoadLocalizedUI();
+        
+        // Refresh AppShell tab titles
+        if (Shell.Current is AppShell appShell)
+        {
+            appShell.RefreshTabTitles();
+        }
     }
     
     private void LoadLocalizedUI()

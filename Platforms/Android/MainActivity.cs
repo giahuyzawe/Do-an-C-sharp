@@ -8,17 +8,10 @@ using FoodStreetGuide.Platforms.Android;
 namespace FoodStreetGuide;
 
 [Activity(
-    Theme = "@style/Maui.SplashTheme", 
-    MainLauncher = true, 
-    LaunchMode = LaunchMode.SingleTop, 
+    Theme = "@style/Maui.SplashTheme",
+    MainLauncher = true,
+    LaunchMode = LaunchMode.SingleTop,
     ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
-
-// Deep link intent filter for foodtour:// scheme
-[IntentFilter(
-    new[] { Intent.ActionView },
-    Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable },
-    DataScheme = "foodtour",
-    DataHost = "qr")]
 
 public class MainActivity : MauiAppCompatActivity
 {

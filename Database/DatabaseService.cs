@@ -80,6 +80,12 @@ namespace FoodStreetGuide.Services
             return await database.DeleteAsync(poi);
         }
 
+        public async Task<int> DeleteAllPOIsAsync()
+        {
+            await Init();
+            return await database.DeleteAllAsync<POI>();
+        }
+
         public async Task<int> UpdatePOIAsync(POI poi)
         {
             await Init();

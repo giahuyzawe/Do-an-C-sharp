@@ -13,6 +13,56 @@ $isOwner = $role === 'restaurant_owner';
 $pois = load_json($POIS_FILE);
 $analytics = load_json($ANALYTICS_FILE);
 $qrCodes = load_json($QR_CODES_FILE);
+// Calculate ONLINE users (heartbeat within last 60 seconds)
+$now = time();
+$onlineThreshold = 60; // 60 seconds = online
+$onlineUsers = [];
+
+// Debug: Log all heartbeat events
+$heartbeatEvents = [];
+
+foreach ($analytics as $a) {
+    $type = $a['type'] ?? '';
+    $deviceId = $a['deviceId'] ?? '';
+    $timestamp = $a['timestamp'] ?? '';
+
+    if (empty($deviceId) || empty($timestamp)) continue;
+
+    if ($type === 'heartbeat' || $type === 'app_visit') {
+        $eventTime = strtotime($timestamp);
+        $secondsAgo = $now - $eventTime;
+
+        // Debug: Collect heartbeat events
+        $heartbeatEvents[] = [
+            'deviceId' => $deviceId,
+            'timestamp' => $timestamp,
+            'secondsAgo' => $secondsAgo,
+            'type' => $type
+        ];
+
+        // Online if event within last 60 seconds (allow 60s clock skew buffer)
+        if ($secondsAgo <= $onlineThreshold && $secondsAgo >= -60) {
+            // Keep only the most recent entry per device
+            if (!isset($onlineUsers[$deviceId]) ||
+                strtotime($onlineUsers[$deviceId]['lastSeen']) < $eventTime) {
+                $onlineUsers[$deviceId] = [
+                    'lastSeen' => $timestamp,
+                    'secondsAgo' => $secondsAgo,
+                    'language' => $a['language'] ?? 'vi',
+                    'status' => 'online'
+                ];
+            }
+        }
+    }
+}
+
+// Debug: Log to file
+error_log("[DEBUG] Total heartbeat events: " . count($heartbeatEvents));
+error_log("[DEBUG] Heartbeat events: " . json_encode($heartbeatEvents));
+error_log("[DEBUG] Online devices: " . json_encode(array_keys($onlineUsers)));
+error_log("[DEBUG] Online count: " . count($onlineUsers));
+
+$onlineCount = count($onlineUsers);
 
 // Filter for owner
 if ($isOwner) {

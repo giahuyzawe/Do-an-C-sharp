@@ -354,6 +354,11 @@ public partial class POIDetailPage : ContentPage
         await Navigation.PopAsync();
     }
 
+    private async void OnSwipeDown(object sender, SwipedEventArgs e)
+    {
+        await Navigation.PopAsync();
+    }
+
     private void UpdateSaveButtonState()
     {
         if (_poi == null || _savedPOIService == null || saveHeartLabel == null) return;

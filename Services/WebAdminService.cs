@@ -29,9 +29,9 @@ public class WebAdminService : IWebAdminService
     private readonly HttpClient _httpClient;
     private readonly IDatabaseService _databaseService;
     // Default URL for Android emulator (10.0.2.2 = host localhost)
-    // XAMPP: http://localhost/FoodStreetGuide.Admin/api
-    // Android: http://10.0.2.2/FoodStreetGuide.Admin/api
-    private string _apiBaseUrl = "http://10.0.2.2/FoodStreetGuide.Admin/api";
+    // XAMPP: http://localhost/foodtour-admin/api
+    // Android: http://10.0.2.2/foodtour-admin/api (or use ngrok for real devices)
+    private string _apiBaseUrl = "http://10.0.2.2/foodtour-admin/api";
     private const string API_KEY = "foodstreet_mobile_2024";
 
     public string GetApiUrl() => _apiBaseUrl;

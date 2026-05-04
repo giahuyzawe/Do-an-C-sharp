@@ -229,10 +229,10 @@ $isMobile = preg_match('/(android|iphone|ipad|mobile)/i', $_SERVER['HTTP_USER_AG
                     
                     <?php if ($apkExists): ?>
                     <!-- APK Available -->
-                    <a href="/foodtour-admin/download/FoodStreetGuide-v2.apk" class="btn btn-success w-100 mb-2" download>
+                   <a href="https://false-awaken-uncooked.ngrok-free.dev/foodtour-admin/uploads/FoodStreetGuide.apk" class="btn btn-success w-100 mb-2" download>
                         <i class="bi bi-download"></i> <strong>Tải APK cho Android</strong>
                         <br><small style="font-size: 11px;">Cài đặt trực tiếp (không cần Play Store)</small>
-                    </a>
+                    </a> 
                     
                     <div class="alert alert-warning py-2" style="font-size: 12px;">
                         <strong><i class="bi bi-info-circle"></i> Hướng dẫn cài APK:</strong>

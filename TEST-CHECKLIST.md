@@ -127,9 +127,19 @@
 | # | Test Case | Expected |
 |---|-----------|----------|
 | 1 | Scan QR hợp lệ | "Check-in thành công!" |
-| 2 | Scan QR lần 2 (trong 1h) | "Bạn đã check-in gần đây" |
-| 3 | Scan QR hết hạn | "QR không hợp lệ" |
-| 4 | Kiểm tra Web Admin | Check-in count tăng |
+| 2 | Scan QR đã dùng | "QR đã được sử dụng" |
+| 3 | Scan QR hết hạn | "QR hết hạn" |
+| 4 | Scan QR sai | "QR không hợp lệ" |
+
+### 2.8 Online User Count / Real-time Analytics 🆕
+| # | Test Case | Expected |
+|---|-----------|----------|
+| 1 | Mở app trên device | Web Admin hiển thị 🟢 1 online (trong 2s) |
+| 2 | Mở app trên 2nd device | Web Admin cập nhật → 🟢 2 online |
+| 3 | Check heartbeat log | Logcat: `[Analytics] Sending heartbeat...` mỗi 30s |
+| 4 | Kill app 1 device | Sau 1 phút → 🟢 1 online |
+| 5 | Kill tất cả app | Sau 1 phút → ⚪ 0 online |
+| 6 | API check | `get-online-users.php` trả về JSON đúng |
 
 ---
 

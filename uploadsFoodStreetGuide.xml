@@ -1,0 +1,363 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>FoodStreetGuide</name>
+    </assembly>
+    <members>
+        <member name="M:FoodStreetGuide.App.SyncLocalDataToWebAdminAsync">
+            <summary>
+            Sync SQLite local data to Web Admin (reviews, check-ins, saved POIs)
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.DatabaseService.RecordQRScanAsync(System.Int32,System.String,System.String)">
+            <summary>
+            Records a QR scan and determines if it should count as a visit
+            Implements 1-hour cooldown between scans of the same POI
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.DatabaseService.GetLastScanTimeAsync(System.Int32,System.String)">
+            <summary>
+            Gets the last scan time for a specific POI and device
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.DatabaseService.IncrementPOIVisitCountAsync(System.Int32)">
+            <summary>
+            Increments the visit count for a POI
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.DatabaseService.RecordAppVisitAsync(System.String)">
+            <summary>
+            Records an app visit (each time app is opened)
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.DatabaseService.GetTotalAppVisitsAsync">
+            <summary>
+            Gets total app visits count
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.DatabaseService.GetUniqueDeviceCountAsync">
+            <summary>
+            Gets unique device count
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.DatabaseService.GetTodayVisitsAsync">
+            <summary>
+            Gets today's visit count
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.DatabaseService.ValidateDynamicQRAsync(System.String)">
+            <summary>
+            Validates a dynamic QR code and returns the associated POI if valid
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.DatabaseService.GetQRCodesForPOIAsync(System.Int32)">
+            <summary>
+            Gets all QR codes for a specific POI
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.DatabaseService.GetQRCodeStatsAsync">
+            <summary>
+            Gets QR code statistics
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.DatabaseService.RecordAppVisitAsync(System.String,System.DateTime,System.String,System.String)">
+            <summary>
+            Records an app visit for DAU calculation
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.DatabaseService.StartNewSessionAsync(System.String)">
+            <summary>
+            Starts a new session for App Opens tracking
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.DatabaseService.RecordAppOpenAsync(System.String,System.String)">
+            <summary>
+            Records an app open within a session
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.DatabaseService.GetLastActivityAsync(System.String)">
+            <summary>
+            Gets the last activity time for a device
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.DatabaseService.RecordPOIViewAsync(System.Int32,System.String,System.String,System.Nullable{System.Int32})">
+            <summary>
+            Records a POI view with cooldown check (10 minutes)
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.DatabaseService.RecordCheckInAsync(System.Int32,System.String,System.String,System.Nullable{System.Double},System.Nullable{System.Double})">
+            <summary>
+            Records a QR check-in
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.DatabaseService.GetCurrentSessionIdAsync(System.String)">
+            <summary>
+            Gets current session ID for a device
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.DatabaseService.GetAnalyticsSummaryAsync(System.DateTime,System.DateTime)">
+            <summary>
+            Gets analytics summary for a date range
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.DatabaseService.GetPOIAnalyticsAsync(System.Int32,System.DateTime,System.DateTime)">
+            <summary>
+            Gets analytics for a specific POI
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.ApiService.GetPOIsAsync">
+            <summary>
+            Get all POIs from Web Admin
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.ApiService.PostAnalyticsAsync(System.String,System.String,System.Nullable{System.Int32},System.String,System.String)">
+            <summary>
+            Post analytics event to Web Admin
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.ApiService.CheckQRAsync(System.String,System.String)">
+            <summary>
+            Check QR code validity
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.ApiService.GetReviewsAsync(System.Int32)">
+            <summary>
+            Get reviews for a POI from Web Admin
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.ApiService.PostReviewAsync(System.Int32,System.String,System.String,System.Int32,System.String)">
+            <summary>
+            Post review to Web Admin
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.ApiService.SyncDataAsync(System.String,System.String,System.Object[])">
+            <summary>
+            Sync SQLite data to Web Admin (reviews, check-ins, saved POIs)
+            </summary>
+        </member>
+        <member name="T:FoodStreetGuide.Services.OfflineManager">
+            <summary>
+            Manages offline functionality: caching, sync queue, connectivity check
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.OfflineManager.IsOnlineAsync(FoodStreetGuide.Services.ApiService)">
+            <summary>
+            Check if device is online by calling API
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.OfflineManager.IsOnlineAsync">
+            <summary>
+            Check if device is online (legacy, uses hardcoded URL for emulator only)
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.OfflineManager.GetPOIsAsync(FoodStreetGuide.Services.ApiService)">
+            <summary>
+            Get POIs - from API if online, from cache if offline
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.OfflineManager.QueueAnalytics(System.String,System.String,System.Nullable{System.Int32},System.String)">
+            <summary>
+            Queue analytics event for later sync
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.OfflineManager.SyncPendingDataAsync">
+            <summary>
+            Sync all pending data when back online
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.OfflineManager.SyncPOIsToDatabaseAsync(FoodStreetGuide.Services.POIApiData[])">
+            <summary>
+            Sync POIs to local database
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Services.OfflineManager.GetSyncStatus">
+            <summary>
+            Get sync status for UI display
+            </summary>
+        </member>
+        <member name="T:FoodStreetGuide.Services.POIExtensions">
+            <summary>
+            Extension methods for POI
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.MainPage.HandleDeepLinkAsync">
+            <summary>
+            Handle deep link from QR scan - check QR token and navigate to POI detail
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.MainPage.CalculateDistanceMeters(System.Double,System.Double,System.Double,System.Double)">
+            <summary>
+            Calculate distance between two coordinates using Haversine formula
+            </summary>
+        </member>
+        <member name="T:FoodStreetGuide.Models.AppVisitRecord">
+            <summary>
+            Records app visits for analytics tracking
+            Each time the app is opened, a visit is recorded
+            </summary>
+        </member>
+        <member name="P:FoodStreetGuide.Models.AppVisitRecord.DeviceId">
+            <summary>
+            Device ID or installation ID
+            </summary>
+        </member>
+        <member name="P:FoodStreetGuide.Models.AppVisitRecord.VisitTime">
+            <summary>
+            Timestamp of the visit
+            </summary>
+        </member>
+        <member name="P:FoodStreetGuide.Models.AppVisitRecord.VisitDate">
+            <summary>
+            Date only for grouping
+            </summary>
+        </member>
+        <member name="P:FoodStreetGuide.Models.AppVisitRecord.AppVersion">
+            <summary>
+            App version when visit occurred
+            </summary>
+        </member>
+        <member name="P:FoodStreetGuide.Models.AppVisitRecord.Platform">
+            <summary>
+            Platform (Android/iOS)
+            </summary>
+        </member>
+        <member name="P:FoodStreetGuide.Models.AppVisitRecord.SessionId">
+            <summary>
+            Session ID for grouping visits
+            </summary>
+        </member>
+        <member name="T:FoodStreetGuide.Models.QRCode">
+            <summary>
+            Dynamic QR Code - Each generation creates a unique code
+            Can have expiration time and usage limits
+            </summary>
+        </member>
+        <member name="P:FoodStreetGuide.Models.QRCode.UniqueToken">
+            <summary>
+            Unique token for this QR code (e.g., "vk-2024-abc123xyz")
+            </summary>
+        </member>
+        <member name="P:FoodStreetGuide.Models.QRCode.POIId">
+            <summary>
+            Associated POI ID
+            </summary>
+        </member>
+        <member name="P:FoodStreetGuide.Models.QRCode.QRType">
+            <summary>
+            QR Code type: 'single_use', 'time_limited', 'unlimited'
+            </summary>
+        </member>
+        <member name="P:FoodStreetGuide.Models.QRCode.CreatedAt">
+            <summary>
+            When the QR code was created
+            </summary>
+        </member>
+        <member name="P:FoodStreetGuide.Models.QRCode.ExpiresAt">
+            <summary>
+            When the QR code expires (null = never)
+            </summary>
+        </member>
+        <member name="P:FoodStreetGuide.Models.QRCode.MaxScans">
+            <summary>
+            Maximum number of scans allowed (null = unlimited)
+            </summary>
+        </member>
+        <member name="P:FoodStreetGuide.Models.QRCode.ScanCount">
+            <summary>
+            Current scan count
+            </summary>
+        </member>
+        <member name="P:FoodStreetGuide.Models.QRCode.IsUsed">
+            <summary>
+            Whether this QR has been marked as used (for single_use type)
+            </summary>
+        </member>
+        <member name="P:FoodStreetGuide.Models.QRCode.CreatedBy">
+            <summary>
+            Who created this QR code
+            </summary>
+        </member>
+        <member name="P:FoodStreetGuide.Models.QRCode.Notes">
+            <summary>
+            Notes or description
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Models.QRCode.IsValid">
+            <summary>
+            Check if QR code is still valid
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Models.QRCode.GetRemainingTime">
+            <summary>
+            Get remaining time before expiry
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Models.QRCode.GetRemainingScans">
+            <summary>
+            Get remaining scans allowed
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.Models.QRCode.GetDeepLink">
+            <summary>
+            Generate deep link URL for this QR code
+            </summary>
+        </member>
+        <member name="T:FoodStreetGuide.Models.QRScanRecord">
+            <summary>
+            Record of QR code scans to prevent duplicate counting
+            Implements cooldown logic for visit tracking
+            </summary>
+        </member>
+        <member name="P:FoodStreetGuide.Models.QRScanRecord.POIId">
+            <summary>
+            POI ID that was scanned
+            </summary>
+        </member>
+        <member name="P:FoodStreetGuide.Models.QRScanRecord.DeviceId">
+            <summary>
+            Device ID or installation ID (unique per device)
+            </summary>
+        </member>
+        <member name="P:FoodStreetGuide.Models.QRScanRecord.ScanTime">
+            <summary>
+            Timestamp of the scan
+            </summary>
+        </member>
+        <member name="P:FoodStreetGuide.Models.QRScanRecord.CountedAsVisit">
+            <summary>
+            Whether this scan counted as a visit
+            </summary>
+        </member>
+        <member name="P:FoodStreetGuide.Models.QRScanRecord.QRContent">
+            <summary>
+            QR code content that was scanned
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.QRScanPage.ProcessDynamicQR(System.String)">
+            <summary>
+            Process dynamic QR code with unique token
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.QRScanPage.ProcessLegacyQR(System.Int32,System.String)">
+            <summary>
+            Process legacy QR code (direct POI ID)
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.QRScanPage.NavigateToPOI(System.Int32,System.Boolean)">
+            <summary>
+            Navigate to POI by ID (legacy support)
+            </summary>
+        </member>
+        <member name="M:FoodStreetGuide.QRScanPage.NavigateToPOI(FoodStreetGuide.Models.POI,System.Boolean,System.Boolean)">
+            <summary>
+            Navigate to POI object
+            </summary>
+        </member>
+        <member name="T:FoodStreetGuide.Resource">
+            <summary>
+            Android Resource Designer class.
+            Exposes the Android Resource designer assembly into the project Namespace.
+            </summary>
+        </member>
+    </members>
+</doc>

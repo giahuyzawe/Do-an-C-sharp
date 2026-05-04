@@ -258,18 +258,16 @@ public partial class QRScanPage : ContentPage
         // Check if POI is approved
         if (poi.ApprovalStatus != "approved")
         {
-            await DisplayAlert("Chưa được duyệt", 
+            await DisplayAlert("Chưa được duyệt",
                 "Quán này đang chờ được duyệt. Vui lòng quay lại sau.", "OK");
             _isProcessing = false;
             return;
         }
 
-        // Navigate back and show POI
-        await Navigation.PopAsync();
+        // Navigate to POI detail page
+        await Navigation.PushAsync(new POIDetailPage(poi));
 
-        // Send message to MainPage to focus on this POI
-        // TODO: Re-enable when CommunityToolkit.Mvvm is installed
-        // WeakReferenceMessenger.Default.Send(new QRCodeScannedMessage(poi, countedAsVisit, isDynamicQR));
+        _isProcessing = false;
     }
 }
 

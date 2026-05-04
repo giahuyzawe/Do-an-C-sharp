@@ -136,6 +136,35 @@
 
 ---
 
+### 6. Online User Count / Real-time Analytics 🆕
+
+> **Sequence Diagram:** `SYSTEM_DIAGRAMS.md` → `SEQ-06b: Online User Count`
+
+#### Test Case 6.1: Real-time online user count trên Web Admin
+| Bước | Thao tác | Kết quả mong đợi |
+|------|---------|-----------------|
+| 1 | Mở app trên device | Web Admin hiển thị 🟢 1 online (trong 2s) |
+| 2 | Kiểm tra Web Admin → Statistics | Card "Đang Online" hiển thị số 1 |
+| 3 | Mở app trên 2nd device | Web Admin cập nhật → 🟢 2 online |
+| 4 | Tắt/kill app 1 device | Sau 1 phút → 🟢 1 online |
+| 5 | Kill tất cả app | Sau 1 phút → ⚪ 0 online |
+
+#### Test Case 6.2: App gửi heartbeat đúng interval
+| Bước | Thao tác | Kết quả mong đợi |
+|------|---------|-----------------|
+| 1 | Mở app, check `adb logcat` | Log: `[Analytics] Sending heartbeat...` mỗi 30s |
+| 2 | Chuyển app sang background | Heartbeat vẫn tiếp tục gửi |
+| 3 | Kill app | Heartbeat dừng, Web Admin giảm count sau 1 phút |
+
+#### Test Case 6.3: Web Admin API hoạt động
+| Bước | Thao tác | Kết quả mong đợi |
+|------|---------|-----------------|
+| 1 | Truy cập `get-online-users.php` | JSON: `{"onlineCount": X}` |
+| 2 | Kiểm polling interval | Frontend poll mỗi 2 giây |
+| 3 | Kiểm tra timezone sync | Server và device cùng timezone (Asia/Ho_Chi_Minh) |
+
+---
+
 ### 5. Trường Hợp Thực Tế & Lỗi
 
 #### Test Case 5.1: Mất kết nối Web

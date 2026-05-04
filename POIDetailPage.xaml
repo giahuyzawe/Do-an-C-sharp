@@ -6,6 +6,10 @@
              BackgroundColor="{StaticResource Background}">
 
     <Grid RowDefinitions="Auto,*">
+        <Grid.GestureRecognizers>
+            <SwipeGestureRecognizer Direction="Down" Swiped="OnSwipeDown"/>
+        </Grid.GestureRecognizers>
+
         <!-- Header -->
         <Frame Grid.Row="0"
                BackgroundColor="{StaticResource Surface}"

@@ -28,16 +28,16 @@ namespace FoodStreetGuide.Services
         }
         
         /// <summary>
-        /// Check if device is online
+        /// Check if device is online by calling API
         /// </summary>
-        public async Task<bool> IsOnlineAsync()
+        public async Task<bool> IsOnlineAsync(ApiService apiService)
         {
             try
             {
-                // Try to reach the API server
-                var response = await _httpClient.GetAsync("http://10.0.2.2/foodtour-admin/api/get-pois.php");
+                // Try to get POIs from API - if success, we're online
+                var result = await apiService.GetPOIsAsync();
                 var wasOffline = !_isOnline;
-                _isOnline = response.IsSuccessStatusCode;
+                _isOnline = result.Success;
                 
                 if (wasOffline && _isOnline)
                 {
@@ -55,11 +55,19 @@ namespace FoodStreetGuide.Services
         }
         
         /// <summary>
+        /// Check if device is online (legacy, uses hardcoded URL for emulator only)
+        /// </summary>
+        public async Task<bool> IsOnlineAsync()
+        {
+            return await IsOnlineAsync(new ApiService());
+        }
+        
+        /// <summary>
         /// Get POIs - from API if online, from cache if offline
         /// </summary>
         public async Task<List<POI>> GetPOIsAsync(ApiService apiService)
         {
-            var isOnline = await IsOnlineAsync();
+            var isOnline = await IsOnlineAsync(apiService);
             
             if (isOnline)
             {
@@ -69,7 +77,10 @@ namespace FoodStreetGuide.Services
                     var result = await apiService.GetPOIsAsync();
                     if (result.Success && result.Data?.Data != null)
                     {
-                        // Update local database
+                        // Clear old POIs first to ensure fresh data
+                        await _databaseService.DeleteAllPOIsAsync();
+                        
+                        // Update local database with new POIs
                         await SyncPOIsToDatabaseAsync(result.Data.Data);
                         _lastSyncTime = DateTime.Now;
                         

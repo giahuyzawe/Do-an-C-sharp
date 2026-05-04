@@ -665,6 +665,59 @@ stop
 @enduml
 ```
 
+----
+
+### ACT-07: Admin xem thống kê (Statistics)
+
+```plantuml
+@startuml
+start
+
+:Admin đăng nhập Web Admin;
+
+:Click menu "Thống kê";
+
+:Chọn khoảng thời gian
+(Today/Week/Month);
+
+:Hệ thống load dữ liệu;
+
+if (Analytics data exists?) then (yes)
+  :Tính toán thống kê;
+  
+  fork
+    :DAU (Daily Active Users);
+    :Số device unique;
+  fork again
+    :Page Views;
+    :Lượt xem POI;
+  fork again
+    :Check-ins;
+    :Lượt check-in QR;
+  fork again
+    :Top POI;
+    :Xem nhiều nhất;
+  end fork
+  
+  :Hiển thị biểu đồ;
+  :Render Chart.js;
+  
+  if (Admin muốn xem chi tiết?) then (yes)
+    :Click vào POI cụ thể;
+    :Hiển thị chi tiết POI stats;
+  else (no)
+  endif
+  
+else (no)
+  :Hiển thị "Chưa có dữ liệu";
+endif
+
+:Admin xem/phân tích;
+
+stop
+@enduml
+```
+
 ---
 
 ## 3️⃣ SEQUENCE DIAGRAMS
@@ -1008,54 +1061,226 @@ QRGen --> Owner: Download PNG
 
 deactivate QRGen
 
+actor "Admin" as Admin
+actor "Chủ nhà hàng" as Owner
+actor "User" as User
+participant "Mobile App" as App
+participant "App.xaml.cs" as AppCS
+participant "AnalyticsService" as Analytics
+participant "Web Admin\nget-online-users.php" as OnlineAPI
+participant "Database\n(analytics.json)" as DB
+
+== App Active ==
+User -> App: Mở app
+activate App
+App -> AppCS: OnStart()
+activate AppCS
+AppCS -> Analytics: TrackAppVisit()
+Analytics -> OnlineAPI: POST heartbeat (deviceId, timestamp)
+activate OnlineAPI
+OnlineAPI -> DB: Write analytics event
+activate DB
+DB --> OnlineAPI: Success
+deactivate DB
+OnlineAPI --> Analytics: 200 OK
+deactivate OnlineAPI
+AppCS --> App: 
+deactivate AppCS
+
+loop Mỗi 30 giây
+    App -> Analytics: SendHeartbeat()
+    Analytics -> OnlineAPI: POST heartbeat
+    activate OnlineAPI
+    OnlineAPI -> DB: Write event
+    activate DB
+    DB --> OnlineAPI: Success
+    deactivate DB
+    OnlineAPI --> Analytics: 200 OK
+    deactivate OnlineAPI
+end
+
+== Admin View ==
+Admin -> OnlineAPI: Vào Statistics page
+activate OnlineAPI
+OnlineAPI -> DB: Load events (last 60s)
+activate DB
+DB --> OnlineAPI: heartbeat events
+deactivate DB
+
+OnlineAPI -> OnlineAPI: Calculate online
+note right
+  - Filter: heartbeat/app_visit
+  - Threshold: 60 giây
+  - Distinct deviceId
+end note
+
+OnlineAPI --> Admin: {onlineCount: N, users: [...]}
+deactivate OnlineAPI
+
+loop Polling mỗi 2 giây
+    Admin -> OnlineAPI: GET get-online-users.php
+    activate OnlineAPI
+    OnlineAPI -> DB: Load recent events
+    activate DB
+    DB --> OnlineAPI: events
+    deactivate DB
+    OnlineAPI --> Admin: {onlineCount: N}
+    deactivate OnlineAPI
+end
+
+== App Close ==
+User -> App: Kill app
+destroy App
+note right: Heartbeat dừng
+
+... Sau 60 giây ...
+
+Admin -> OnlineAPI: GET get-online-users.php
+activate OnlineAPI
+OnlineAPI -> DB: Load events (last 60s)
+activate DB
+DB --> OnlineAPI: No recent events
+    deactivate DB
+OnlineAPI --> Admin: {onlineCount: 0}
+deactivate OnlineAPI
+
 @enduml
 ```
 
 ---
 
-### SEQ-06: Xem thống kê (Analytics)
+### SEQ-06: Analytics & Real-time Statistics (Thống kê tổng hợp)
 
 ```plantuml
 @startuml
 actor "Admin" as Admin
 actor "Chủ nhà hàng" as Owner
-participant "Web Admin\nstatistics.php" as Stats
+actor "User" as User
+participant "Mobile App" as App
+participant "App.xaml.cs" as AppCS
+participant "AnalyticsService" as Analytics
+participant "Web Admin\nStatistics Page" as Stats
 participant "API\nget-analytics.php" as API
-participant "Database\n(analytics.json)" as DB
+participant "API\nget-online-users.php" as OnlineAPI
+database "analytics.json" as DB
 
-alt Admin xem thống kê
-    Admin -> Stats: Vào trang Statistics
-    activate Stats
-    
-    Stats -> API: GET /get-analytics.php
-    activate API
-    API -> DB: Load analytics.json
+== A. DATA COLLECTION (Thu thập dữ liệu) ==
+
+User -> App: Mở app
+activate App
+App -> AppCS: OnStart()
+activate AppCS
+AppCS -> Analytics: TrackAppVisit()
+Analytics -> OnlineAPI: POST heartbeat
+activate OnlineAPI
+OnlineAPI -> DB: Write analytics event
+activate DB
+DB --> OnlineAPI: Success
+deactivate DB
+OnlineAPI --> Analytics: 200 OK
+deactivate OnlineAPI
+AppCS --> App: 
+deactivate AppCS
+
+loop Heartbeat mỗi 30 giây
+    App -> Analytics: SendHeartbeat()
+    Analytics -> OnlineAPI: POST heartbeat
+    activate OnlineAPI
+    OnlineAPI -> DB: Write event
     activate DB
-    DB --> API: All records
+    DB --> OnlineAPI: Success
     deactivate DB
-    
-    API -> API: Calculate metrics
-    note right
-      - DAU (Distinct deviceId)
-      - Views (type='poi_view')
-      - Check-ins (type='check_in')
-      - By date range
-    end note
-    
-    API --> Stats: {today, week, month}
-    deactivate API
-    
-    Stats --> Admin: Dashboard thống kê
-    
-else Owner xem thống kê
-    Owner -> Stats: Vào trang Statistics
-    Stats -> API: GET ?role=owner&poiIds=[1,2]
-    API -> DB: Filter by poiId
-    DB --> API: Filtered records
-    API --> Stats: Owner stats only
-    Stats --> Owner: Thống kê nhà hàng của tôi
+    OnlineAPI --> Analytics: 200 OK
+    deactivate OnlineAPI
 end
 
+== B. REAL-TIME MONITORING (Giám sát real-time) ==
+
+Admin -> Stats: Vào Statistics page
+activate Stats
+
+Stats -> OnlineAPI: GET get-online-users.php
+activate OnlineAPI
+OnlineAPI -> DB: Load events (last 60s)
+activate DB
+DB --> OnlineAPI: heartbeat events
+deactivate DB
+
+OnlineAPI -> OnlineAPI: Calculate online
+note right
+  - Filter: heartbeat/app_visit
+  - Threshold: 60 giây
+  - Distinct deviceId
+end note
+
+OnlineAPI --> Stats: {onlineCount: N, users: [...]}
+deactivate OnlineAPI
+
+Stats --> Admin: 🟢 Online Users Card
+
+loop Polling mỗi 2 giây
+    Stats -> OnlineAPI: GET get-online-users.php
+    activate OnlineAPI
+    OnlineAPI -> DB: Load recent events
+    activate DB
+    DB --> OnlineAPI: events
+    deactivate DB
+    OnlineAPI --> Stats: {onlineCount: N}
+    deactivate OnlineAPI
+end
+
+== C. HISTORICAL ANALYTICS (Thống kê lịch sử) ==
+
+Stats -> API: GET get-analytics.php
+activate API
+API -> DB: Load all events
+activate DB
+DB --> API: All records
+deactivate DB
+
+API -> API: Calculate metrics
+note right
+  - DAU (Distinct deviceId)
+  - Views (type='poi_view')
+  - Check-ins (type='check_in')
+  - By date range
+end note
+
+API --> Stats: {today, week, month, dauData}
+deactivate API
+
+Stats --> Admin: 📊 Dashboard thống kê
+deactivate Stats
+
+== D. APP CLOSE (User thoát app) ==
+
+User -> App: Kill app / Close
+destroy App
+note right: Heartbeat dừng
+
+... Sau 60 giây ...
+
+OnlineAPI -> DB: Load events (last 60s)
+activate OnlineAPI
+activate DB
+DB --> OnlineAPI: No recent events
+deactivate DB
+OnlineAPI --> Stats: {onlineCount: 0}
+deactivate OnlineAPI
+
+Stats --> Admin: ⚪ 0 online
+
+== E. OWNER VIEW (Chủ nhà hàng) ==
+
+Owner -> Stats: Vào trang Statistics
+activate Stats
+Stats -> API: GET ?role=owner&poiIds=[1,2]
+API -> DB: Filter by poiId
+activate DB
+DB --> API: Filtered records
+deactivate DB
+API --> Stats: Owner stats only
+Stats --> Owner: Thống kê nhà hàng của tôi
 deactivate Stats
 
 @enduml
@@ -1139,9 +1364,9 @@ deactivate App
 | Loại sơ đồ | Số lượng | Chi tiết |
 |------------|----------|----------|
 | **Use Case** | 7 | Tổng quan, Map, QR Check-in, Review, POI Management, QR Management, Statistics |
-| **Activity** | 6 | Map view, QR Check-in, Review, POI CRUD, QR Management, Data Sync |
+| **Activity** | 7 | Map view, QR Check-in, Review, POI CRUD, QR Management, Data Sync, Statistics |
 | **Sequence** | 7 | Geofence, QR Check-in, Review, Add POI, Create QR, Analytics, App Sync |
-| **TỔNG** | **20** | |
+| **TỔNG** | **21** | |
 
 ---
 

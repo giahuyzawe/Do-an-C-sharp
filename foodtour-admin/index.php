@@ -23,6 +23,8 @@ if ($role === 'restaurant_owner') {
 }
 
 // Calculate stats
+
+
 $totalPOIs = count($pois);
 $approvedPOIs = count(array_filter($pois, fn($p) => ($p['status'] ?? 'pending') === 'approved'));
 $pendingPOIs = count(array_filter($pois, fn($p) => ($p['status'] ?? 'pending') === 'pending'));

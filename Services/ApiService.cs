@@ -9,8 +9,10 @@ namespace FoodStreetGuide.Services
     public class ApiService
     {
         private readonly HttpClient _httpClient;
-        // Use 10.0.2.2 for Android emulator (special IP maps to host localhost)
-        private const string BASE_URL = "http://10.0.2.2/foodtour-admin/api";
+        // 🌐 NGROK URL - Dùng cho mọi thiết bị (emulator + điện thoại thật)
+        // Khởi động ngrok: ngrok http 880
+        // Sau đó copy URL https vào đây
+        private const string BASE_URL = "https://false-awaken-uncooked.ngrok-free.dev/foodtour-admin/api";
 
         public ApiService()
         {
@@ -56,16 +58,23 @@ namespace FoodStreetGuide.Services
         /// <summary>
         /// Post analytics event to Web Admin
         /// </summary>
-        public async Task<ApiResponse<object>> PostAnalyticsAsync(string type, string deviceId, int? poiId = null, string qrToken = null)
+        public async Task<ApiResponse<object>> PostAnalyticsAsync(string type, string deviceId, int? poiId = null, string qrToken = null, string language = null)
         {
             try
             {
+                // Get current language if not provided
+                if (string.IsNullOrEmpty(language))
+                {
+                    language = Preferences.Get("AppLanguage", "vi");
+                }
+                
                 var request = new
                 {
                     type,
                     deviceId,
                     poiId,
                     qrToken,
+                    language,
                     timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                 };
 
@@ -189,6 +198,42 @@ namespace FoodStreetGuide.Services
                 };
             }
         }
+
+        /// <summary>
+        /// Sync SQLite data to Web Admin (reviews, check-ins, saved POIs)
+        /// </summary>
+        public async Task<ApiResponse<SyncResponse>> SyncDataAsync(string deviceId, string type, object[] data)
+        {
+            try
+            {
+                var request = new
+                {
+                    deviceId,
+                    type, // 'reviews', 'checkins', 'saved_pois'
+                    data,
+                    timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                };
+
+                var response = await _httpClient.PostAsJsonAsync($"{BASE_URL}/sync-data.php", request);
+                response.EnsureSuccessStatusCode();
+
+                var content = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<ApiResponse<SyncResponse>>(content, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                return result ?? new ApiResponse<SyncResponse> { Success = false, Error = "Empty response" };
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse<SyncResponse>
+                {
+                    Success = false,
+                    Error = ex.Message
+                };
+            }
+        }
     }
 
     public class ApiResponse<T>
@@ -257,5 +302,12 @@ namespace FoodStreetGuide.Services
         public int Rating { get; set; }
         public string Comment { get; set; }
         public string CreatedAt { get; set; }
+    }
+
+    public class SyncResponse
+    {
+        public int Synced { get; set; }
+        public string Type { get; set; }
+        public List<string> Errors { get; set; }
     }
 }

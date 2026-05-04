@@ -11,6 +11,7 @@ public interface IDatabaseService
     Task<int> AddPOIAsync(POI poi);
     Task<int> UpdatePOIAsync(POI poi);
     Task<int> DeletePOIAsync(POI poi);
+    Task<int> DeleteAllPOIsAsync();
     Task<int> SavePOIAsync(POI poi);
     
     // Review operations

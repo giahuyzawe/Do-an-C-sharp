@@ -1,6 +1,7 @@
 ﻿using FoodStreetGuide.Services;
 using FoodStreetGuide.Models;
 using FoodStreetGuide.Database;
+using System.Timers;
 
 namespace FoodStreetGuide;
 
@@ -26,13 +27,22 @@ public partial class App : Application
             {
                 await databaseService.Init();
                 
-                // Get or create DeviceId
-                _currentDeviceId = Preferences.Get("DeviceId", string.Empty);
-                if (string.IsNullOrEmpty(_currentDeviceId))
+                // Get or create UNIQUE DeviceId per device (NOT shared via backup)
+                // Use combination of install timestamp + random to ensure uniqueness
+                var installKey = "AppInstallId";
+                var installId = Preferences.Get(installKey, string.Empty);
+                if (string.IsNullOrEmpty(installId))
                 {
-                    _currentDeviceId = Guid.NewGuid().ToString();
-                    Preferences.Set("DeviceId", _currentDeviceId);
+                    // First time install - create unique install ID
+                    installId = Guid.NewGuid().ToString("N")[..12];
+                    Preferences.Set(installKey, installId);
                 }
+                
+                // DeviceId = InstallId (unique per device installation)
+                _currentDeviceId = installId;
+                
+                // Also save to legacy key for compatibility
+                Preferences.Set("DeviceId", _currentDeviceId);
                 
                 // Record app visit (local) - will be used for session tracking
                 await databaseService.RecordAppVisitAsync(_currentDeviceId, DateTime.Now, AppInfo.Version.ToString(), DeviceInfo.Platform.ToString());
@@ -91,6 +101,20 @@ public partial class App : Application
                     }
                 });
                 
+                // Sync SQLite data to Web Admin (reviews, check-ins, saved POIs)
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await Task.Delay(10000); // Wait 10s after POI sync
+                        await SyncLocalDataToWebAdminAsync();
+                    }
+                    catch (Exception syncEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[App] Data sync error: {syncEx.Message}");
+                    }
+                });
+                
                 // Start new session or continue existing
                 await StartOrContinueSessionAsync();
             }
@@ -118,7 +142,9 @@ public partial class App : Application
             {
                 await Database.RecordAppOpenAsync(_currentDeviceId, _currentSessionId);
                 var sessionIdShort = _currentSessionId?.Length >= 8 ? _currentSessionId.Substring(0, 8) : _currentSessionId ?? "unknown";
-            System.Diagnostics.Debug.WriteLine($"[App] App open recorded in existing session: {sessionIdShort}...");
+                System.Diagnostics.Debug.WriteLine($"[App] App open recorded in existing session: {sessionIdShort}...");
+                // Start heartbeat for online tracking even for existing sessions
+                StartHeartbeatTracking();
                 return;
             }
         }
@@ -146,12 +172,99 @@ public partial class App : Application
                 System.Diagnostics.Debug.WriteLine($"[App] API error: {apiEx.Message}");
             }
         });
+        
+        // Start heartbeat to track ONLINE status (every 30 seconds)
+        StartHeartbeatTracking();
+    }
+    
+    private System.Timers.Timer _heartbeatTimer;
+    private bool _isDisposed = false;
+    
+    ~App()
+    {
+        // Mark as disposed to stop timer callbacks
+        _isDisposed = true;
+        
+        // Cleanup timer when App is destroyed
+        if (_heartbeatTimer != null)
+        {
+            _heartbeatTimer.Stop();
+            _heartbeatTimer.Dispose();
+            _heartbeatTimer = null;
+        }
+    }
+    
+    private void StartHeartbeatTracking()
+    {
+        // Stop existing timer if running (prevent multiple instances)
+        if (_heartbeatTimer != null)
+        {
+            _heartbeatTimer.Stop();
+            _heartbeatTimer.Dispose();
+            _heartbeatTimer = null;
+        }
+        
+        _heartbeatTimer = new System.Timers.Timer(30000); // 30 seconds
+        _heartbeatTimer.Elapsed += async (s, e) =>
+        {
+            // Skip if App is being disposed
+            if (_isDisposed) return;
+            
+            if (!string.IsNullOrEmpty(_currentDeviceId))
+            {
+                try
+                {
+                    System.Diagnostics.Debug.WriteLine("[Heartbeat] Sending...");
+                    var apiService = new ApiService();
+                    var result = await apiService.PostAnalyticsAsync("heartbeat", _currentDeviceId);
+                    if (result.Success)
+                    {
+                        System.Diagnostics.Debug.WriteLine("[Heartbeat] Sent successfully");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[Heartbeat] Failed: {result.Error}");
+                    }
+                }
+                catch (Exception ex) 
+                { 
+                    System.Diagnostics.Debug.WriteLine($"[Heartbeat] Exception: {ex.Message}");
+                }
+            }
+        };
+        _heartbeatTimer.Start();
+        System.Diagnostics.Debug.WriteLine("[App] Heartbeat tracking started (30s interval)");
+    }
+
+    /// <summary>
+    /// Sync SQLite local data to Web Admin (reviews, check-ins, saved POIs)
+    /// </summary>
+    private async Task SyncLocalDataToWebAdminAsync()
+    {
+        if (string.IsNullOrEmpty(_currentDeviceId)) return;
+        
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("[Sync] SQLite sync disabled for now - using analytics only");
+            // TODO: Add sync code when DatabaseService methods are ready
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Sync] Error: {ex.Message}");
+        }
     }
 
     protected override void OnSleep()
     {
         base.OnSleep();
         System.Diagnostics.Debug.WriteLine("[App] OnSleep - App going to background");
+        
+        // Stop heartbeat timer when app goes to background
+        if (_heartbeatTimer != null)
+        {
+            _heartbeatTimer.Stop();
+            System.Diagnostics.Debug.WriteLine("[App] Heartbeat timer stopped (app backgrounded)");
+        }
         
         // Stop geofence tracking when app is backgrounded or killed
         var geofenceEngine = ServiceProviderHelper.GetService<IGeofenceEngine>();

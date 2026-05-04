@@ -4,8 +4,6 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoodStreetGuide", "FoodStreetGuide.csproj", "{6B5DAF75-3726-F795-F016-45F98F5D6749}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoodStreetGuide.Admin", "FoodStreetGuide.Admin\FoodStreetGuide.Admin.csproj", "{615D23B9-AF0A-EDF8-2FEF-7F8A4C1BED13}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
